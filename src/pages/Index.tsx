@@ -6,6 +6,8 @@ import Hero from "@/components/home/Hero";
 import Services from "@/components/home/Services";
 import Stylists from "@/components/home/Stylists";
 import Specialists from "@/components/home/Specialists";
+import Gallery from "@/components/home/Gallery";
+import Reviews from "@/components/home/Reviews";
 
 const Index = () => {
   return (
@@ -15,7 +17,9 @@ const Index = () => {
       <main className="flex-grow">
         <Hero />
         <Services />
+        <Gallery />
         <Stylists />
+        <Reviews />
         <Specialists />
         
         {/* Contact Section */}
