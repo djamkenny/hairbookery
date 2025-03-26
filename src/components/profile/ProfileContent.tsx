@@ -6,6 +6,7 @@ import PersonalInfoTab from "@/components/profile/PersonalInfoTab";
 import FavoritesTab from "@/components/profile/FavoritesTab";
 import SettingsTab from "@/components/profile/SettingsTab";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Appointment } from "@/types/appointment";
 
 interface ProfileContentProps {
   activeTab: string;
@@ -15,16 +16,16 @@ interface ProfileContentProps {
   email: string;
   phone: string;
   setPhone: (phone: string) => void;
-  upcomingAppointments: any[];
-  pastAppointments: any[];
+  upcomingAppointments: Appointment[];
+  pastAppointments: Appointment[];
   favoriteSylists: any[];
-  handleRescheduleAppointment: (id: number) => void;
-  handleCancelAppointment: (id: number) => void;
+  handleRescheduleAppointment: (id: string) => void;
+  handleCancelAppointment: (id: string) => void;
   emailNotifications: boolean;
   setEmailNotifications: (value: boolean) => void;
   smsNotifications: boolean;
   setSmsNotifications: (value: boolean) => void;
-  removeFavoriteStylist: (id: number) => void;
+  removeFavoriteStylist: (id: string) => void;
 }
 
 const ProfileContent = ({

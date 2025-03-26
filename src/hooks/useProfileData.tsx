@@ -51,6 +51,7 @@ export const useProfileData = () => {
         
         const formattedAppointments = appointmentsData.map(apt => ({
           id: apt.id,
+          client: userId, // Add missing required field
           service: apt.services?.name || 'Service',
           stylist: apt.profiles?.full_name || 'Stylist',
           date: format(new Date(apt.appointment_date), 'MMMM dd, yyyy'),
@@ -167,7 +168,7 @@ export const useProfileData = () => {
     toast.info(`Redirecting to reschedule appointment #${id}`);
   };
   
-  const removeFavoriteStylist = (id: number) => {
+  const removeFavoriteStylist = (id: string) => {
     // In a real app, this would remove the stylist from favorites in the database
     toast.success("Stylist removed from favorites");
   };

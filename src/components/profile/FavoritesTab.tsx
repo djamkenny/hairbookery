@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { XIcon } from "lucide-react";
 
 interface Stylist {
-  id: number;
+  id: string;
   name: string;
   specialty: string;
   image: string;
@@ -15,7 +15,7 @@ interface Stylist {
 
 interface FavoritesTabProps {
   favoriteSylists: Stylist[];
-  removeFavoriteStylist: (id: number) => void;
+  removeFavoriteStylist: (id: string) => void;
 }
 
 const FavoritesTab = ({ favoriteSylists, removeFavoriteStylist }: FavoritesTabProps) => {
