@@ -16,14 +16,16 @@ export const useProfileData = () => {
   const [phone, setPhone] = useState("");
   
   // Initialize with empty arrays for new users
-  const [upcomingAppointments, setUpcomingAppointments] = useState([]);
-  const [pastAppointments, setPastAppointments] = useState([]);
-  const [favoriteSylists, setFavoriteSylists] = useState([]);
+  const [upcomingAppointments, setUpcomingAppointments] = useState<any[]>([]);
+  const [pastAppointments, setPastAppointments] = useState<any[]>([]);
+  const [favoriteSylists, setFavoriteSylists] = useState<any[]>([]);
   
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
+        setLoading(true);
         const { data: { user } } = await supabase.auth.getUser();
+        
         if (user) {
           setUser(user);
           setEmail(user.email || "");
@@ -39,6 +41,8 @@ export const useProfileData = () => {
         }
       } catch (error) {
         console.error("Error fetching user:", error);
+      } finally {
+        setLoading(false);
       }
     };
     

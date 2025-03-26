@@ -45,7 +45,7 @@ const DashboardSummary = ({
           </div>
           <div>
             <p className="text-muted-foreground text-sm">Services</p>
-            <p className="text-2xl font-medium">-</p>
+            <p className="text-2xl font-medium">0</p>
           </div>
         </CardContent>
       </Card>
@@ -57,7 +57,7 @@ const DashboardSummary = ({
           </div>
           <div>
             <p className="text-muted-foreground text-sm">Loyalty Points</p>
-            <p className="text-2xl font-medium">-</p>
+            <p className="text-2xl font-medium">0</p>
           </div>
         </CardContent>
       </Card>
