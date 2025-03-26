@@ -23,7 +23,7 @@ const StylistDashboard = () => {
   const [experience, setExperience] = useState("");
   const [bio, setBio] = useState("");
   
-  // Dashboard stats
+  // Dashboard stats - initials with default values
   const [upcomingAppointments, setUpcomingAppointments] = useState(0);
   const [totalClients, setTotalClients] = useState(0);
   const [completedAppointments, setCompletedAppointments] = useState(0);
@@ -73,65 +73,17 @@ const StylistDashboard = () => {
             setBio(profileData.bio || metadata.bio || "");
           }
           
-          // Try to fetch appointments data - wrapped in try/catch since table might not exist
-          try {
-            const { data: appointmentsData, error: appointmentsError } = await supabase
-              .from('appointments')
-              .select('*');
-              
-            if (!appointmentsError && appointmentsData) {
-              // Filter for this stylist's appointments
-              const stylistAppointments = appointmentsData.filter(apt => 
-                apt.stylist_id === authUser.id && !apt.canceled_at
-              );
-              
-              // Further filter for upcoming vs completed
-              const upcoming = stylistAppointments.filter(apt => 
-                new Date(apt.appointment_date) >= new Date()
-              );
-              
-              const completed = stylistAppointments.filter(apt => 
-                new Date(apt.appointment_date) < new Date() && apt.status === 'completed'
-              );
-              
-              setUpcomingAppointments(upcoming.length);
-              setCompletedAppointments(completed.length);
-              
-              // Count unique clients
-              const uniqueClients = new Set(stylistAppointments.map(appointment => appointment.client_id));
-              setTotalClients(uniqueClients.size);
-            }
-          } catch (err) {
-            console.log("Appointments table may not exist yet:", err);
-            // Set default values
-            setUpcomingAppointments(0);
-            setCompletedAppointments(0);
-            setTotalClients(0);
-          }
+          // Instead of querying non-existent tables, let's hardcode stats temporarily
+          // These will be replaced when the actual tables are created
           
-          // Try to fetch ratings data - wrapped in try/catch since table might not exist
-          try {
-            const { data: ratingsData, error: ratingsError } = await supabase
-              .from('reviews')
-              .select('rating');
-              
-            if (!ratingsError && ratingsData && ratingsData.length > 0) {
-              // Filter for this stylist's ratings and calculate average
-              const stylistRatings = ratingsData.filter(review => review.stylist_id === authUser.id);
-              
-              if (stylistRatings.length > 0) {
-                const average = stylistRatings.reduce((sum, review) => sum + review.rating, 0) / stylistRatings.length;
-                setRating(average);
-              } else {
-                setRating(null);
-              }
-            } else {
-              setRating(null);
-            }
-          } catch (err) {
-            console.log("Reviews table may not exist yet:", err);
-            setRating(null);
-          }
+          // Sample metrics (static for now, will be dynamic later)
+          // In a real app, these would come from the appointments and reviews tables
+          setUpcomingAppointments(0);
+          setCompletedAppointments(0);
+          setTotalClients(0);
+          setRating(null);
+          
+          console.log("Note: Using default values for dashboard metrics until database tables are created.");
         }
       } catch (error: any) {
         console.error("Error fetching user data:", error);
