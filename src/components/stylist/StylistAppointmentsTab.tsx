@@ -72,7 +72,8 @@ const StylistAppointmentsTab = () => {
               time: appointment.appointment_time,
               status: appointment.status,
               clientEmail: clientProfile.email,
-              clientPhone: clientProfile.phone
+              clientPhone: clientProfile.phone,
+              client_id: appointment.client_id // Add client_id for notification
             };
           });
           
@@ -89,8 +90,9 @@ const StylistAppointmentsTab = () => {
     fetchAppointments();
   }, []);
   
-  const handleUpdateStatus = async (appointmentId: string, newStatus: string) => {
+  const handleUpdateStatus = async (appointmentId: string, newStatus: string, clientId: string) => {
     try {
+      // Update appointment status
       const { error } = await supabase
         .from('appointments')
         .update({ status: newStatus })
@@ -106,6 +108,29 @@ const StylistAppointmentsTab = () => {
             : appointment
         )
       );
+      
+      // Send notification to client by adding to the notifications table (if confirmed)
+      if (newStatus === "confirmed") {
+        const appointmentInfo = appointments.find(a => a.id === appointmentId);
+        const message = `Your appointment for ${appointmentInfo?.service} on ${appointmentInfo?.date} at ${appointmentInfo?.time} has been confirmed.`;
+        
+        const { error: notificationError } = await supabase
+          .from('notifications')
+          .insert({
+            user_id: clientId,
+            message: message,
+            type: 'appointment_confirmed',
+            is_read: false,
+            related_id: appointmentId
+          })
+          .select();
+          
+        if (notificationError) {
+          console.error("Error sending notification:", notificationError);
+        } else {
+          console.log("Notification sent to client");
+        }
+      }
       
       toast.success(`Appointment ${newStatus}`);
     } catch (error: any) {
@@ -147,7 +172,8 @@ const StylistAppointmentsTab = () => {
                     <TableCell>{appointment.date}</TableCell>
                     <TableCell>{appointment.time}</TableCell>
                     <TableCell>
-                      <Badge variant={appointment.status === "confirmed" ? "default" : "secondary"}>
+                      <Badge variant={appointment.status === "confirmed" ? "default" : 
+                              appointment.status === "completed" ? "secondary" : "outline"}>
                         {appointment.status === "confirmed" ? "Confirmed" : 
                          appointment.status === "completed" ? "Completed" : "Pending"}
                       </Badge>
@@ -158,7 +184,7 @@ const StylistAppointmentsTab = () => {
                         {appointment.status === "pending" && (
                           <Button 
                             size="sm"
-                            onClick={() => handleUpdateStatus(appointment.id, "confirmed")}
+                            onClick={() => handleUpdateStatus(appointment.id, "confirmed", appointment.client_id)}
                           >
                             Confirm
                           </Button>
@@ -166,7 +192,7 @@ const StylistAppointmentsTab = () => {
                         {appointment.status === "confirmed" && (
                           <Button 
                             size="sm"
-                            onClick={() => handleUpdateStatus(appointment.id, "completed")}
+                            onClick={() => handleUpdateStatus(appointment.id, "completed", appointment.client_id)}
                           >
                             Complete
                           </Button>
