@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect } from "react";
-import DashboardLayout from "@/components/layout/DashboardLayout";
 import StylistDashboardSummary from "@/components/stylist/StylistDashboardSummary";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
@@ -94,99 +93,95 @@ const StylistDashboard = () => {
   
   if (loading) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center min-h-[50vh]">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      </DashboardLayout>
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
     );
   }
   
   return (
-    <DashboardLayout>
-      <main className="container py-10">
-        <h1 className="text-3xl font-bold mb-8">Stylist Dashboard</h1>
-        
-        <StylistDashboardSummary 
-          upcomingAppointments={upcomingAppointments}
-          totalClients={totalClients}
-          completedAppointments={completedAppointments}
-          rating={rating}
-        />
-        
-        <div className="mt-8">
-          <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <Card className="border border-border/40">
-              <TabsList className="w-full justify-start p-0 h-auto bg-transparent border-b border-border/40 rounded-none">
-                <TabsTrigger 
-                  value="profile" 
-                  className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3 px-6"
-                >
-                  Profile
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="appointments" 
-                  className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3 px-6"
-                >
-                  Appointments
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="clients" 
-                  className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3 px-6"
-                >
-                  Clients
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="services" 
-                  className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3 px-6"
-                >
-                  Services
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="settings" 
-                  className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3 px-6"
-                >
-                  Settings
-                </TabsTrigger>
-              </TabsList>
-            </Card>
-            
-            <TabsContent value="profile">
-              <StylistInfoTab 
-                user={user}
-                fullName={fullName}
-                setFullName={setFullName}
-                email={email}
-                phone={phone}
-                setPhone={setPhone}
-                specialty={specialty}
-                setSpecialty={setSpecialty}
-                experience={experience}
-                setExperience={setExperience}
-                bio={bio}
-                setBio={setBio}
-              />
-            </TabsContent>
-            
-            <TabsContent value="appointments">
-              <StylistAppointmentsTab />
-            </TabsContent>
-            
-            <TabsContent value="clients">
-              <StylistClientsTab />
-            </TabsContent>
-            
-            <TabsContent value="services">
-              <StylistServicesTab />
-            </TabsContent>
-            
-            <TabsContent value="settings">
-              <StylistSettingsTab />
-            </TabsContent>
-          </Tabs>
-        </div>
-      </main>
-    </DashboardLayout>
+    <main className="container py-10">
+      <h1 className="text-3xl font-bold mb-8">Stylist Dashboard</h1>
+      
+      <StylistDashboardSummary 
+        upcomingAppointments={upcomingAppointments}
+        totalClients={totalClients}
+        completedAppointments={completedAppointments}
+        rating={rating}
+      />
+      
+      <div className="mt-8">
+        <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <Card className="border border-border/40">
+            <TabsList className="w-full justify-start p-0 h-auto bg-transparent border-b border-border/40 rounded-none">
+              <TabsTrigger 
+                value="profile" 
+                className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3 px-6"
+              >
+                Profile
+              </TabsTrigger>
+              <TabsTrigger 
+                value="appointments" 
+                className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3 px-6"
+              >
+                Appointments
+              </TabsTrigger>
+              <TabsTrigger 
+                value="clients" 
+                className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3 px-6"
+              >
+                Clients
+              </TabsTrigger>
+              <TabsTrigger 
+                value="services" 
+                className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3 px-6"
+              >
+                Services
+              </TabsTrigger>
+              <TabsTrigger 
+                value="settings" 
+                className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3 px-6"
+              >
+                Settings
+              </TabsTrigger>
+            </TabsList>
+          </Card>
+          
+          <TabsContent value="profile">
+            <StylistInfoTab 
+              user={user}
+              fullName={fullName}
+              setFullName={setFullName}
+              email={email}
+              phone={phone}
+              setPhone={setPhone}
+              specialty={specialty}
+              setSpecialty={setSpecialty}
+              experience={experience}
+              setExperience={setExperience}
+              bio={bio}
+              setBio={setBio}
+            />
+          </TabsContent>
+          
+          <TabsContent value="appointments">
+            <StylistAppointmentsTab />
+          </TabsContent>
+          
+          <TabsContent value="clients">
+            <StylistClientsTab />
+          </TabsContent>
+          
+          <TabsContent value="services">
+            <StylistServicesTab />
+          </TabsContent>
+          
+          <TabsContent value="settings">
+            <StylistSettingsTab />
+          </TabsContent>
+        </Tabs>
+      </div>
+    </main>
   );
 };
 
