@@ -9,7 +9,7 @@ interface AppointmentStatsProps {
 }
 
 const AppointmentStats = ({ pastAppointments, upcomingAppointments }: AppointmentStatsProps) => {
-  // Create sample data for the chart
+  // Create data for the chart - include current month data from props
   const data = [
     { month: "Jan", appointments: 2 },
     { month: "Feb", appointments: 3 },
