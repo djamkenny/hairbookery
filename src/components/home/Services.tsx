@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -55,7 +54,7 @@ const services = [
   }
 ];
 
-const Services = () => {
+export const Services = () => {
   return (
     <section id="services" className="py-20 bg-background">
       <div className="container mx-auto px-4">
@@ -76,7 +75,6 @@ const Services = () => {
               duration={service.duration}
               image={service.image}
               className="animate-fade-in"
-              style={{ animationDelay: `${index * 0.1}s` }}
             />
           ))}
         </div>

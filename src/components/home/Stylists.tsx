@@ -33,7 +33,7 @@ const stylists = [
   }
 ];
 
-const Stylists = () => {
+export const Stylists = () => {
   return (
     <section id="stylists" className="py-20 bg-secondary/30">
       <div className="container mx-auto px-4">

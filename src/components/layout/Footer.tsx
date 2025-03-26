@@ -3,7 +3,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Facebook, Instagram, Twitter } from "lucide-react";
 
-const Footer = () => {
+export const Footer = () => {
   return (
     <footer className="bg-secondary/30 border-t border-border/50 pt-16 pb-8">
       <div className="container mx-auto px-4">

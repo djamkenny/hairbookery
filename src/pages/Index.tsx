@@ -1,10 +1,10 @@
 
 import React from "react";
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
-import { Hero } from "@/components/home/Hero";
-import { Services } from "@/components/home/Services";
-import { Stylists } from "@/components/home/Stylists";
+import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
+import Hero from "@/components/home/Hero";
+import Services from "@/components/home/Services";
+import Stylists from "@/components/home/Stylists";
 
 const Index = () => {
   return (

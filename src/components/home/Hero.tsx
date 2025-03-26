@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "lucide-react";
 
-const Hero = () => {
+export const Hero = () => {
   return (
     <section className="relative min-h-[92vh] flex items-center pt-20">
       <div 

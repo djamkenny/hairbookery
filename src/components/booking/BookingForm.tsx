@@ -1,5 +1,4 @@
-
-import React, { useState } from "react";
+import React from "react";
 import { useSearchParams } from "react-router-dom";
 import { format } from "date-fns";
 import { CalendarIcon, Clock } from "lucide-react";
@@ -24,7 +23,6 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
-// Sample data
 const services = [
   { id: 1, name: "Haircut & Styling", price: "$45" },
   { id: 2, name: "Hair Coloring", price: "$75" },
@@ -46,7 +44,7 @@ const timeSlots = [
   "1:00 PM", "2:00 PM", "3:00 PM", "4:00 PM", "5:00 PM"
 ];
 
-const BookingForm = () => {
+export const BookingForm = () => {
   const [searchParams] = useSearchParams();
   const preselectedStylistId = searchParams.get("stylist");
   
@@ -63,7 +61,6 @@ const BookingForm = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Form validation
     if (!date || !service || !stylist || !time || !name || !email || !phone) {
       toast.error("Please fill in all required fields");
       return;
@@ -71,11 +68,9 @@ const BookingForm = () => {
     
     setIsSubmitting(true);
     
-    // Simulate API call
     setTimeout(() => {
       toast.success("Appointment booked successfully! We'll send you a confirmation email shortly.");
       
-      // Reset form
       setDate(undefined);
       setService("");
       setStylist("");
