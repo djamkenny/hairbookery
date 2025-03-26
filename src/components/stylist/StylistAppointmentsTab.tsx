@@ -25,14 +25,13 @@ const StylistAppointmentsTab = () => {
           return;
         }
         
-        // Fetch appointments where this stylist is assigned, along with related data
-        // The query is modified to use proper join syntax
+        // Fetch appointments where this stylist is assigned, along with client info
+        // Use separate queries to avoid relationship issues
         const { data, error } = await supabase
           .from('appointments')
           .select(`
             *,
-            services:service_id(name),
-            profiles!client_id(full_name, email, phone)
+            services:service_id(name)
           `)
           .eq('stylist_id', user.id)
           .is('canceled_at', null);
@@ -42,17 +41,40 @@ const StylistAppointmentsTab = () => {
         }
         
         if (data) {
-          // Format the appointments data
-          const formattedAppointments = data.map(appointment => ({
-            id: appointment.id,
-            client: appointment.profiles?.full_name || 'Client',
-            service: appointment.services?.name || 'Service',
-            date: format(new Date(appointment.appointment_date), 'MMMM dd, yyyy'),
-            time: appointment.appointment_time,
-            status: appointment.status,
-            clientEmail: appointment.profiles?.email,
-            clientPhone: appointment.profiles?.phone
-          }));
+          // Get all unique client IDs from the appointments
+          const clientIds = [...new Set(data.map(appointment => appointment.client_id))];
+          
+          // Fetch client profiles in a separate query
+          const { data: clientProfiles, error: clientError } = await supabase
+            .from('profiles')
+            .select('id, full_name, email, phone')
+            .in('id', clientIds);
+            
+          if (clientError) {
+            console.error("Error fetching client profiles:", clientError);
+          }
+          
+          // Create a map of client profiles by ID for easy lookup
+          const clientProfileMap = (clientProfiles || []).reduce((map, profile) => {
+            map[profile.id] = profile;
+            return map;
+          }, {} as Record<string, any>);
+          
+          // Format the appointments data with client info from the map
+          const formattedAppointments = data.map(appointment => {
+            const clientProfile = clientProfileMap[appointment.client_id] || {};
+            
+            return {
+              id: appointment.id,
+              client: clientProfile.full_name || 'Client',
+              service: appointment.services?.name || 'Service',
+              date: format(new Date(appointment.appointment_date), 'MMMM dd, yyyy'),
+              time: appointment.appointment_time,
+              status: appointment.status,
+              clientEmail: clientProfile.email,
+              clientPhone: clientProfile.phone
+            };
+          });
           
           setAppointments(formattedAppointments);
         }
