@@ -25,7 +25,11 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/booking" element={<Booking />} />
+          <Route path="/booking" element={
+            <ProtectedRoute requireStylist={false}>
+              <Booking />
+            </ProtectedRoute>
+          } />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/stylist-register" element={<StylistRegister />} />

@@ -1,5 +1,4 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { format } from "date-fns";
 import { CalendarIcon, Clock } from "lucide-react";
@@ -23,6 +22,7 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const services = [
   { id: 1, name: "Haircut & Styling", price: "$45" },
@@ -58,6 +58,26 @@ export const BookingForm = () => {
   const [phone, setPhone] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          setEmail(user.email || "");
+          
+          if (user.user_metadata) {
+            setName(user.user_metadata.full_name || "");
+            setPhone(user.user_metadata.phone || "");
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching user:", error);
+      }
+    };
+    
+    fetchUserProfile();
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,9 +96,6 @@ export const BookingForm = () => {
       setService("");
       setStylist("");
       setTime("");
-      setName("");
-      setEmail("");
-      setPhone("");
       setNotes("");
       setIsSubmitting(false);
     }, 1500);
