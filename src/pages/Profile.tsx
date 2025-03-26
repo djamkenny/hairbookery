@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -11,6 +10,7 @@ import AppointmentsTab from "@/components/profile/AppointmentsTab";
 import PersonalInfoTab from "@/components/profile/PersonalInfoTab";
 import FavoritesTab from "@/components/profile/FavoritesTab";
 import SettingsTab from "@/components/profile/SettingsTab";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 // Sample data for appointments
 const upcomingAppointments = [
@@ -73,11 +73,7 @@ const Profile = () => {
   const [smsNotifications, setSmsNotifications] = useState(true);
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
-  
-  // User profile state variables
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
+  const isMobile = useIsMobile();
   
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -85,10 +81,8 @@ const Profile = () => {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           setUser(user);
-          // Initialize the profile fields with user data if available
           setEmail(user.email || "");
           
-          // Try to get additional profile data from metadata if available
           const metadata = user.user_metadata || {};
           setFullName(metadata.full_name || "");
           setPhone(metadata.phone || "");
@@ -102,6 +96,13 @@ const Profile = () => {
     
     fetchUserProfile();
   }, [navigate]);
+  
+  const showMobileTab = (tabName: string) => {
+    if (isMobile) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    setActiveTab(tabName);
+  };
   
   const handleCancelAppointment = (id: number) => {
     toast.success(`Appointment #${id} has been canceled`);
@@ -119,13 +120,13 @@ const Profile = () => {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       
-      <main className="flex-grow py-20 bg-background/50">
+      <main className="flex-grow py-12 md:py-20 bg-background/50">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="md:col-span-1">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 md:gap-8">
+            <div className={`${isMobile ? "order-2" : "lg:col-span-1"}`}>
               <ProfileSidebar 
                 activeTab={activeTab}
-                setActiveTab={setActiveTab}
+                setActiveTab={showMobileTab}
                 user={user}
                 fullName={fullName}
                 email={email}
@@ -133,7 +134,7 @@ const Profile = () => {
               />
             </div>
             
-            <div className="md:col-span-3 animate-slide-in space-y-6">
+            <div className={`${isMobile ? "order-1" : "lg:col-span-3"} animate-slide-in space-y-6`}>
               {activeTab === "dashboard" && (
                 <DashboardTab 
                   user={user}

@@ -15,6 +15,7 @@ import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ProfileSidebarProps {
   activeTab: string;
@@ -34,6 +35,7 @@ const ProfileSidebar = ({
   loading 
 }: ProfileSidebarProps) => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const handleLogout = async () => {
     try {
@@ -46,74 +48,105 @@ const ProfileSidebar = ({
   };
 
   return (
-    <Card className="sticky top-24 animate-fade-in shadow-md border border-border/30">
-      <CardHeader className="flex flex-row items-center gap-4 pb-2">
-        <Avatar className="h-14 w-14 ring-2 ring-offset-2 ring-primary/20">
-          <AvatarImage src="https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3" alt="User" />
-          <AvatarFallback>{user?.email?.charAt(0).toUpperCase() || "U"}</AvatarFallback>
-        </Avatar>
-        <div>
-          <h3 className="text-lg font-semibold">{fullName || "User"}</h3>
-          <p className="text-sm text-muted-foreground">{email}</p>
+    <Card className={`${isMobile ? "shadow-sm" : "sticky top-24"} animate-fade-in shadow-md border border-border/30`}>
+      <CardHeader className={`flex ${isMobile ? "flex-row justify-between" : "flex-row"} items-center gap-4 pb-2`}>
+        <div className="flex items-center gap-3">
+          <Avatar className="h-10 w-10 md:h-14 md:w-14 ring-2 ring-offset-2 ring-primary/20">
+            <AvatarImage src="https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3" alt="User" />
+            <AvatarFallback>{user?.email?.charAt(0).toUpperCase() || "U"}</AvatarFallback>
+          </Avatar>
+          <div>
+            <h3 className="text-base md:text-lg font-semibold">{fullName || "User"}</h3>
+            <p className="text-xs md:text-sm text-muted-foreground truncate max-w-[150px] md:max-w-full">{email}</p>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="p-0">
-        <nav className="mt-4">
-          <Link to="#" onClick={() => setActiveTab("dashboard")} className={`flex items-center justify-between px-4 py-3 ${activeTab === "dashboard" ? "bg-secondary text-primary" : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"} transition-colors rounded-md`}>
-            <div className="flex items-center">
-              <LineChartIcon className="mr-2 h-4 w-4" />
-              <span>Dashboard</span>
-            </div>
-            <ChevronRightIcon className="h-4 w-4" />
-          </Link>
-          <Link to="#" onClick={() => setActiveTab("appointments")} className={`flex items-center justify-between px-4 py-3 ${activeTab === "appointments" ? "bg-secondary text-primary" : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"} transition-colors rounded-md`}>
-            <div className="flex items-center">
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              <span>Appointments</span>
-            </div>
-            <ChevronRightIcon className="h-4 w-4" />
-          </Link>
-          <Link to="#" onClick={() => setActiveTab("profile")} className={`flex items-center justify-between px-4 py-3 ${activeTab === "profile" ? "bg-secondary text-primary" : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"} transition-colors rounded-md`}>
-            <div className="flex items-center">
-              <UserIcon className="mr-2 h-4 w-4" />
-              <span>Personal Info</span>
-            </div>
-            <ChevronRightIcon className="h-4 w-4" />
-          </Link>
-          <Link to="#" onClick={() => setActiveTab("favorites")} className={`flex items-center justify-between px-4 py-3 ${activeTab === "favorites" ? "bg-secondary text-primary" : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"} transition-colors rounded-md`}>
-            <div className="flex items-center">
-              <HeartIcon className="mr-2 h-4 w-4" />
-              <span>Favorites</span>
-            </div>
-            <ChevronRightIcon className="h-4 w-4" />
-          </Link>
-          <Link to="#" onClick={() => setActiveTab("settings")} className={`flex items-center justify-between px-4 py-3 ${activeTab === "settings" ? "bg-secondary text-primary" : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"} transition-colors rounded-md`}>
-            <div className="flex items-center">
-              <SettingsIcon className="mr-2 h-4 w-4" />
-              <span>Settings</span>
-            </div>
-            <ChevronRightIcon className="h-4 w-4" />
-          </Link>
-          <div className="px-4 pt-6 pb-2">
-            <Button 
-              variant="outline" 
-              className="w-full justify-start text-muted-foreground hover:text-destructive"
-              onClick={handleLogout}
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <div className="h-4 w-4 mr-2 animate-spin border-2 border-primary border-t-transparent rounded-full"></div>
-                  <span>Logging out...</span>
-                </>
-              ) : (
-                <>
-                  <LogOutIcon className="mr-2 h-4 w-4" />
-                  <span>Logout</span>
-                </>
-              )}
-            </Button>
+        <nav className="mt-2 md:mt-4 overflow-x-auto scrollbar-none">
+          <div className={`${isMobile ? "flex py-2 px-1 gap-1 md:gap-2" : "flex flex-col"}`}>
+            <Link to="#" onClick={() => setActiveTab("dashboard")} className={`${isMobile ? "flex-shrink-0 min-w-[110px] px-3 py-2 text-sm justify-center" : "flex items-center justify-between px-4 py-3"} ${activeTab === "dashboard" ? "bg-secondary text-primary" : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"} transition-colors rounded-md`}>
+              <div className={`flex items-center ${isMobile ? "flex-col gap-1" : ""}`}>
+                <LineChartIcon className={`${isMobile ? "h-4 w-4" : "mr-2 h-4 w-4"}`} />
+                <span>Dashboard</span>
+              </div>
+              {!isMobile && <ChevronRightIcon className="h-4 w-4" />}
+            </Link>
+            <Link to="#" onClick={() => setActiveTab("appointments")} className={`${isMobile ? "flex-shrink-0 min-w-[110px] px-3 py-2 text-sm justify-center" : "flex items-center justify-between px-4 py-3"} ${activeTab === "appointments" ? "bg-secondary text-primary" : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"} transition-colors rounded-md`}>
+              <div className={`flex items-center ${isMobile ? "flex-col gap-1" : ""}`}>
+                <CalendarIcon className={`${isMobile ? "h-4 w-4" : "mr-2 h-4 w-4"}`} />
+                <span>Appointments</span>
+              </div>
+              {!isMobile && <ChevronRightIcon className="h-4 w-4" />}
+            </Link>
+            <Link to="#" onClick={() => setActiveTab("profile")} className={`${isMobile ? "flex-shrink-0 min-w-[110px] px-3 py-2 text-sm justify-center" : "flex items-center justify-between px-4 py-3"} ${activeTab === "profile" ? "bg-secondary text-primary" : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"} transition-colors rounded-md`}>
+              <div className={`flex items-center ${isMobile ? "flex-col gap-1" : ""}`}>
+                <UserIcon className={`${isMobile ? "h-4 w-4" : "mr-2 h-4 w-4"}`} />
+                <span>Profile</span>
+              </div>
+              {!isMobile && <ChevronRightIcon className="h-4 w-4" />}
+            </Link>
+            <Link to="#" onClick={() => setActiveTab("favorites")} className={`${isMobile ? "flex-shrink-0 min-w-[110px] px-3 py-2 text-sm justify-center" : "flex items-center justify-between px-4 py-3"} ${activeTab === "favorites" ? "bg-secondary text-primary" : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"} transition-colors rounded-md`}>
+              <div className={`flex items-center ${isMobile ? "flex-col gap-1" : ""}`}>
+                <HeartIcon className={`${isMobile ? "h-4 w-4" : "mr-2 h-4 w-4"}`} />
+                <span>Favorites</span>
+              </div>
+              {!isMobile && <ChevronRightIcon className="h-4 w-4" />}
+            </Link>
+            <Link to="#" onClick={() => setActiveTab("settings")} className={`${isMobile ? "flex-shrink-0 min-w-[110px] px-3 py-2 text-sm justify-center" : "flex items-center justify-between px-4 py-3"} ${activeTab === "settings" ? "bg-secondary text-primary" : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"} transition-colors rounded-md`}>
+              <div className={`flex items-center ${isMobile ? "flex-col gap-1" : ""}`}>
+                <SettingsIcon className={`${isMobile ? "h-4 w-4" : "mr-2 h-4 w-4"}`} />
+                <span>Settings</span>
+              </div>
+              {!isMobile && <ChevronRightIcon className="h-4 w-4" />}
+            </Link>
           </div>
+          
+          {!isMobile && (
+            <div className="px-4 pt-6 pb-2">
+              <Button 
+                variant="outline" 
+                className="w-full justify-start text-muted-foreground hover:text-destructive"
+                onClick={handleLogout}
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <div className="h-4 w-4 mr-2 animate-spin border-2 border-primary border-t-transparent rounded-full"></div>
+                    <span>Logging out...</span>
+                  </>
+                ) : (
+                  <>
+                    <LogOutIcon className="mr-2 h-4 w-4" />
+                    <span>Logout</span>
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
+          
+          {isMobile && (
+            <div className="px-4 py-3 mt-2 border-t border-border/40">
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="w-full justify-center text-muted-foreground hover:text-destructive"
+                onClick={handleLogout}
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <div className="h-3 w-3 mr-2 animate-spin border-2 border-primary border-t-transparent rounded-full"></div>
+                    <span>Logging out...</span>
+                  </>
+                ) : (
+                  <>
+                    <LogOutIcon className="mr-2 h-3 w-3" />
+                    <span>Logout</span>
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
         </nav>
       </CardContent>
     </Card>
