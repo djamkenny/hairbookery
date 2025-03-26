@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -74,6 +75,11 @@ const Profile = () => {
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
   const isMobile = useIsMobile();
+  
+  // Add the missing state variables
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   
   useEffect(() => {
     const fetchUserProfile = async () => {
