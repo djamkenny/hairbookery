@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,13 +8,16 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import { Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Login = () => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!email || !password) {
@@ -24,12 +27,24 @@ const Login = () => {
     
     setIsSubmitting(true);
     
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (error) {
+        throw error;
+      }
+      
       toast.success("Successfully logged in!");
+      navigate("/profile");
+    } catch (error: any) {
+      console.error("Login error:", error);
+      toast.error(error.message || "Invalid email or password. Please try again.");
+    } finally {
       setIsSubmitting(false);
-      // In a real app, we would redirect to dashboard/home after login
-    }, 1500);
+    }
   };
 
   return (
@@ -90,10 +105,9 @@ const Login = () => {
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? (
-                    <div className="loading-dots">
-                      <span>•</span>
-                      <span>•</span>
-                      <span>•</span>
+                    <div className="flex items-center">
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <span>Signing in...</span>
                     </div>
                   ) : (
                     "Sign In"

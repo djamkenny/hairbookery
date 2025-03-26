@@ -9,12 +9,7 @@ import { toast } from "sonner";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
-
-interface UserRegistrationData {
-  name: string;
-  email: string;
-  password: string;
-}
+import { supabase } from "@/integrations/supabase/client";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -88,24 +83,6 @@ const Register = () => {
     return isValid;
   };
 
-  const registerUser = async (userData: UserRegistrationData): Promise<{ success: boolean, message: string }> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        if (!validateEmail(userData.email)) {
-          resolve({ success: false, message: "Invalid email format" });
-          return;
-        }
-        
-        if (userData.email === "test@example.com") {
-          resolve({ success: false, message: "Email already registered" });
-          return;
-        }
-        
-        resolve({ success: true, message: "Registration successful" });
-      }, 1500);
-    });
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -116,23 +93,31 @@ const Register = () => {
     setIsSubmitting(true);
     
     try {
-      const userData: UserRegistrationData = {
-        name,
+      const { data, error } = await supabase.auth.signUp({
         email,
-        password
-      };
+        password,
+        options: {
+          data: {
+            full_name: name,
+          },
+        },
+      });
       
-      const result = await registerUser(userData);
-      
-      if (result.success) {
-        toast.success("Account created successfully! Please check your email to verify your account.");
-        navigate("/login");
-      } else {
-        toast.error(result.message || "Registration failed. Please try again.");
+      if (error) {
+        throw error;
       }
-    } catch (error) {
+      
+      toast.success("Account created successfully! Please check your email to verify your account.");
+      navigate("/login");
+    } catch (error: any) {
       console.error("Registration error:", error);
-      toast.error("Something went wrong. Please try again later.");
+      
+      const errorMessage = error.message || "Registration failed. Please try again.";
+      if (errorMessage.includes("already registered")) {
+        toast.error("This email is already registered. Please use a different email or try to login.");
+      } else {
+        toast.error(errorMessage);
+      }
     } finally {
       setIsSubmitting(false);
     }
