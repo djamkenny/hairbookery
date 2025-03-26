@@ -1,101 +1,18 @@
 
 import React from "react";
-import { useState, useEffect } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Menu, X, User, Calendar, LogOut, Scissors } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Menu, X, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { toast } from "sonner";
+import NavLinks from "./NavLinks";
+import UserMenu from "./UserMenu";
+import LoginMenu from "./LoginMenu";
+import MobileMenu from "./MobileMenu";
+import useNavbar from "@/hooks/useNavbar";
 
 export const Navbar = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  const [user, setUser] = useState<any>(null);
-  const [isStylist, setIsStylist] = useState(false);
-  const location = useLocation();
+  const { isOpen, scrolled, user, isStylist, navLinks, toggleMenu } = useNavbar();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  useEffect(() => {
-    setIsOpen(false);
-  }, [location.pathname]);
-
-  useEffect(() => {
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user || null);
-      
-      // Check if user is a stylist
-      if (session?.user) {
-        const metadata = session.user.user_metadata || {};
-        setIsStylist(metadata.is_stylist || false);
-      } else {
-        setIsStylist(false);
-      }
-    };
-
-    checkSession();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUser(session?.user || null);
-        
-        // Check if user is a stylist on auth state change
-        if (session?.user) {
-          const metadata = session.user.user_metadata || {};
-          setIsStylist(metadata.is_stylist || false);
-        } else {
-          setIsStylist(false);
-        }
-      }
-    );
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const handleLogout = async () => {
-    try {
-      await supabase.auth.signOut();
-      toast.success("Logged out successfully");
-      navigate("/");
-    } catch (error) {
-      console.error("Error logging out:", error);
-      toast.error("Error logging out");
-    }
-  };
-
-  const navLinks = [
-    { name: "Home", path: "/" },
-    { name: "Services", path: "/#services" },
-    { name: "Stylists", path: "/#stylists" },
-    { name: "Contact", path: "/#contact" },
-  ];
-
-  const navigateToDashboard = () => {
-    if (isStylist) {
-      navigate("/stylist-dashboard");
-    } else {
-      navigate("/profile");
-    }
-  };
-
-  const toggleMenu = () => setIsOpen(!isOpen);
 
   return (
     <header 
@@ -116,77 +33,13 @@ export const Navbar = () => {
             <span className="text-primary group-hover:text-foreground transition-colors">bookery</span>
           </Link>
 
-          <nav className="hidden md:flex items-center space-x-1">
-            {navLinks.map((link) => (
-              <a
-                key={link.name}
-                href={link.path}
-                className={cn(
-                  "px-4 py-2 rounded-md text-sm font-medium transition-colors",
-                  location.pathname === link.path
-                    ? "text-primary"
-                    : "text-muted-foreground hover:text-foreground hover:bg-secondary/80"
-                )}
-              >
-                {link.name}
-              </a>
-            ))}
-          </nav>
+          <NavLinks links={navLinks} className="hidden md:flex items-center space-x-1" />
 
           <div className="hidden md:flex items-center space-x-4">
             {user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="flex items-center space-x-1">
-                    {isStylist ? (
-                      <Scissors className="h-4 w-4 mr-1" />
-                    ) : (
-                      <User className="h-4 w-4 mr-1" />
-                    )}
-                    <span>{isStylist ? "Stylist" : "Account"}</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={navigateToDashboard}>
-                    {isStylist ? (
-                      <>
-                        <Scissors className="h-4 w-4 mr-2" />
-                        Stylist Dashboard
-                      </>
-                    ) : (
-                      <>
-                        <User className="h-4 w-4 mr-2" />
-                        My Profile
-                      </>
-                    )}
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout}>
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Logout
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <UserMenu user={user} isStylist={isStylist} />
             ) : (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="flex items-center space-x-1">
-                    <User className="h-4 w-4 mr-1" />
-                    <span>Login</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => navigate("/login")}>
-                    <User className="h-4 w-4 mr-2" />
-                    Client Login
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => navigate("/login")}>
-                    <Scissors className="h-4 w-4 mr-2" />
-                    Stylist Login
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <LoginMenu />
             )}
             <Link to="/booking">
               <Button size="sm" className="flex items-center space-x-1">
@@ -206,80 +59,13 @@ export const Navbar = () => {
         </div>
       </div>
 
-      <div
-        className={cn(
-          "md:hidden absolute left-0 right-0 backdrop border-b border-border/50 transition-all duration-300 overflow-hidden",
-          isOpen ? "max-h-screen opacity-100" : "max-h-0 opacity-0"
-        )}
-      >
-        <div className="container mx-auto px-4 py-4 space-y-4">
-          <nav className="flex flex-col space-y-1">
-            {navLinks.map((link) => (
-              <a
-                key={link.name}
-                href={link.path}
-                className={cn(
-                  "px-4 py-3 rounded-md text-sm font-medium transition-colors",
-                  location.pathname === link.path
-                    ? "text-primary bg-secondary/60"
-                    : "text-muted-foreground hover:text-foreground hover:bg-secondary/80"
-                )}
-              >
-                {link.name}
-              </a>
-            ))}
-          </nav>
-          <div className="grid grid-cols-1 gap-3 pt-2">
-            {user ? (
-              <>
-                <Button 
-                  variant="outline" 
-                  className="w-full flex items-center justify-center"
-                  onClick={navigateToDashboard}
-                >
-                  {isStylist ? (
-                    <>
-                      <Scissors className="h-4 w-4 mr-2" />
-                      Stylist Dashboard
-                    </>
-                  ) : (
-                    <>
-                      <User className="h-4 w-4 mr-2" />
-                      My Profile
-                    </>
-                  )}
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full flex items-center justify-center text-destructive hover:text-destructive"
-                  onClick={handleLogout}
-                >
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Logout
-                </Button>
-              </>
-            ) : (
-              <>
-                <Link to="/login" className="col-span-1">
-                  <Button variant="outline" className="w-full flex items-center justify-center">
-                    <User className="h-4 w-4 mr-2" />
-                    Client Login
-                  </Button>
-                </Link>
-                <Link to="/login" className="col-span-1">
-                  <Button variant="outline" className="w-full flex items-center justify-center">
-                    <Scissors className="h-4 w-4 mr-2" />
-                    Stylist Login
-                  </Button>
-                </Link>
-              </>
-            )}
-            <Link to="/booking" className="col-span-1">
-              <Button className="w-full">Book Now</Button>
-            </Link>
-          </div>
-        </div>
-      </div>
+      <MobileMenu 
+        isOpen={isOpen} 
+        links={navLinks} 
+        user={user} 
+        isStylist={isStylist} 
+        onLinkClick={toggleMenu}
+      />
     </header>
   );
 };
