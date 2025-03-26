@@ -1,15 +1,23 @@
+
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import PasswordInput from "@/components/auth/PasswordInput";
+import TermsCheckbox from "@/components/auth/TermsCheckbox";
+import { 
+  validateEmail, 
+  validatePassword, 
+  createEmptyFormErrors,
+  RegisterFormErrors 
+} from "@/utils/formValidation";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -18,34 +26,11 @@ const Register = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
-  const [formErrors, setFormErrors] = useState({
-    name: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-    terms: ""
-  });
-
-  const validateEmail = (email: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
-  const validatePassword = (password: string) => {
-    return password.length >= 8;
-  };
+  const [formErrors, setFormErrors] = useState<RegisterFormErrors>(createEmptyFormErrors());
 
   const validateForm = () => {
-    const errors = {
-      name: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
-      terms: ""
-    };
+    const errors = createEmptyFormErrors();
     let isValid = true;
 
     if (!name.trim()) {
@@ -123,14 +108,6 @@ const Register = () => {
     }
   };
 
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
-
-  const toggleConfirmPasswordVisibility = () => {
-    setShowConfirmPassword(!showConfirmPassword);
-  };
-
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -183,75 +160,32 @@ const Register = () => {
                 
                 <div className="space-y-2">
                   <Label htmlFor="password">Password</Label>
-                  <div className="relative">
-                    <Input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Create a password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className={formErrors.password ? "border-destructive pr-10" : "pr-10"}
-                    />
-                    <button
-                      type="button"
-                      className="absolute right-3 top-2.5 text-muted-foreground"
-                      onClick={togglePasswordVisibility}
-                      tabIndex={-1}
-                    >
-                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
-                  </div>
-                  {formErrors.password && (
-                    <p className="text-sm text-destructive mt-1">{formErrors.password}</p>
-                  )}
-                  <p className="text-xs text-muted-foreground">
-                    Password must be at least 8 characters
-                  </p>
+                  <PasswordInput
+                    id="password"
+                    placeholder="Create a password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    error={formErrors.password}
+                  />
                 </div>
                 
                 <div className="space-y-2">
                   <Label htmlFor="confirmPassword">Confirm Password</Label>
-                  <div className="relative">
-                    <Input
-                      id="confirmPassword"
-                      type={showConfirmPassword ? "text" : "password"}
-                      placeholder="Confirm your password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      className={formErrors.confirmPassword ? "border-destructive pr-10" : "pr-10"}
-                    />
-                    <button
-                      type="button"
-                      className="absolute right-3 top-2.5 text-muted-foreground"
-                      onClick={toggleConfirmPasswordVisibility}
-                      tabIndex={-1}
-                    >
-                      {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
-                  </div>
-                  {formErrors.confirmPassword && (
-                    <p className="text-sm text-destructive mt-1">{formErrors.confirmPassword}</p>
-                  )}
+                  <PasswordInput
+                    id="confirmPassword"
+                    placeholder="Confirm your password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    error={formErrors.confirmPassword}
+                    confirmPassword
+                  />
                 </div>
 
-                <div className="flex items-start space-x-2 pt-2">
-                  <Checkbox
-                    id="terms"
-                    checked={acceptTerms}
-                    onCheckedChange={(checked) => setAcceptTerms(checked as boolean)}
-                  />
-                  <div className="grid gap-1.5 leading-none">
-                    <label
-                      htmlFor="terms"
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    >
-                      I accept the <Link to="/terms" className="text-primary hover:underline">terms and conditions</Link>
-                    </label>
-                    {formErrors.terms && (
-                      <p className="text-sm text-destructive">{formErrors.terms}</p>
-                    )}
-                  </div>
-                </div>
+                <TermsCheckbox 
+                  checked={acceptTerms}
+                  onCheckedChange={setAcceptTerms}
+                  error={formErrors.terms}
+                />
               </CardContent>
               
               <CardFooter className="flex flex-col space-y-4">
