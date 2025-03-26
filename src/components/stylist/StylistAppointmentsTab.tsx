@@ -31,7 +31,7 @@ const StylistAppointmentsTab = () => {
           .select(`
             *,
             services:service_id(name),
-            clients:client_id(full_name, email, phone)
+            client_profile:client_id(full_name, email, phone)
           `)
           .eq('stylist_id', user.id)
           .is('canceled_at', null);
@@ -44,13 +44,13 @@ const StylistAppointmentsTab = () => {
           // Format the appointments data
           const formattedAppointments = data.map(appointment => ({
             id: appointment.id,
-            client: appointment.clients?.full_name || 'Client',
+            client: appointment.client_profile?.full_name || 'Client',
             service: appointment.services?.name || 'Service',
             date: format(new Date(appointment.appointment_date), 'MMMM dd, yyyy'),
             time: appointment.appointment_time,
             status: appointment.status,
-            clientEmail: appointment.clients?.email,
-            clientPhone: appointment.clients?.phone
+            clientEmail: appointment.client_profile?.email,
+            clientPhone: appointment.client_profile?.phone
           }));
           
           setAppointments(formattedAppointments);
