@@ -5,7 +5,6 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, Calendar, Users, User, Settings, Scissors } from "lucide-react";
 import StylistInfoTab from "@/components/stylist/StylistInfoTab";
@@ -29,11 +28,11 @@ const StylistDashboard = () => {
   const [experience, setExperience] = useState("");
   const [bio, setBio] = useState("");
   
-  // Sample data for dashboard
-  const upcomingAppointments = 8;
-  const totalClients = 24;
-  const completedAppointments = 127;
-  const rating = 4.8;
+  // Dashboard data
+  const [upcomingAppointments, setUpcomingAppointments] = useState(0);
+  const [totalClients, setTotalClients] = useState(0);
+  const [completedAppointments, setCompletedAppointments] = useState(0);
+  const [rating, setRating] = useState<number | null>(null);
 
   useEffect(() => {
     const checkUserAndLoadData = async () => {
@@ -56,6 +55,14 @@ const StylistDashboard = () => {
             toast.error("You don't have stylist permissions");
             navigate("/");
           }
+          
+          // In a real application, you would fetch these from your database
+          // For now, we're setting them to 0 for new users
+          // You would replace these with API calls to your backend
+          setUpcomingAppointments(0);
+          setTotalClients(0);
+          setCompletedAppointments(0);
+          setRating(null);
         } else {
           navigate("/login");
         }

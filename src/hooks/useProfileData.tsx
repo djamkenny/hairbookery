@@ -4,60 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
-// Sample data for appointments
-const upcomingAppointments = [
-  {
-    id: 1,
-    service: "Haircut & Styling",
-    stylist: "Sophia Rodriguez",
-    date: "June 15, 2023",
-    time: "10:00 AM",
-    status: "confirmed"
-  },
-  {
-    id: 2,
-    service: "Hair Coloring",
-    stylist: "Alex Chen",
-    date: "July 2, 2023",
-    time: "2:00 PM",
-    status: "confirmed"
-  }
-];
-
-const pastAppointments = [
-  {
-    id: 3,
-    service: "Blowout & Styling",
-    stylist: "Emma Johnson",
-    date: "May 20, 2023",
-    time: "1:00 PM",
-    status: "completed"
-  },
-  {
-    id: 4,
-    service: "Deep Conditioning",
-    stylist: "Marcus Williams",
-    date: "April 10, 2023",
-    time: "11:00 AM",
-    status: "completed"
-  }
-];
-
-const favoriteSylists = [
-  {
-    id: 1,
-    name: "Sophia Rodriguez",
-    specialty: "Hair Styling",
-    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3"
-  },
-  {
-    id: 2,
-    name: "Alex Chen",
-    specialty: "Hair Coloring",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3"
-  }
-];
-
 export const useProfileData = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -68,6 +14,11 @@ export const useProfileData = () => {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  
+  // Initialize with empty arrays for new users
+  const [upcomingAppointments, setUpcomingAppointments] = useState([]);
+  const [pastAppointments, setPastAppointments] = useState([]);
+  const [favoriteSylists, setFavoriteSylists] = useState([]);
   
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -80,6 +31,9 @@ export const useProfileData = () => {
           const metadata = user.user_metadata || {};
           setFullName(metadata.full_name || "");
           setPhone(metadata.phone || "");
+          
+          // In a real app, you would fetch appointments and favorites from your API
+          // For now, leaving them as empty arrays for new users
         } else {
           navigate("/login");
         }
