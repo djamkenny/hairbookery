@@ -9,9 +9,10 @@ import { supabase } from "@/integrations/supabase/client";
 interface ProfileAvatarProps {
   user: any;
   fullName: string;
+  onAvatarUpdate?: (avatarUrl: string) => void;
 }
 
-const ProfileAvatar = ({ user, fullName }: ProfileAvatarProps) => {
+const ProfileAvatar = ({ user, fullName, onAvatarUpdate }: ProfileAvatarProps) => {
   const [uploadLoading, setUploadLoading] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -61,6 +62,11 @@ const ProfileAvatar = ({ user, fullName }: ProfileAvatarProps) => {
       
       if (updateError) {
         throw updateError;
+      }
+      
+      // Call the onAvatarUpdate callback to notify parent component
+      if (onAvatarUpdate) {
+        onAvatarUpdate(publicUrl);
       }
       
       toast.success("Profile picture updated successfully");
