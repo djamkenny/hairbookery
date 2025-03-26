@@ -10,4 +10,5 @@ export interface Appointment {
   clientPhone?: string;
   client_id: string;
   updated_at?: string;
+  stylist?: string;
 }

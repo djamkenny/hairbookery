@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
+import { Appointment } from "@/types/appointment";
 
 export const useProfileData = () => {
   const navigate = useNavigate();
@@ -17,9 +18,65 @@ export const useProfileData = () => {
   const [phone, setPhone] = useState("");
   
   // Initialize with empty arrays for new users
-  const [upcomingAppointments, setUpcomingAppointments] = useState<any[]>([]);
-  const [pastAppointments, setPastAppointments] = useState<any[]>([]);
+  const [upcomingAppointments, setUpcomingAppointments] = useState<Appointment[]>([]);
+  const [pastAppointments, setPastAppointments] = useState<Appointment[]>([]);
   const [favoriteSylists, setFavoriteSylists] = useState<any[]>([]);
+  
+  // Function to fetch appointments
+  const fetchAppointments = async (userId: string) => {
+    try {
+      setLoading(true);
+      
+      // Fetch appointments from the database
+      const { data: appointmentsData, error: appointmentsError } = await supabase
+        .from('appointments')
+        .select(`
+          id,
+          appointment_date,
+          appointment_time,
+          status,
+          services:service_id(name),
+          profiles:stylist_id(full_name)
+        `)
+        .eq('client_id', userId);
+      
+      if (appointmentsError) {
+        console.error("Error fetching appointments:", appointmentsError);
+        return;
+      }
+      
+      if (appointmentsData) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Start of today
+        
+        const formattedAppointments = appointmentsData.map(apt => ({
+          id: apt.id,
+          service: apt.services?.name || 'Service',
+          stylist: apt.profiles?.full_name || 'Stylist',
+          date: format(new Date(apt.appointment_date), 'MMMM dd, yyyy'),
+          time: apt.appointment_time,
+          status: apt.status,
+          client_id: userId
+        }));
+        
+        // Split into upcoming and past appointments
+        const upcoming = formattedAppointments.filter(apt => 
+          new Date(apt.date) >= today && apt.status !== 'completed' && apt.status !== 'canceled'
+        );
+        
+        const past = formattedAppointments.filter(apt => 
+          new Date(apt.date) < today || apt.status === 'completed' || apt.status === 'canceled'
+        );
+        
+        setUpcomingAppointments(upcoming);
+        setPastAppointments(past);
+      }
+    } catch (error) {
+      console.error("Error in fetchAppointments:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
   
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -35,49 +92,43 @@ export const useProfileData = () => {
           setFullName(metadata.full_name || "");
           setPhone(metadata.phone || "");
           
-          // Fetch appointments from the database
-          const { data: appointmentsData, error: appointmentsError } = await supabase
-            .from('appointments')
-            .select(`
-              id,
-              appointment_date,
-              appointment_time,
-              status,
-              services:service_id(name),
-              stylists:stylist_id(full_name)
-            `)
-            .eq('client_id', user.id);
+          // Initial fetch of appointments
+          await fetchAppointments(user.id);
           
-          if (appointmentsError) {
-            console.error("Error fetching appointments:", appointmentsError);
-          } else if (appointmentsData) {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0); // Start of today
-            
-            const formattedAppointments = appointmentsData.map(apt => ({
-              id: apt.id,
-              service: apt.services?.name || 'Service',
-              stylist: apt.stylists?.full_name || 'Stylist',
-              date: format(new Date(apt.appointment_date), 'MMMM dd, yyyy'),
-              time: apt.appointment_time,
-              status: apt.status
-            }));
-            
-            // Split into upcoming and past appointments
-            const upcoming = formattedAppointments.filter(apt => 
-              new Date(apt.date) >= today && apt.status !== 'completed' && apt.status !== 'canceled'
-            );
-            
-            const past = formattedAppointments.filter(apt => 
-              new Date(apt.date) < today || apt.status === 'completed' || apt.status === 'canceled'
-            );
-            
-            setUpcomingAppointments(upcoming);
-            setPastAppointments(past);
-          }
+          // Set up real-time subscription for appointment updates
+          const channel = supabase
+            .channel('public:appointments')
+            .on('postgres_changes', 
+              { 
+                event: '*', 
+                schema: 'public', 
+                table: 'appointments',
+                filter: `client_id=eq.${user.id}`
+              }, 
+              (payload) => {
+                console.log("Appointment changed:", payload);
+                // Refetch appointments when there's a change
+                fetchAppointments(user.id);
+                
+                // Show toast notification based on the type of change
+                if (payload.eventType === 'UPDATE') {
+                  const newStatus = payload.new.status;
+                  if (newStatus === 'confirmed') {
+                    toast.success('An appointment has been confirmed by the stylist');
+                  } else if (newStatus === 'completed') {
+                    toast.success('An appointment has been marked as completed');
+                  } else if (newStatus === 'canceled') {
+                    toast.error('An appointment has been canceled');
+                  }
+                }
+              }
+            )
+            .subscribe();
           
-          // For favorites, we'd typically fetch from a favorites table
-          // For now, we'll leave as an empty array
+          // Cleanup subscription on unmount
+          return () => {
+            supabase.removeChannel(channel);
+          };
         } else {
           navigate("/login");
         }
@@ -91,7 +142,7 @@ export const useProfileData = () => {
     fetchUserProfile();
   }, [navigate]);
   
-  const handleCancelAppointment = async (id: number) => {
+  const handleCancelAppointment = async (id: string) => {
     try {
       const { error } = await supabase
         .from('appointments')
@@ -103,17 +154,7 @@ export const useProfileData = () => {
       
       if (error) throw error;
       
-      // Update local state
-      setUpcomingAppointments(prev => 
-        prev.filter(appointment => appointment.id !== id)
-      );
-      
-      setPastAppointments(prev => [
-        ...prev,
-        ...upcomingAppointments.filter(appointment => appointment.id === id)
-          .map(appointment => ({ ...appointment, status: 'canceled' }))
-      ]);
-      
+      // The local state will be updated via real-time subscription
       toast.success(`Appointment has been canceled`);
     } catch (error) {
       console.error('Error canceling appointment:', error);
@@ -121,7 +162,7 @@ export const useProfileData = () => {
     }
   };
   
-  const handleRescheduleAppointment = (id: number) => {
+  const handleRescheduleAppointment = (id: string) => {
     // In a real app, this would navigate to a rescheduling form
     toast.info(`Redirecting to reschedule appointment #${id}`);
   };

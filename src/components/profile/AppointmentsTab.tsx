@@ -9,21 +9,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIsMobile } from "@/hooks/use-mobile";
-
-interface Appointment {
-  id: number;
-  service: string;
-  stylist: string;
-  date: string;
-  time: string;
-  status: string;
-}
+import { Appointment } from "@/types/appointment";
 
 interface AppointmentsTabProps {
   upcomingAppointments: Appointment[];
   pastAppointments: Appointment[];
-  handleRescheduleAppointment: (id: number) => void;
-  handleCancelAppointment: (id: number) => void;
+  handleRescheduleAppointment: (id: string) => void;
+  handleCancelAppointment: (id: string) => void;
 }
 
 const AppointmentsTab = ({ 
