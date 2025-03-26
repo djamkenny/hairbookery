@@ -73,51 +73,63 @@ const StylistDashboard = () => {
             setBio(profileData.bio || metadata.bio || "");
           }
           
-          // Fetch appointments data (from Supabase when implemented)
-          const { data: appointmentsData, error: appointmentsError } = await supabase
-            .from('appointments')
-            .select('*')
-            .eq('stylist_id', authUser.id)
-            .is('canceled_at', null);
-            
-          if (!appointmentsError) {
-            // Real data for appointments
-            const upcoming = appointmentsData?.filter(apt => 
-              new Date(apt.appointment_date) >= new Date()
-            ) || [];
-            
-            const completed = appointmentsData?.filter(apt => 
-              new Date(apt.appointment_date) < new Date() && apt.status === 'completed'
-            ) || [];
-            
-            setUpcomingAppointments(upcoming.length);
-            setCompletedAppointments(completed.length);
+          // Try to fetch appointments data - wrapped in try/catch since table might not exist
+          try {
+            const { data: appointmentsData, error: appointmentsError } = await supabase
+              .from('appointments')
+              .select('*');
+              
+            if (!appointmentsError && appointmentsData) {
+              // Filter for this stylist's appointments
+              const stylistAppointments = appointmentsData.filter(apt => 
+                apt.stylist_id === authUser.id && !apt.canceled_at
+              );
+              
+              // Further filter for upcoming vs completed
+              const upcoming = stylistAppointments.filter(apt => 
+                new Date(apt.appointment_date) >= new Date()
+              );
+              
+              const completed = stylistAppointments.filter(apt => 
+                new Date(apt.appointment_date) < new Date() && apt.status === 'completed'
+              );
+              
+              setUpcomingAppointments(upcoming.length);
+              setCompletedAppointments(completed.length);
+              
+              // Count unique clients
+              const uniqueClients = new Set(stylistAppointments.map(appointment => appointment.client_id));
+              setTotalClients(uniqueClients.size);
+            }
+          } catch (err) {
+            console.log("Appointments table may not exist yet:", err);
+            // Set default values
+            setUpcomingAppointments(0);
+            setCompletedAppointments(0);
+            setTotalClients(0);
           }
           
-          // Fetch clients data (from Supabase when implemented)
-          const { data: clientsData, error: clientsError } = await supabase
-            .from('appointments')
-            .select('client_id')
-            .eq('stylist_id', authUser.id)
-            .is('canceled_at', null);
-            
-          if (!clientsError) {
-            // Count unique clients
-            const uniqueClients = new Set(clientsData?.map(appointment => appointment.client_id) || []);
-            setTotalClients(uniqueClients.size);
-          }
-          
-          // Fetch ratings data (from Supabase when implemented)
-          const { data: ratingsData, error: ratingsError } = await supabase
-            .from('reviews')
-            .select('rating')
-            .eq('stylist_id', authUser.id);
-            
-          if (!ratingsError && ratingsData && ratingsData.length > 0) {
-            // Calculate average rating
-            const average = ratingsData.reduce((sum, review) => sum + review.rating, 0) / ratingsData.length;
-            setRating(average);
-          } else {
+          // Try to fetch ratings data - wrapped in try/catch since table might not exist
+          try {
+            const { data: ratingsData, error: ratingsError } = await supabase
+              .from('reviews')
+              .select('rating');
+              
+            if (!ratingsError && ratingsData && ratingsData.length > 0) {
+              // Filter for this stylist's ratings and calculate average
+              const stylistRatings = ratingsData.filter(review => review.stylist_id === authUser.id);
+              
+              if (stylistRatings.length > 0) {
+                const average = stylistRatings.reduce((sum, review) => sum + review.rating, 0) / stylistRatings.length;
+                setRating(average);
+              } else {
+                setRating(null);
+              }
+            } else {
+              setRating(null);
+            }
+          } catch (err) {
+            console.log("Reviews table may not exist yet:", err);
             setRating(null);
           }
         }
