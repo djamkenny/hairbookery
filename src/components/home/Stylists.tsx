@@ -49,16 +49,17 @@ const Stylists = () => {
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {stylists.map((stylist) => (
-            <StylistCard
-              key={stylist.id}
-              id={stylist.id}
-              name={stylist.name}
-              role={stylist.role}
-              bio={stylist.bio}
-              image={stylist.image}
-              className="animate-fade-in"
-              style={{ animationDelay: `${(stylist.id - 1) * 0.1}s` }}
-            />
+            <Link to={`/stylist/${stylist.id}`} key={stylist.id} className="block hover:scale-105 transition-transform duration-300">
+              <StylistCard
+                id={stylist.id}
+                name={stylist.name}
+                role={stylist.role}
+                bio={stylist.bio}
+                image={stylist.image}
+                className="animate-fade-in h-full"
+                style={{ animationDelay: `${(stylist.id - 1) * 0.1}s` }}
+              />
+            </Link>
           ))}
         </div>
         
