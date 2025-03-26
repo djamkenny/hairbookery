@@ -19,7 +19,6 @@ const Stylists = () => {
         setLoading(true);
         
         // Fetch users who have signed up as stylists
-        // For this to work, create a profiles table that stores user type/role
         const { data, error } = await supabase
           .from('profiles')
           .select('*')
@@ -27,15 +26,17 @@ const Stylists = () => {
         
         if (error) throw error;
         
+        console.log("Fetched stylists:", data);
+        
         // Transform the data to match our StylistCard component props
         if (data && data.length > 0) {
-          const formattedStylists = data.map((profile, index) => {
+          const formattedStylists = data.map((profile) => {
             return {
               id: profile.id,
               name: profile.full_name || "Unnamed Stylist",
               role: profile.specialty || "Hair Stylist",
               bio: profile.bio || "No bio available",
-              image: profile.avatar_url || `https://randomuser.me/api/portraits/${index % 2 === 0 ? 'women' : 'men'}/${(index % 10) + 1}.jpg`
+              image: profile.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.id}`
             };
           });
           
@@ -123,13 +124,12 @@ const Stylists = () => {
                   className="block hover:scale-105 transition-transform duration-300"
                 >
                   <StylistCard
-                    id={typeof stylist.id === 'number' ? stylist.id : 0}
+                    id={stylist.id}
                     name={stylist.name}
                     role={stylist.role}
                     bio={stylist.bio}
                     image={stylist.image}
                     className="animate-fade-in h-full"
-                    style={{ animationDelay: `${(typeof stylist.id === 'number' ? stylist.id - 1 : 0) * 0.1}s` }}
                   />
                 </Link>
               ))}

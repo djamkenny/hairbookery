@@ -1,26 +1,22 @@
 
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
+import DashboardLayout from "@/components/layout/DashboardLayout";
+import StylistDashboardSummary from "@/components/stylist/StylistDashboardSummary";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Calendar, Users, User, Settings, Scissors } from "lucide-react";
+import { Card } from "@/components/ui/card";
 import StylistInfoTab from "@/components/stylist/StylistInfoTab";
 import StylistAppointmentsTab from "@/components/stylist/StylistAppointmentsTab";
 import StylistClientsTab from "@/components/stylist/StylistClientsTab";
 import StylistServicesTab from "@/components/stylist/StylistServicesTab";
 import StylistSettingsTab from "@/components/stylist/StylistSettingsTab";
-import StylistDashboardSummary from "@/components/stylist/StylistDashboardSummary";
+import { supabase } from "@/integrations/supabase/client";
+import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 const StylistDashboard = () => {
-  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("profile");
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("overview");
-  
-  // User data
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -28,152 +24,169 @@ const StylistDashboard = () => {
   const [experience, setExperience] = useState("");
   const [bio, setBio] = useState("");
   
-  // Dashboard data
+  // Dashboard stats
   const [upcomingAppointments, setUpcomingAppointments] = useState(0);
   const [totalClients, setTotalClients] = useState(0);
   const [completedAppointments, setCompletedAppointments] = useState(0);
   const [rating, setRating] = useState<number | null>(null);
-
+  
+  // Fetch user data from supabase
   useEffect(() => {
-    const checkUserAndLoadData = async () => {
+    const fetchUserData = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          setUser(user);
-          setEmail(user.email || "");
+        setLoading(true);
+        
+        // Get the authenticated user
+        const { data: { user: authUser }, error: userError } = await supabase.auth.getUser();
+        
+        if (userError) throw userError;
+        
+        if (authUser) {
+          setUser(authUser);
           
-          // Load user metadata
-          const metadata = user.user_metadata || {};
+          // Get user metadata if available
+          const metadata = authUser.user_metadata || {};
           setFullName(metadata.full_name || "");
+          setEmail(authUser.email || "");
           setPhone(metadata.phone || "");
           setSpecialty(metadata.specialty || "");
           setExperience(metadata.experience || "");
           setBio(metadata.bio || "");
           
-          // Check if user is a stylist
-          if (!metadata.is_stylist) {
-            toast.error("You don't have stylist permissions");
-            navigate("/");
+          // Fetch profile data from profiles table
+          const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', authUser.id)
+            .single();
+            
+          if (profileError && profileError.code !== 'PGRST116') {
+            // PGRST116 is "row not found" error, which we can handle
+            console.error("Error fetching profile data:", profileError);
           }
           
-          // In a real application, you would fetch these from your database
-          // For now, we're setting them to 0 for new users
-          // You would replace these with API calls to your backend
-          setUpcomingAppointments(0);
-          setTotalClients(0);
-          setCompletedAppointments(0);
-          setRating(null);
-        } else {
-          navigate("/login");
+          if (profileData) {
+            // Update state with profile data
+            setFullName(profileData.full_name || metadata.full_name || "");
+            setPhone(profileData.phone || metadata.phone || "");
+            setSpecialty(profileData.specialty || metadata.specialty || "");
+            setExperience(profileData.experience || metadata.experience || "");
+            setBio(profileData.bio || metadata.bio || "");
+            
+            // In the future, we could fetch appointment and client data here
+            // For now, use placeholder data
+            setUpcomingAppointments(Math.floor(Math.random() * 5)); // Example data
+            setTotalClients(Math.floor(Math.random() * 20) + 5); // Example data
+            setCompletedAppointments(Math.floor(Math.random() * 30) + 10); // Example data
+            setRating(3.5 + Math.random() * 1.5); // Example rating between 3.5 and 5.0
+          }
         }
-      } catch (error) {
-        console.error("Error fetching user:", error);
-        toast.error("Something went wrong");
+      } catch (error: any) {
+        console.error("Error fetching user data:", error);
+        toast.error("Failed to load your profile data");
       } finally {
         setLoading(false);
       }
     };
     
-    checkUserAndLoadData();
-  }, [navigate]);
+    fetchUserData();
+  }, []);
   
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-[50vh]">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </DashboardLayout>
     );
   }
-
+  
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
-      
-      <main className="flex-grow py-12 md:py-20 bg-background/50">
-        <div className="container mx-auto px-4">
-          <div className="mb-8">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="h-10 w-10 flex items-center justify-center rounded-full bg-primary/10">
-                <Scissors className="h-5 w-5 text-primary" />
-              </div>
-              <h1 className="text-2xl md:text-3xl font-semibold">Stylist Dashboard</h1>
-            </div>
-            <p className="text-muted-foreground">Welcome back, {fullName}</p>
-          </div>
-          
-          <StylistDashboardSummary 
-            upcomingAppointments={upcomingAppointments} 
-            totalClients={totalClients}
-            completedAppointments={completedAppointments}
-            rating={rating}
-          />
-          
-          <div className="mt-8">
-            <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab}>
-              <div className="border-b mb-6">
-                <TabsList className="w-full justify-start">
-                  <TabsTrigger value="overview" className="gap-2">
-                    <User className="h-4 w-4" />
-                    <span className="hidden sm:inline">Overview</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="appointments" className="gap-2">
-                    <Calendar className="h-4 w-4" />
-                    <span className="hidden sm:inline">Appointments</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="clients" className="gap-2">
-                    <Users className="h-4 w-4" />
-                    <span className="hidden sm:inline">Clients</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="services" className="gap-2">
-                    <Scissors className="h-4 w-4" />
-                    <span className="hidden sm:inline">Services</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="settings" className="gap-2">
-                    <Settings className="h-4 w-4" />
-                    <span className="hidden sm:inline">Settings</span>
-                  </TabsTrigger>
-                </TabsList>
-              </div>
-              
-              <TabsContent value="overview" className="space-y-6">
-                <StylistInfoTab 
-                  user={user}
-                  fullName={fullName}
-                  setFullName={setFullName}
-                  email={email}
-                  phone={phone}
-                  setPhone={setPhone}
-                  specialty={specialty}
-                  setSpecialty={setSpecialty}
-                  experience={experience}
-                  setExperience={setExperience}
-                  bio={bio}
-                  setBio={setBio}
-                />
-              </TabsContent>
-              
-              <TabsContent value="appointments">
-                <StylistAppointmentsTab />
-              </TabsContent>
-              
-              <TabsContent value="clients">
-                <StylistClientsTab />
-              </TabsContent>
-              
-              <TabsContent value="services">
-                <StylistServicesTab />
-              </TabsContent>
-              
-              <TabsContent value="settings">
-                <StylistSettingsTab />
-              </TabsContent>
-            </Tabs>
-          </div>
+    <DashboardLayout>
+      <main className="container py-10">
+        <h1 className="text-3xl font-bold mb-8">Stylist Dashboard</h1>
+        
+        <StylistDashboardSummary 
+          upcomingAppointments={upcomingAppointments}
+          totalClients={totalClients}
+          completedAppointments={completedAppointments}
+          rating={rating}
+        />
+        
+        <div className="mt-8">
+          <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="space-y-6">
+            <Card className="border border-border/40">
+              <TabsList className="w-full justify-start p-0 h-auto bg-transparent border-b border-border/40 rounded-none">
+                <TabsTrigger 
+                  value="profile" 
+                  className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3 px-6"
+                >
+                  Profile
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="appointments" 
+                  className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3 px-6"
+                >
+                  Appointments
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="clients" 
+                  className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3 px-6"
+                >
+                  Clients
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="services" 
+                  className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3 px-6"
+                >
+                  Services
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="settings" 
+                  className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3 px-6"
+                >
+                  Settings
+                </TabsTrigger>
+              </TabsList>
+            </Card>
+            
+            <TabsContent value="profile">
+              <StylistInfoTab 
+                user={user}
+                fullName={fullName}
+                setFullName={setFullName}
+                email={email}
+                phone={phone}
+                setPhone={setPhone}
+                specialty={specialty}
+                setSpecialty={setSpecialty}
+                experience={experience}
+                setExperience={setExperience}
+                bio={bio}
+                setBio={setBio}
+              />
+            </TabsContent>
+            
+            <TabsContent value="appointments">
+              <StylistAppointmentsTab />
+            </TabsContent>
+            
+            <TabsContent value="clients">
+              <StylistClientsTab />
+            </TabsContent>
+            
+            <TabsContent value="services">
+              <StylistServicesTab />
+            </TabsContent>
+            
+            <TabsContent value="settings">
+              <StylistSettingsTab />
+            </TabsContent>
+          </Tabs>
         </div>
       </main>
-      
-      <Footer />
-    </div>
+    </DashboardLayout>
   );
 };
 

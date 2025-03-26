@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 interface StylistCardProps {
-  id: number;
+  id: string | number;
   name: string;
   role: string;
   bio: string;
