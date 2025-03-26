@@ -16,15 +16,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
-} from "@/components/ui/dropdown-menu";
-import { 
   ToggleGroup, 
   ToggleGroupItem 
 } from "@/components/ui/toggle-group";
+import AppointmentDetailsModal from "./AppointmentDetailsModal";
 
 const StylistAppointmentsTab = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -34,6 +29,8 @@ const StylistAppointmentsTab = () => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [sortKey, setSortKey] = useState<keyof Appointment | undefined>(undefined);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   
   useEffect(() => {
     const loadAppointments = async () => {
@@ -103,8 +100,13 @@ const StylistAppointmentsTab = () => {
   };
   
   const handleViewDetails = (appointment: Appointment) => {
-    // This can be implemented later to show a modal with details
-    console.log("View details for appointment:", appointment);
+    setSelectedAppointment(appointment);
+    setIsDetailsModalOpen(true);
+  };
+
+  const handleCloseDetailsModal = () => {
+    setIsDetailsModalOpen(false);
+    setSelectedAppointment(null);
   };
 
   const handleSort = (key: keyof Appointment) => {
@@ -131,13 +133,15 @@ const StylistAppointmentsTab = () => {
       {/* Filtering and Sorting Controls */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center">
         <div className="flex flex-1 items-center gap-2">
-          <Input
-            placeholder="Search client or service..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="max-w-xs"
-            icon={<Search className="h-4 w-4 opacity-50" />}
-          />
+          <div className="relative w-full max-w-xs">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search client or service..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-8 max-w-xs"
+            />
+          </div>
           
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-[180px]">
@@ -214,6 +218,14 @@ const StylistAppointmentsTab = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Appointment Details Modal */}
+      <AppointmentDetailsModal
+        appointment={selectedAppointment}
+        isOpen={isDetailsModalOpen}
+        onClose={handleCloseDetailsModal}
+        onUpdateStatus={handleUpdateStatus}
+      />
     </div>
   );
 };
