@@ -16,6 +16,34 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [emailConfirmationError, setEmailConfirmationError] = useState(false);
+
+  const handleResendConfirmation = async () => {
+    if (!email) {
+      toast.error("Please enter your email address");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email,
+      });
+      
+      if (error) {
+        throw error;
+      }
+      
+      toast.success("Confirmation email has been resent. Please check your inbox.");
+      setEmailConfirmationError(false);
+    } catch (error: any) {
+      console.error("Error resending confirmation:", error);
+      toast.error(error.message || "Failed to resend confirmation email.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,6 +54,7 @@ const Login = () => {
     }
     
     setIsSubmitting(true);
+    setEmailConfirmationError(false);
     
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -41,7 +70,13 @@ const Login = () => {
       navigate("/profile");
     } catch (error: any) {
       console.error("Login error:", error);
-      toast.error(error.message || "Invalid email or password. Please try again.");
+      
+      if (error.message?.includes("Email not confirmed")) {
+        setEmailConfirmationError(true);
+        toast.error("Please confirm your email before logging in.");
+      } else {
+        toast.error(error.message || "Invalid email or password. Please try again.");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -96,6 +131,30 @@ const Login = () => {
                     required
                   />
                 </div>
+
+                {emailConfirmationError && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-md p-3 text-amber-800 text-sm">
+                    <p className="font-medium mb-1">Email not confirmed</p>
+                    <p className="mb-2">Please check your email inbox for a confirmation link.</p>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="sm"
+                      className="text-xs"
+                      onClick={handleResendConfirmation}
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? (
+                        <div className="flex items-center">
+                          <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                          <span>Resending...</span>
+                        </div>
+                      ) : (
+                        "Resend confirmation email"
+                      )}
+                    </Button>
+                  </div>
+                )}
               </CardContent>
               
               <CardFooter className="flex flex-col space-y-4">
@@ -104,7 +163,7 @@ const Login = () => {
                   className="w-full"
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? (
+                  {isSubmitting && !emailConfirmationError ? (
                     <div className="flex items-center">
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       <span>Signing in...</span>
