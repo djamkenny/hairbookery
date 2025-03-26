@@ -11,10 +11,15 @@ import {
   PencilIcon,
   HeartIcon,
   CheckIcon,
-  XIcon
+  XIcon,
+  PlusIcon,
+  LineChartIcon,
+  ScissorsIcon,
+  InfoIcon,
+  BellIcon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
@@ -25,6 +30,9 @@ import { toast } from "sonner";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { supabase } from "@/integrations/supabase/client";
+import DashboardSummary from "@/components/dashboard/DashboardSummary";
+import AppointmentStats from "@/components/dashboard/AppointmentStats";
+import QuickActions from "@/components/dashboard/QuickActions";
 
 const upcomingAppointments = [
   {
@@ -81,14 +89,14 @@ const favoriteSylists = [
 
 const Profile = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("appointments");
+  const [activeTab, setActiveTab] = useState("dashboard");
   const [isEditing, setIsEditing] = useState(false);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [smsNotifications, setSmsNotifications] = useState(true);
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
   
-  // Add the missing state variables
+  // User profile state variables
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -166,23 +174,30 @@ const Profile = () => {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       
-      <main className="flex-grow py-20">
+      <main className="flex-grow py-20 bg-background/50">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="md:col-span-1">
-              <Card className="sticky top-24 animate-fade-in shadow-md border-0">
+              <Card className="sticky top-24 animate-fade-in shadow-md border border-border/30">
                 <CardHeader className="flex flex-row items-center gap-4 pb-2">
                   <Avatar className="h-14 w-14 ring-2 ring-offset-2 ring-primary/20">
                     <AvatarImage src="https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3" alt="User" />
                     <AvatarFallback>{user?.email?.charAt(0).toUpperCase() || "U"}</AvatarFallback>
                   </Avatar>
                   <div>
-                    <CardTitle>{fullName}</CardTitle>
+                    <CardTitle>{fullName || "User"}</CardTitle>
                     <p className="text-sm text-muted-foreground">{email}</p>
                   </div>
                 </CardHeader>
                 <CardContent className="p-0">
                   <nav className="mt-4">
+                    <Link to="#" onClick={() => setActiveTab("dashboard")} className={`flex items-center justify-between px-4 py-3 ${activeTab === "dashboard" ? "bg-secondary text-primary" : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"} transition-colors rounded-md`}>
+                      <div className="flex items-center">
+                        <LineChartIcon className="mr-2 h-4 w-4" />
+                        <span>Dashboard</span>
+                      </div>
+                      <ChevronRightIcon className="h-4 w-4" />
+                    </Link>
                     <Link to="#" onClick={() => setActiveTab("appointments")} className={`flex items-center justify-between px-4 py-3 ${activeTab === "appointments" ? "bg-secondary text-primary" : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"} transition-colors rounded-md`}>
                       <div className="flex items-center">
                         <CalendarIcon className="mr-2 h-4 w-4" />
@@ -236,7 +251,79 @@ const Profile = () => {
               </Card>
             </div>
             
-            <div className="md:col-span-3 animate-slide-in">
+            <div className="md:col-span-3 animate-slide-in space-y-6">
+              {activeTab === "dashboard" && (
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <h1 className="text-2xl font-semibold">Dashboard</h1>
+                    <Badge variant="outline" className="flex items-center gap-1 px-3 py-1">
+                      <BellIcon className="h-3.5 w-3.5" />
+                      <span>Member since {new Date(user?.created_at || Date.now()).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
+                    </Badge>
+                  </div>
+                  
+                  <DashboardSummary appointments={upcomingAppointments.length} favorites={favoriteSylists.length} />
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <AppointmentStats pastAppointments={pastAppointments.length} upcomingAppointments={upcomingAppointments.length} />
+                    <QuickActions />
+                  </div>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Next Appointment</CardTitle>
+                      <CardDescription>Your upcoming appointment details</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      {upcomingAppointments.length > 0 ? (
+                        <div className="bg-secondary/30 p-4 rounded-lg border border-border/30">
+                          <div className="flex flex-col md:flex-row justify-between gap-4">
+                            <div>
+                              <h3 className="font-medium text-lg">{upcomingAppointments[0].service}</h3>
+                              <p className="text-muted-foreground">With {upcomingAppointments[0].stylist}</p>
+                            </div>
+                            <div>
+                              <div className="flex items-center text-sm font-medium mb-1">
+                                <CalendarIcon className="h-3.5 w-3.5 mr-1" />
+                                <span>{upcomingAppointments[0].date}</span>
+                              </div>
+                              <div className="flex items-center text-sm text-muted-foreground">
+                                <ClockIcon className="h-3.5 w-3.5 mr-1" />
+                                <span>{upcomingAppointments[0].time}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex gap-2 mt-4">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleRescheduleAppointment(upcomingAppointments[0].id)}
+                            >
+                              Reschedule
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="text-destructive hover:bg-destructive/10"
+                              onClick={() => handleCancelAppointment(upcomingAppointments[0].id)}
+                            >
+                              Cancel
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-center py-6">
+                          <p className="text-muted-foreground mb-3">You don't have any upcoming appointments.</p>
+                          <Link to="/booking">
+                            <Button size="sm">Book an Appointment</Button>
+                          </Link>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+              
               {activeTab === "appointments" && (
                 <div className="space-y-6">
                   <h1 className="text-2xl font-semibold">Your Appointments</h1>
