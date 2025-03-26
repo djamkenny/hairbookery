@@ -1,12 +1,13 @@
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { PencilIcon, CheckIcon } from "lucide-react";
+import { PencilIcon, CheckIcon, UploadIcon } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PersonalInfoTabProps {
   user: any;
@@ -27,6 +28,9 @@ const PersonalInfoTab = ({
 }: PersonalInfoTabProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [uploadLoading, setUploadLoading] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSaveProfile = () => {
     setLoading(true);
@@ -37,6 +41,80 @@ const PersonalInfoTab = ({
       toast.success("Profile information updated successfully");
     }, 1000);
   };
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Check file size (limit to 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("File size should be less than 2MB");
+      return;
+    }
+
+    // Check file type
+    if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
+      toast.error("Only JPG, PNG and GIF files are allowed");
+      return;
+    }
+
+    try {
+      setUploadLoading(true);
+      
+      // Create a unique file name
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user?.id}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `avatars/${fileName}`;
+      
+      // Upload file to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file);
+        
+      if (uploadError) {
+        throw uploadError;
+      }
+      
+      // Get public URL for the uploaded file
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+        
+      // Update avatar URL
+      setAvatarUrl(publicUrl);
+      
+      // Update user metadata
+      const { error: updateError } = await supabase.auth.updateUser({
+        data: { avatar_url: publicUrl }
+      });
+      
+      if (updateError) {
+        throw updateError;
+      }
+      
+      toast.success("Profile picture updated successfully");
+    } catch (error: any) {
+      console.error('Error uploading avatar:', error);
+      toast.error(error.message || "Failed to update profile picture");
+    } finally {
+      setUploadLoading(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  // Fetch avatar URL from user metadata on component mount
+  React.useEffect(() => {
+    if (user?.user_metadata?.avatar_url) {
+      setAvatarUrl(user.user_metadata.avatar_url);
+    }
+  }, [user]);
 
   return (
     <div className="space-y-6">
@@ -133,15 +211,43 @@ const PersonalInfoTab = ({
           <CardTitle className="text-lg">Profile Photo</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center gap-4">
-            <Avatar className="h-20 w-20">
-              <AvatarImage src="https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3" alt="User" />
-              <AvatarFallback>{user?.email?.charAt(0).toUpperCase() || "U"}</AvatarFallback>
-            </Avatar>
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <div className="relative group cursor-pointer" onClick={handleAvatarClick}>
+              <Avatar className="h-20 w-20 border-2 border-primary/20">
+                <AvatarImage 
+                  src={avatarUrl || "https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3"} 
+                  alt={fullName || "User"} 
+                />
+                <AvatarFallback>{user?.email?.charAt(0).toUpperCase() || "U"}</AvatarFallback>
+              </Avatar>
+              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 rounded-full transition-all flex items-center justify-center">
+                <UploadIcon className="h-8 w-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+              {uploadLoading && (
+                <div className="absolute inset-0 bg-black bg-opacity-40 rounded-full flex items-center justify-center">
+                  <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              )}
+            </div>
             <div className="space-y-2">
-              <Button size="sm" variant="outline">Change Photo</Button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                accept="image/jpeg, image/png, image/gif"
+                className="hidden"
+                onChange={handleFileChange}
+                disabled={uploadLoading}
+              />
+              <Button 
+                size="sm" 
+                variant="outline" 
+                onClick={handleAvatarClick}
+                disabled={uploadLoading}
+              >
+                {uploadLoading ? 'Uploading...' : 'Change Photo'}
+              </Button>
               <p className="text-xs text-muted-foreground">
-                JPG, GIF or PNG. Max size 1MB.
+                JPG, GIF or PNG. Max size 2MB.
               </p>
             </div>
           </div>
