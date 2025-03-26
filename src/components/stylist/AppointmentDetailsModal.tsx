@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { 
   Dialog, 
   DialogContent, 
@@ -11,28 +11,52 @@ import {
 import { Button } from "@/components/ui/button";
 import { Appointment } from "@/types/appointment";
 import { Badge } from "@/components/ui/badge";
-import { CalendarDays, Clock, User, Phone, Mail } from "lucide-react";
+import { 
+  CalendarDays, 
+  Clock, 
+  User, 
+  Phone, 
+  Mail, 
+  Scissors
+} from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 
 interface AppointmentDetailsModalProps {
   appointment: Appointment | null;
   isOpen: boolean;
   onClose: () => void;
   onUpdateStatus?: (appointmentId: string, newStatus: string, clientId: string) => void;
+  onCancelAppointment?: (appointmentId: string, clientId: string) => void;
 }
 
 const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
   appointment,
   isOpen,
   onClose,
-  onUpdateStatus
+  onUpdateStatus,
+  onCancelAppointment
 }) => {
+  const [isCancelAlertOpen, setIsCancelAlertOpen] = useState(false);
+
   if (!appointment) return null;
 
   const getBadgeVariant = (status: string) => {
     switch(status) {
       case "confirmed": return "default";
       case "completed": return "secondary";
+      case "canceled": return "destructive";
       default: return "outline";
     }
   };
@@ -41,7 +65,17 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
     switch(status) {
       case "confirmed": return "Confirmed";
       case "completed": return "Completed";
+      case "canceled": return "Canceled";
       default: return "Pending";
+    }
+  };
+
+  const handleCancelAppointment = () => {
+    if (onCancelAppointment && appointment) {
+      onCancelAppointment(appointment.id, appointment.client_id);
+      setIsCancelAlertOpen(false);
+      toast.success("Appointment canceled");
+      onClose();
     }
   };
 
@@ -102,7 +136,10 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
 
           <div className="flex flex-col gap-2 border rounded-lg p-3 bg-background/50">
             <div className="flex justify-between items-center">
-              <h4 className="text-sm font-semibold">Service</h4>
+              <div className="flex items-center gap-2">
+                <Scissors className="h-4 w-4 text-muted-foreground" />
+                <h4 className="text-sm font-semibold">Service</h4>
+              </div>
               <Badge variant={getBadgeVariant(appointment.status)}>
                 {getStatusLabel(appointment.status)}
               </Badge>
@@ -134,6 +171,29 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
               >
                 Mark as Completed
               </Button>
+            )}
+            {(appointment.status === "pending" || appointment.status === "confirmed") && onCancelAppointment && (
+              <AlertDialog open={isCancelAlertOpen} onOpenChange={setIsCancelAlertOpen}>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" className="ml-2">
+                    Cancel Appointment
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Cancel Appointment</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to cancel this appointment? This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>No, keep appointment</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleCancelAppointment}>
+                      Yes, cancel appointment
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             )}
           </div>
           <Button variant="outline" onClick={onClose}>Close</Button>

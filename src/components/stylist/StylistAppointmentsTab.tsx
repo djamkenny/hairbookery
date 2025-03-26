@@ -20,6 +20,7 @@ import {
   ToggleGroupItem 
 } from "@/components/ui/toggle-group";
 import AppointmentDetailsModal from "./AppointmentDetailsModal";
+import { supabase } from "@/integrations/supabase/client";
 
 const StylistAppointmentsTab = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -98,6 +99,50 @@ const StylistAppointmentsTab = () => {
       toast.error("Failed to update appointment status");
     }
   };
+
+  const handleCancelAppointment = async (appointmentId: string, clientId: string) => {
+    try {
+      // Update appointment status to canceled
+      const { error } = await supabase
+        .from('appointments')
+        .update({ 
+          status: 'canceled',
+          canceled_at: new Date().toISOString()
+        })
+        .eq('id', appointmentId);
+      
+      if (error) throw error;
+
+      // Send notification to client
+      const appointmentInfo = appointments.find(a => a.id === appointmentId);
+      if (appointmentInfo) {
+        const message = `Your appointment for ${appointmentInfo.service} on ${appointmentInfo.date} at ${appointmentInfo.time} has been canceled.`;
+        
+        await supabase
+          .from('notifications')
+          .insert([{
+            user_id: clientId,
+            message: message,
+            type: 'appointment_canceled',
+            is_read: false,
+            related_id: appointmentId
+          }]);
+      }
+      
+      // Update local state
+      setAppointments(prev => 
+        prev.map(appointment => 
+          appointment.id === appointmentId 
+            ? { ...appointment, status: 'canceled' } 
+            : appointment
+        )
+      );
+      
+    } catch (error: any) {
+      console.error('Error canceling appointment:', error);
+      toast.error("Failed to cancel appointment");
+    }
+  };
   
   const handleViewDetails = (appointment: Appointment) => {
     setSelectedAppointment(appointment);
@@ -155,6 +200,7 @@ const StylistAppointmentsTab = () => {
               <SelectItem value="pending">Pending</SelectItem>
               <SelectItem value="confirmed">Confirmed</SelectItem>
               <SelectItem value="completed">Completed</SelectItem>
+              <SelectItem value="canceled">Canceled</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -225,6 +271,7 @@ const StylistAppointmentsTab = () => {
         isOpen={isDetailsModalOpen}
         onClose={handleCloseDetailsModal}
         onUpdateStatus={handleUpdateStatus}
+        onCancelAppointment={handleCancelAppointment}
       />
     </div>
   );

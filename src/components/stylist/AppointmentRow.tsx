@@ -16,6 +16,24 @@ const AppointmentRow: React.FC<AppointmentRowProps> = ({
   onUpdateStatus,
   onViewDetails 
 }) => {
+  const getBadgeVariant = (status: string) => {
+    switch(status) {
+      case "confirmed": return "default";
+      case "completed": return "secondary";
+      case "canceled": return "destructive";
+      default: return "outline";
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch(status) {
+      case "confirmed": return "Confirmed";
+      case "completed": return "Completed";
+      case "canceled": return "Canceled";
+      default: return "Pending";
+    }
+  };
+
   return (
     <TableRow key={appointment.id}>
       <TableCell className="font-medium">{appointment.client}</TableCell>
@@ -23,10 +41,8 @@ const AppointmentRow: React.FC<AppointmentRowProps> = ({
       <TableCell>{appointment.date}</TableCell>
       <TableCell>{appointment.time}</TableCell>
       <TableCell>
-        <Badge variant={appointment.status === "confirmed" ? "default" : 
-                appointment.status === "completed" ? "secondary" : "outline"}>
-          {appointment.status === "confirmed" ? "Confirmed" : 
-           appointment.status === "completed" ? "Completed" : "Pending"}
+        <Badge variant={getBadgeVariant(appointment.status)}>
+          {getStatusLabel(appointment.status)}
         </Badge>
       </TableCell>
       <TableCell>
