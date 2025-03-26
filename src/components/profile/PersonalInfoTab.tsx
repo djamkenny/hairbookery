@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,7 +35,6 @@ const PersonalInfoTab = ({
     setLoading(true);
     
     try {
-      // Update user metadata with the new fullName and phone
       const { error } = await supabase.auth.updateUser({
         data: { 
           full_name: fullName,
@@ -66,13 +64,11 @@ const PersonalInfoTab = ({
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Check file size (limit to 2MB)
     if (file.size > 2 * 1024 * 1024) {
       toast.error("File size should be less than 2MB");
       return;
     }
 
-    // Check file type
     if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
       toast.error("Only JPG, PNG and GIF files are allowed");
       return;
@@ -81,12 +77,10 @@ const PersonalInfoTab = ({
     try {
       setUploadLoading(true);
       
-      // Create a unique file name
       const fileExt = file.name.split('.').pop();
       const fileName = `${user?.id}-${Math.random().toString(36).substring(2)}.${fileExt}`;
       const filePath = `${fileName}`;
       
-      // Upload file to Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(filePath, file);
@@ -95,15 +89,12 @@ const PersonalInfoTab = ({
         throw uploadError;
       }
       
-      // Get public URL for the uploaded file
       const { data: { publicUrl } } = supabase.storage
         .from('avatars')
         .getPublicUrl(filePath);
         
-      // Update avatar URL
       setAvatarUrl(publicUrl);
       
-      // Update user metadata
       const { error: updateError } = await supabase.auth.updateUser({
         data: { avatar_url: publicUrl }
       });
@@ -118,14 +109,12 @@ const PersonalInfoTab = ({
       toast.error(error.message || "Failed to update profile picture");
     } finally {
       setUploadLoading(false);
-      // Reset file input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
     }
   };
 
-  // Fetch avatar URL from user metadata on component mount
   useEffect(() => {
     if (user?.user_metadata?.avatar_url) {
       setAvatarUrl(user.user_metadata.avatar_url);
