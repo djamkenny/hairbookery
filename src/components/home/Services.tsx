@@ -11,7 +11,7 @@ const services = [
     description: "Precision cut and professional styling to create the perfect look for your face shape and preferences.",
     price: "$45+",
     duration: "45 mins",
-    image: "https://images.unsplash.com/photo-1605497788044-5a32c7078486?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1169&q=80",
+    image: "https://images.unsplash.com/photo-1626676108696-5604956e838f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80",
     category: "hair"
   },
   {
@@ -20,7 +20,7 @@ const services = [
     description: "Expert color services from subtle highlights to bold transformations using premium products.",
     price: "$75+",
     duration: "90 mins",
-    image: "https://images.unsplash.com/photo-1554519515-242161756769?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1173&q=80",
+    image: "https://images.unsplash.com/photo-1596815064285-45ed8a9c0463?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1173&q=80",
     category: "hair"
   },
   {
@@ -29,7 +29,7 @@ const services = [
     description: "Hand-painted highlights that create a natural, sun-kissed look with seamless blending.",
     price: "$120+",
     duration: "120 mins",
-    image: "https://images.unsplash.com/photo-1609357605129-26f69add5d6e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1074&q=80",
+    image: "https://images.unsplash.com/photo-1580618672591-eb180b1a973f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1074&q=80",
     category: "hair"
   },
   {
@@ -38,7 +38,7 @@ const services = [
     description: "Professional blow dry and styling to achieve smooth, voluminous, or textured finishes.",
     price: "$35+",
     duration: "30 mins",
-    image: "https://images.unsplash.com/photo-1597223557154-721c1cecc4b0?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1169&q=80",
+    image: "https://images.unsplash.com/photo-1544717305-2782549b5136?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1169&q=80",
     category: "hair"
   },
   {
@@ -47,7 +47,7 @@ const services = [
     description: "Intensive treatment to repair damaged hair, restore moisture, and enhance shine.",
     price: "$30+",
     duration: "20 mins",
-    image: "https://images.unsplash.com/photo-1519123845541-f311760188d1?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80",
+    image: "https://images.unsplash.com/photo-1541533848490-bc8115cd6522?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80",
     category: "hair"
   },
   {
@@ -56,7 +56,7 @@ const services = [
     description: "Quality hair extensions applied by certified professionals for added length and volume.",
     price: "$200+",
     duration: "180 mins",
-    image: "https://images.unsplash.com/photo-1643301763614-67ad50012aba?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80",
+    image: "https://images.unsplash.com/photo-1621545950740-173193219f1c?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80",
     category: "hair"
   },
   {
