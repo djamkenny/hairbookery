@@ -71,13 +71,54 @@ const StylistDashboard = () => {
             setSpecialty(profileData.specialty || metadata.specialty || "");
             setExperience(profileData.experience || metadata.experience || "");
             setBio(profileData.bio || metadata.bio || "");
+          }
+          
+          // Fetch appointments data (from Supabase when implemented)
+          const { data: appointmentsData, error: appointmentsError } = await supabase
+            .from('appointments')
+            .select('*')
+            .eq('stylist_id', authUser.id)
+            .is('canceled_at', null);
             
-            // In the future, we could fetch appointment and client data here
-            // For now, use placeholder data
-            setUpcomingAppointments(Math.floor(Math.random() * 5)); // Example data
-            setTotalClients(Math.floor(Math.random() * 20) + 5); // Example data
-            setCompletedAppointments(Math.floor(Math.random() * 30) + 10); // Example data
-            setRating(3.5 + Math.random() * 1.5); // Example rating between 3.5 and 5.0
+          if (!appointmentsError) {
+            // Real data for appointments
+            const upcoming = appointmentsData?.filter(apt => 
+              new Date(apt.appointment_date) >= new Date()
+            ) || [];
+            
+            const completed = appointmentsData?.filter(apt => 
+              new Date(apt.appointment_date) < new Date() && apt.status === 'completed'
+            ) || [];
+            
+            setUpcomingAppointments(upcoming.length);
+            setCompletedAppointments(completed.length);
+          }
+          
+          // Fetch clients data (from Supabase when implemented)
+          const { data: clientsData, error: clientsError } = await supabase
+            .from('appointments')
+            .select('client_id')
+            .eq('stylist_id', authUser.id)
+            .is('canceled_at', null);
+            
+          if (!clientsError) {
+            // Count unique clients
+            const uniqueClients = new Set(clientsData?.map(appointment => appointment.client_id) || []);
+            setTotalClients(uniqueClients.size);
+          }
+          
+          // Fetch ratings data (from Supabase when implemented)
+          const { data: ratingsData, error: ratingsError } = await supabase
+            .from('reviews')
+            .select('rating')
+            .eq('stylist_id', authUser.id);
+            
+          if (!ratingsError && ratingsData && ratingsData.length > 0) {
+            // Calculate average rating
+            const average = ratingsData.reduce((sum, review) => sum + review.rating, 0) / ratingsData.length;
+            setRating(average);
+          } else {
+            setRating(null);
           }
         }
       } catch (error: any) {
