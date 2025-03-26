@@ -1,14 +1,26 @@
+
 import React from "react";
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Menu, X, User, Calendar } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Menu, X, User, Calendar, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
 
 export const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [user, setUser] = useState<any>(null);
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -22,6 +34,34 @@ export const Navbar = () => {
   useEffect(() => {
     setIsOpen(false);
   }, [location.pathname]);
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user || null);
+    };
+
+    checkSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setUser(session?.user || null);
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast.success("Logged out successfully");
+      navigate("/");
+    } catch (error) {
+      console.error("Error logging out:", error);
+      toast.error("Error logging out");
+    }
+  };
 
   const navLinks = [
     { name: "Home", path: "/" },
@@ -69,12 +109,34 @@ export const Navbar = () => {
           </nav>
 
           <div className="hidden md:flex items-center space-x-4">
-            <Link to="/login">
-              <Button variant="ghost" size="sm" className="flex items-center space-x-1">
-                <User className="h-4 w-4 mr-1" />
-                <span>Login</span>
-              </Button>
-            </Link>
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="flex items-center space-x-1">
+                    <User className="h-4 w-4 mr-1" />
+                    <span>My Account</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => navigate("/profile")}>
+                    <User className="h-4 w-4 mr-2" />
+                    Dashboard
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Link to="/login">
+                <Button variant="ghost" size="sm" className="flex items-center space-x-1">
+                  <User className="h-4 w-4 mr-1" />
+                  <span>Login</span>
+                </Button>
+              </Link>
+            )}
             <Link to="/booking">
               <Button size="sm" className="flex items-center space-x-1">
                 <Calendar className="h-4 w-4 mr-1" />
@@ -116,12 +178,31 @@ export const Navbar = () => {
               </a>
             ))}
           </nav>
-          <div className="grid grid-cols-2 gap-3 pt-2">
-            <Link to="/login" className="col-span-1">
-              <Button variant="outline" className="w-full">
-                Login
-              </Button>
-            </Link>
+          <div className="grid grid-cols-1 gap-3 pt-2">
+            {user ? (
+              <>
+                <Link to="/profile" className="col-span-1">
+                  <Button variant="outline" className="w-full flex items-center justify-center">
+                    <User className="h-4 w-4 mr-2" />
+                    Dashboard
+                  </Button>
+                </Link>
+                <Button 
+                  variant="outline" 
+                  className="w-full flex items-center justify-center text-destructive hover:text-destructive"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Logout
+                </Button>
+              </>
+            ) : (
+              <Link to="/login" className="col-span-1">
+                <Button variant="outline" className="w-full">
+                  Login
+                </Button>
+              </Link>
+            )}
             <Link to="/booking" className="col-span-1">
               <Button className="w-full">Book Now</Button>
             </Link>
