@@ -5,6 +5,7 @@ import Footer from "@/components/layout/Footer";
 import Hero from "@/components/home/Hero";
 import Services from "@/components/home/Services";
 import Stylists from "@/components/home/Stylists";
+import Specialists from "@/components/home/Specialists";
 
 const Index = () => {
   return (
@@ -15,6 +16,7 @@ const Index = () => {
         <Hero />
         <Services />
         <Stylists />
+        <Specialists />
         
         {/* Contact Section */}
         <section id="contact" className="py-20 bg-background">
