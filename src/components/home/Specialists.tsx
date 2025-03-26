@@ -8,31 +8,31 @@ import StylistCard from "@/components/ui/StylistCard";
 const specialists = [
   {
     id: 5,
-    name: "Jennifer Lee",
+    name: "Nia Jackson",
     role: "Nail Technician",
-    bio: "With over 8 years of experience, Jennifer specializes in intricate nail art designs and gel extensions.",
-    image: "https://images.unsplash.com/photo-1594744803329-e58b31de8bf5?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80"
+    bio: "With over 8 years of experience, Nia specializes in intricate nail art designs and gel extensions.",
+    image: "https://images.unsplash.com/photo-1589156280159-27698a70f29e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80"
   },
   {
     id: 6,
-    name: "Michael Torres",
+    name: "Marcus Brown",
     role: "Nail Technician",
-    bio: "Michael is known for his precision work with acrylics and his dedication to nail health and maintenance.",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80"
+    bio: "Marcus is known for his precision work with acrylics and his dedication to nail health and maintenance.",
+    image: "https://images.unsplash.com/photo-1531384441138-2736e62e0919?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80"
   },
   {
     id: 7,
-    name: "Olivia Parker",
+    name: "Tiana Wilson",
     role: "Laundry Specialist",
-    bio: "Olivia has extensive knowledge in fabric care and specializes in handling delicate materials and stain removal.",
-    image: "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80"
+    bio: "Tiana has extensive knowledge in fabric care and specializes in handling delicate materials and stain removal.",
+    image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80"
   },
   {
     id: 8,
-    name: "David Kim",
+    name: "Jamal Foster",
     role: "Laundry Specialist",
-    bio: "With 10+ years in textile care, David provides expert advice on garment preservation and restoration.",
-    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80"
+    bio: "With 10+ years in textile care, Jamal provides expert advice on garment preservation and restoration.",
+    image: "https://images.unsplash.com/photo-1578597096845-8854485e8753?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80"
   }
 ];
 

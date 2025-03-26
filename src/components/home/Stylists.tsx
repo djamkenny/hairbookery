@@ -1,51 +1,53 @@
-
 import React from "react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import StylistCard from "@/components/ui/StylistCard";
 
 const stylists = [
   {
     id: 1,
-    name: "Sophia Rodriguez",
-    role: "Master Stylist",
-    bio: "With over 10 years of experience, Sophia specializes in precision cuts and color transformations.",
-    image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=761&q=80"
+    name: "Amara Johnson",
+    role: "Senior Stylist",
+    bio: "Specializing in textured hair, protective styles, and natural hair care with over 10 years of experience.",
+    image: "https://images.unsplash.com/photo-1589156191108-c762ff4b96ab?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80"
   },
   {
     id: 2,
-    name: "Alex Chen",
-    role: "Color Specialist",
-    bio: "Alex creates stunning balayage and color melts that enhance your natural beauty and style.",
-    image: "https://images.unsplash.com/photo-1531384441138-2736e62e0919?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=774&q=80"
+    name: "Malik Williams",
+    role: "Master Barber",
+    bio: "Expertise in fades, designs, and beard grooming with a passion for helping clients look and feel their best.",
+    image: "https://images.unsplash.com/photo-1618146366204-a1ffee4a9c8d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80"
   },
   {
     id: 3,
-    name: "Emma Johnson",
-    role: "Texture Expert",
-    bio: "Emma excels in creating beautiful styles for all hair textures, with a focus on natural curls.",
-    image: "https://images.unsplash.com/photo-1534751516642-a1af1ef26a56?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=778&q=80"
+    name: "Zara Thompson",
+    role: "Color Specialist",
+    bio: "Award-winning colorist with extensive training in techniques for all hair types and textures.",
+    image: "https://images.unsplash.com/photo-1523824921871-d6f1a15151f1?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80"
   },
   {
     id: 4,
-    name: "Marcus Williams",
-    role: "Cutting Specialist",
-    bio: "Marcus brings precision and artistic vision to every cut, creating styles that enhance your features.",
-    image: "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=848&q=80"
+    name: "Damon Carter",
+    role: "Styling Expert",
+    bio: "Specializes in natural hairstyling, braiding, twists, and maintaining healthy hair through proper technique.",
+    image: "https://images.unsplash.com/photo-1621605815971-fbc98d665033?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80"
   }
 ];
 
-export const Stylists = () => {
+const Stylists = () => {
   return (
-    <section id="stylists" className="py-20 bg-secondary/30">
+    <section id="stylists" className="py-20 bg-muted/50">
       <div className="container mx-auto px-4">
-        <div className="text-center max-w-xl mx-auto mb-16">
-          <h2 className="text-3xl md:text-4xl font-semibold mb-4">Meet Our Stylists</h2>
+        <div className="text-center max-w-xl mx-auto mb-10">
+          <h2 className="text-3xl md:text-4xl font-semibold mb-4">Our Stylists</h2>
           <p className="text-muted-foreground text-balance">
-            Our team of talented professionals is passionate about creating beautiful hairstyles tailored to your personality and lifestyle.
+            Our team of experienced hair stylists are passionate about creating the perfect look for each client.
+            Book an appointment with one of our talented professionals today.
           </p>
         </div>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {stylists.map((stylist, index) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          {stylists.map((stylist) => (
             <StylistCard
               key={stylist.id}
               id={stylist.id}
@@ -54,9 +56,17 @@ export const Stylists = () => {
               bio={stylist.bio}
               image={stylist.image}
               className="animate-fade-in"
-              style={{ animationDelay: `${index * 0.1}s` }}
+              style={{ animationDelay: `${(stylist.id - 1) * 0.1}s` }}
             />
           ))}
+        </div>
+        
+        <div className="text-center">
+          <Link to="/booking">
+            <Button size="lg" className="animate-fade-in">
+              Book with a Stylist
+            </Button>
+          </Link>
         </div>
       </div>
     </section>
