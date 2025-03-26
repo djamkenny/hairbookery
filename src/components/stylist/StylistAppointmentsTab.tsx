@@ -114,16 +114,16 @@ const StylistAppointmentsTab = () => {
         const appointmentInfo = appointments.find(a => a.id === appointmentId);
         const message = `Your appointment for ${appointmentInfo?.service} on ${appointmentInfo?.date} at ${appointmentInfo?.time} has been confirmed.`;
         
+        // Create notification in the notifications table
         const { error: notificationError } = await supabase
           .from('notifications')
-          .insert({
+          .insert([{
             user_id: clientId,
             message: message,
             type: 'appointment_confirmed',
             is_read: false,
             related_id: appointmentId
-          })
-          .select();
+          }]);
           
         if (notificationError) {
           console.error("Error sending notification:", notificationError);
