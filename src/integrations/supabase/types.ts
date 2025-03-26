@@ -9,6 +9,53 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      appointments: {
+        Row: {
+          appointment_date: string
+          appointment_time: string
+          canceled_at: string | null
+          client_id: string
+          created_at: string | null
+          id: string
+          notes: string | null
+          service_id: string
+          status: string
+          stylist_id: string
+        }
+        Insert: {
+          appointment_date: string
+          appointment_time: string
+          canceled_at?: string | null
+          client_id: string
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          service_id: string
+          status?: string
+          stylist_id: string
+        }
+        Update: {
+          appointment_date?: string
+          appointment_time?: string
+          canceled_at?: string | null
+          client_id?: string
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          service_id?: string
+          status?: string
+          stylist_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -48,6 +95,36 @@ export type Database = {
           phone?: string | null
           specialty?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      services: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          duration: number
+          id: string
+          name: string
+          price: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          duration: number
+          id?: string
+          name: string
+          price: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          duration?: number
+          id?: string
+          name?: string
+          price?: number
+          updated_at?: string | null
         }
         Relationships: []
       }

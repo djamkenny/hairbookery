@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { CalendarIcon, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -24,22 +25,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
-const services = [
-  { id: 1, name: "Haircut & Styling", price: "$45" },
-  { id: 2, name: "Hair Coloring", price: "$75" },
-  { id: 3, name: "Balayage", price: "$120" },
-  { id: 4, name: "Blowout & Styling", price: "$35" },
-  { id: 5, name: "Deep Conditioning", price: "$30" },
-  { id: 6, name: "Hair Extensions", price: "$200" },
-];
-
-const stylists = [
-  { id: 1, name: "Sophia Rodriguez" },
-  { id: 2, name: "Alex Chen" },
-  { id: 3, name: "Emma Johnson" },
-  { id: 4, name: "Marcus Williams" },
-];
-
+// Time slots available for booking
 const timeSlots = [
   "9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM", 
   "1:00 PM", "2:00 PM", "3:00 PM", "4:00 PM", "5:00 PM"
@@ -47,6 +33,7 @@ const timeSlots = [
 
 export const BookingForm = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const preselectedStylistId = searchParams.get("stylist");
   
   const [date, setDate] = useState<Date | undefined>(undefined);
@@ -59,28 +46,79 @@ export const BookingForm = () => {
   const [notes, setNotes] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   
+  // New state for services and stylists from the database
+  const [services, setServices] = useState<any[]>([]);
+  const [stylists, setStylists] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  
   useEffect(() => {
-    const fetchUserProfile = async () => {
+    const fetchData = async () => {
+      setLoading(true);
       try {
+        // Get current user
         const { data: { user } } = await supabase.auth.getUser();
+        setCurrentUser(user);
+        
         if (user) {
           setEmail(user.email || "");
           
-          if (user.user_metadata) {
-            setName(user.user_metadata.full_name || "");
-            setPhone(user.user_metadata.phone || "");
+          // Try to get user's profile info
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+            
+          if (profileData) {
+            setName(profileData.full_name || "");
+            setPhone(profileData.phone || "");
           }
         }
+        
+        // Fetch services
+        const { data: servicesData, error: servicesError } = await supabase
+          .from('services')
+          .select('*')
+          .order('price');
+          
+        if (servicesError) throw servicesError;
+        setServices(servicesData || []);
+        
+        // Fetch stylists (users with is_stylist = true)
+        const { data: stylistsData, error: stylistsError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('is_stylist', true);
+          
+        if (stylistsError) throw stylistsError;
+        setStylists(stylistsData || []);
+        
+        // If a stylist was preselected but not found in the database, reset it
+        if (preselectedStylistId && 
+            stylistsData && 
+            !stylistsData.some(s => s.id === preselectedStylistId)) {
+          setStylist("");
+        }
       } catch (error) {
-        console.error("Error fetching user:", error);
+        console.error("Error fetching data:", error);
+        toast.error("Failed to load appointment data");
+      } finally {
+        setLoading(false);
       }
     };
     
-    fetchUserProfile();
-  }, []);
+    fetchData();
+  }, [preselectedStylistId]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!currentUser) {
+      toast.error("You must be logged in to book an appointment");
+      navigate("/login");
+      return;
+    }
     
     if (!date || !service || !stylist || !time || !name || !email || !phone) {
       toast.error("Please fill in all required fields");
@@ -89,17 +127,73 @@ export const BookingForm = () => {
     
     setIsSubmitting(true);
     
-    setTimeout(() => {
+    try {
+      // Format the date for database
+      const formattedDate = format(date, "yyyy-MM-dd");
+      
+      // Insert the appointment into the database
+      const { data, error } = await supabase
+        .from('appointments')
+        .insert([{
+          client_id: currentUser.id,
+          stylist_id: stylist,
+          service_id: service,
+          appointment_date: formattedDate,
+          appointment_time: time,
+          notes: notes || null
+        }])
+        .select();
+      
+      if (error) throw error;
+      
       toast.success("Appointment booked successfully! We'll send you a confirmation email shortly.");
       
+      // Reset form
       setDate(undefined);
       setService("");
       setStylist("");
       setTime("");
       setNotes("");
+      
+      // Redirect to dashboard after successful booking
+      navigate("/profile");
+    } catch (error: any) {
+      console.error("Error booking appointment:", error);
+      toast.error(error.message || "Failed to book appointment. Please try again.");
+    } finally {
       setIsSubmitting(false);
-    }, 1500);
+    }
   };
+
+  // Format price to display as currency
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('en-US', { 
+      style: 'currency', 
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2
+    }).format(price);
+  };
+  
+  // Format duration to display as hours and minutes
+  const formatDuration = (minutes: number) => {
+    if (minutes < 60) return `${minutes} min`;
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    return remainingMinutes 
+      ? `${hours} hr ${remainingMinutes} min` 
+      : `${hours} hr`;
+  };
+
+  // Find selected service
+  const selectedService = service 
+    ? services.find(s => s.id === service) 
+    : null;
+    
+  // Find selected stylist
+  const selectedStylist = stylist 
+    ? stylists.find(s => s.id === stylist) 
+    : null;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -108,13 +202,13 @@ export const BookingForm = () => {
           <div className="space-y-2">
             <Label htmlFor="service">Select Service</Label>
             <Select value={service} onValueChange={setService}>
-              <SelectTrigger id="service">
+              <SelectTrigger id="service" className={loading ? "animate-pulse" : ""}>
                 <SelectValue placeholder="Choose a service" />
               </SelectTrigger>
               <SelectContent>
                 {services.map((svc) => (
-                  <SelectItem key={svc.id} value={svc.id.toString()}>
-                    {svc.name} - {svc.price}
+                  <SelectItem key={svc.id} value={svc.id}>
+                    {svc.name} - {formatPrice(svc.price)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -124,13 +218,13 @@ export const BookingForm = () => {
           <div className="space-y-2">
             <Label htmlFor="stylist">Select Stylist</Label>
             <Select value={stylist} onValueChange={setStylist}>
-              <SelectTrigger id="stylist">
+              <SelectTrigger id="stylist" className={loading ? "animate-pulse" : ""}>
                 <SelectValue placeholder="Choose a stylist" />
               </SelectTrigger>
               <SelectContent>
                 {stylists.map((sty) => (
-                  <SelectItem key={sty.id} value={sty.id.toString()}>
-                    {sty.name}
+                  <SelectItem key={sty.id} value={sty.id}>
+                    {sty.full_name || "Stylist"}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -207,6 +301,7 @@ export const BookingForm = () => {
               placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              disabled={currentUser !== null} // Disable if user is logged in
             />
           </div>
           
@@ -238,9 +333,9 @@ export const BookingForm = () => {
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-medium">Booking Summary</h3>
-              {service && (
+              {selectedService && (
                 <span className="text-primary font-medium">
-                  {services.find(s => s.id.toString() === service)?.price}
+                  {formatPrice(selectedService.price)}
                 </span>
               )}
             </div>
@@ -249,14 +344,14 @@ export const BookingForm = () => {
               <div>
                 <p className="text-muted-foreground">Service</p>
                 <p className="font-medium">
-                  {service ? services.find(s => s.id.toString() === service)?.name : "Not selected"}
+                  {selectedService ? selectedService.name : "Not selected"}
                 </p>
               </div>
               
               <div>
                 <p className="text-muted-foreground">Stylist</p>
                 <p className="font-medium">
-                  {stylist ? stylists.find(s => s.id.toString() === stylist)?.name : "Not selected"}
+                  {selectedStylist ? selectedStylist.full_name : "Not selected"}
                 </p>
               </div>
               
@@ -273,6 +368,15 @@ export const BookingForm = () => {
                   {time || "Not selected"}
                 </p>
               </div>
+              
+              {selectedService && (
+                <div>
+                  <p className="text-muted-foreground">Duration</p>
+                  <p className="font-medium">
+                    {formatDuration(selectedService.duration)}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </CardContent>
@@ -281,7 +385,7 @@ export const BookingForm = () => {
       <Button 
         type="submit" 
         className="w-full"
-        disabled={isSubmitting}
+        disabled={isSubmitting || !currentUser}
       >
         {isSubmitting ? (
           <div className="loading-dots">
@@ -293,6 +397,14 @@ export const BookingForm = () => {
           "Confirm Booking"
         )}
       </Button>
+      
+      {!currentUser && (
+        <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-md text-center">
+          <p className="text-yellow-800 text-sm">
+            You need to <a href="/login" className="text-primary font-medium hover:underline">log in</a> to book an appointment
+          </p>
+        </div>
+      )}
       
       <p className="text-center text-sm text-muted-foreground">
         By booking an appointment, you agree to our{" "}

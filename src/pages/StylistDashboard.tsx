@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import StylistDashboardSummary from "@/components/stylist/StylistDashboardSummary";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -73,17 +72,44 @@ const StylistDashboard = () => {
             setBio(profileData.bio || metadata.bio || "");
           }
           
-          // Instead of querying non-existent tables, let's hardcode stats temporarily
-          // These will be replaced when the actual tables are created
-          
-          // Sample metrics (static for now, will be dynamic later)
-          // In a real app, these would come from the appointments and reviews tables
-          setUpcomingAppointments(0);
-          setCompletedAppointments(0);
-          setTotalClients(0);
-          setRating(null);
-          
-          console.log("Note: Using default values for dashboard metrics until database tables are created.");
+          // Try to fetch appointments data
+          try {
+            const { data: appointmentsData, error: appointmentsError } = await supabase
+              .from('appointments')
+              .select('*');
+              
+            if (!appointmentsError && appointmentsData) {
+              // Filter for this stylist's appointments
+              const stylistAppointments = appointmentsData.filter(apt => 
+                apt.stylist_id === authUser.id && !apt.canceled_at
+              );
+              
+              // Further filter for upcoming vs completed
+              const today = new Date();
+              today.setHours(0, 0, 0, 0); // Start of today
+              
+              const upcoming = stylistAppointments.filter(apt => 
+                new Date(apt.appointment_date) >= today
+              );
+              
+              const completed = stylistAppointments.filter(apt => 
+                new Date(apt.appointment_date) < today && apt.status === 'completed'
+              );
+              
+              setUpcomingAppointments(upcoming.length);
+              setCompletedAppointments(completed.length);
+              
+              // Count unique clients
+              const uniqueClients = new Set(stylistAppointments.map(appointment => appointment.client_id));
+              setTotalClients(uniqueClients.size);
+            }
+          } catch (err) {
+            console.log("Error fetching appointments:", err);
+            // Keep default values
+            setUpcomingAppointments(0);
+            setCompletedAppointments(0);
+            setTotalClients(0);
+          }
         }
       } catch (error: any) {
         console.error("Error fetching user data:", error);
