@@ -8,7 +8,9 @@ import Index from "./pages/Index";
 import Booking from "./pages/Booking";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import StylistRegister from "./pages/StylistRegister";
 import Profile from "./pages/Profile";
+import StylistDashboard from "./pages/StylistDashboard";
 import StylistDetail from "./pages/StylistDetail";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
@@ -26,9 +28,15 @@ const App = () => (
           <Route path="/booking" element={<Booking />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/stylist-register" element={<StylistRegister />} />
           <Route path="/profile" element={
             <ProtectedRoute>
               <Profile />
+            </ProtectedRoute>
+          } />
+          <Route path="/stylist-dashboard" element={
+            <ProtectedRoute>
+              <StylistDashboard />
             </ProtectedRoute>
           } />
           <Route path="/stylist/:id" element={<StylistDetail />} />
