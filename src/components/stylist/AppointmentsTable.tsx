@@ -8,13 +8,35 @@ interface AppointmentsTableProps {
   appointments: Appointment[];
   onUpdateStatus: (appointmentId: string, newStatus: string, clientId: string) => void;
   onViewDetails?: (appointment: Appointment) => void;
+  sortKey?: keyof Appointment;
+  sortDirection?: 'asc' | 'desc';
 }
 
 const AppointmentsTable: React.FC<AppointmentsTableProps> = ({ 
   appointments, 
   onUpdateStatus,
-  onViewDetails 
+  onViewDetails,
+  sortKey,
+  sortDirection = 'asc'
 }) => {
+  // Sort appointments if sort parameters are provided
+  const sortedAppointments = React.useMemo(() => {
+    if (!sortKey) return appointments;
+    
+    return [...appointments].sort((a, b) => {
+      const valueA = a[sortKey];
+      const valueB = b[sortKey];
+      
+      // Basic string comparison for most fields
+      if (typeof valueA === 'string' && typeof valueB === 'string') {
+        const comparison = valueA.localeCompare(valueB);
+        return sortDirection === 'asc' ? comparison : -comparison;
+      }
+      
+      return 0;
+    });
+  }, [appointments, sortKey, sortDirection]);
+
   return (
     <Table>
       <TableHeader>
@@ -28,7 +50,7 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
         </TableRow>
       </TableHeader>
       <TableBody>
-        {appointments.map((appointment) => (
+        {sortedAppointments.map((appointment) => (
           <AppointmentRow 
             key={appointment.id}
             appointment={appointment}
