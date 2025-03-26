@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -32,14 +32,30 @@ const PersonalInfoTab = ({
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleSaveProfile = () => {
+  const handleSaveProfile = async () => {
     setLoading(true);
     
-    setTimeout(() => {
+    try {
+      // Update user metadata with the new fullName and phone
+      const { error } = await supabase.auth.updateUser({
+        data: { 
+          full_name: fullName,
+          phone: phone,
+        }
+      });
+      
+      if (error) {
+        throw error;
+      }
+      
       setIsEditing(false);
-      setLoading(false);
       toast.success("Profile information updated successfully");
-    }, 1000);
+    } catch (error: any) {
+      console.error('Error updating profile:', error);
+      toast.error(error.message || "Failed to update profile");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleAvatarClick = () => {
@@ -68,7 +84,7 @@ const PersonalInfoTab = ({
       // Create a unique file name
       const fileExt = file.name.split('.').pop();
       const fileName = `${user?.id}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-      const filePath = `avatars/${fileName}`;
+      const filePath = `${fileName}`;
       
       // Upload file to Supabase Storage
       const { error: uploadError } = await supabase.storage
@@ -110,7 +126,7 @@ const PersonalInfoTab = ({
   };
 
   // Fetch avatar URL from user metadata on component mount
-  React.useEffect(() => {
+  useEffect(() => {
     if (user?.user_metadata?.avatar_url) {
       setAvatarUrl(user.user_metadata.avatar_url);
     }
