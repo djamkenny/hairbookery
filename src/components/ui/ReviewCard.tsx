@@ -10,6 +10,7 @@ interface ReviewCardProps {
   comment: string;
   image?: string;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 const ReviewCard = ({ 
@@ -18,13 +19,17 @@ const ReviewCard = ({
   rating, 
   comment, 
   image,
-  className 
+  className,
+  style
 }: ReviewCardProps) => {
   return (
-    <div className={cn(
-      "bg-card p-6 rounded-lg border border-border/30 shadow-sm transition-all duration-300 hover:shadow-md hover:border-border",
-      className
-    )}>
+    <div 
+      className={cn(
+        "bg-card p-6 rounded-lg border border-border/30 shadow-sm transition-all duration-300 hover:shadow-md hover:border-border",
+        className
+      )}
+      style={style}
+    >
       <div className="flex items-start gap-4">
         {image && (
           <div className="flex-shrink-0">
