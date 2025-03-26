@@ -1,10 +1,11 @@
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { 
   CalendarIcon, 
   ClockIcon,
-  BellIcon
+  BellIcon,
+  RefreshCw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -12,6 +13,9 @@ import { Badge } from "@/components/ui/badge";
 import DashboardSummary from "@/components/dashboard/DashboardSummary";
 import AppointmentStats from "@/components/dashboard/AppointmentStats";
 import QuickActions from "@/components/dashboard/QuickActions";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { format } from "date-fns";
 
 interface Appointment {
   id: number;
@@ -33,20 +37,123 @@ interface DashboardTabProps {
 
 const DashboardTab = ({ 
   user, 
-  upcomingAppointments, 
-  pastAppointments, 
+  upcomingAppointments: initialUpcomingAppointments, 
+  pastAppointments: initialPastAppointments, 
   favoriteSylists, 
   handleRescheduleAppointment, 
   handleCancelAppointment 
 }: DashboardTabProps) => {
+  const [upcomingAppointments, setUpcomingAppointments] = useState(initialUpcomingAppointments);
+  const [pastAppointments, setPastAppointments] = useState(initialPastAppointments);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Function to fetch latest appointment data
+  const refreshAppointments = async () => {
+    if (!user?.id) return;
+    
+    try {
+      setRefreshing(true);
+      
+      // Fetch appointments from Supabase
+      const { data: appointmentsData, error } = await supabase
+        .from('appointments')
+        .select(`
+          id,
+          appointment_date,
+          appointment_time,
+          status,
+          services:service_id(name),
+          stylists:stylist_id(full_name)
+        `)
+        .eq('client_id', user.id)
+        .order('appointment_date', { ascending: true });
+      
+      if (error) {
+        throw error;
+      }
+      
+      // Process fetched appointments
+      if (appointmentsData) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Start of today
+        
+        const formattedAppointments = appointmentsData.map(apt => ({
+          id: apt.id,
+          service: apt.services?.name || 'Service',
+          stylist: apt.stylists?.full_name || 'Stylist',
+          date: format(new Date(apt.appointment_date), 'MMMM dd, yyyy'),
+          time: apt.appointment_time,
+          status: apt.status
+        }));
+        
+        // Split into upcoming and past appointments
+        const upcoming = formattedAppointments.filter(apt => 
+          new Date(apt.date) >= today && apt.status !== 'completed' && apt.status !== 'canceled'
+        );
+        
+        const past = formattedAppointments.filter(apt => 
+          new Date(apt.date) < today || apt.status === 'completed' || apt.status === 'canceled'
+        );
+        
+        setUpcomingAppointments(upcoming);
+        setPastAppointments(past);
+      }
+    } catch (error) {
+      console.error("Error refreshing appointments:", error);
+      toast.error("Failed to refresh appointments");
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  // Set up real-time subscription for appointments
+  useEffect(() => {
+    if (!user?.id) return;
+    
+    // Initial fetch
+    refreshAppointments();
+    
+    // Set up real-time updates
+    const channel = supabase
+      .channel('public:appointments')
+      .on('postgres_changes', 
+        { 
+          event: 'UPDATE', 
+          schema: 'public', 
+          table: 'appointments',
+          filter: `client_id=eq.${user.id}`
+        }, 
+        (payload) => {
+          console.log("Appointment updated:", payload);
+          refreshAppointments();
+        }
+      )
+      .subscribe();
+    
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id]);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Dashboard</h1>
-        <Badge variant="outline" className="flex items-center gap-1 px-3 py-1">
-          <BellIcon className="h-3.5 w-3.5" />
-          <span>Member since {new Date(user?.created_at || Date.now()).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={refreshAppointments}
+            disabled={refreshing}
+          >
+            <RefreshCw className={`h-4 w-4 mr-1 ${refreshing ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+          <Badge variant="outline" className="flex items-center gap-1 px-3 py-1">
+            <BellIcon className="h-3.5 w-3.5" />
+            <span>Member since {new Date(user?.created_at || Date.now()).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
+          </Badge>
+        </div>
       </div>
       
       <DashboardSummary appointments={upcomingAppointments.length} favorites={favoriteSylists.length} />

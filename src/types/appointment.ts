@@ -9,4 +9,5 @@ export interface Appointment {
   clientEmail?: string;
   clientPhone?: string;
   client_id: string;
+  updated_at?: string;
 }
