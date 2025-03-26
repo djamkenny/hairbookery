@@ -2,7 +2,7 @@
 import React from "react";
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Menu, X, User, Calendar, LogOut } from "lucide-react";
+import { Menu, X, User, Calendar, LogOut, Scissors } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,6 +19,7 @@ export const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [isStylist, setIsStylist] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -39,6 +40,14 @@ export const Navbar = () => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       setUser(session?.user || null);
+      
+      // Check if user is a stylist
+      if (session?.user) {
+        const metadata = session.user.user_metadata || {};
+        setIsStylist(metadata.is_stylist || false);
+      } else {
+        setIsStylist(false);
+      }
     };
 
     checkSession();
@@ -46,6 +55,14 @@ export const Navbar = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setUser(session?.user || null);
+        
+        // Check if user is a stylist on auth state change
+        if (session?.user) {
+          const metadata = session.user.user_metadata || {};
+          setIsStylist(metadata.is_stylist || false);
+        } else {
+          setIsStylist(false);
+        }
       }
     );
 
@@ -69,6 +86,14 @@ export const Navbar = () => {
     { name: "Stylists", path: "/#stylists" },
     { name: "Contact", path: "/#contact" },
   ];
+
+  const navigateToDashboard = () => {
+    if (isStylist) {
+      navigate("/stylist-dashboard");
+    } else {
+      navigate("/profile");
+    }
+  };
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
@@ -113,14 +138,27 @@ export const Navbar = () => {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" className="flex items-center space-x-1">
-                    <User className="h-4 w-4 mr-1" />
-                    <span>My Account</span>
+                    {isStylist ? (
+                      <Scissors className="h-4 w-4 mr-1" />
+                    ) : (
+                      <User className="h-4 w-4 mr-1" />
+                    )}
+                    <span>{isStylist ? "Stylist" : "Account"}</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => navigate("/profile")}>
-                    <User className="h-4 w-4 mr-2" />
-                    Dashboard
+                  <DropdownMenuItem onClick={navigateToDashboard}>
+                    {isStylist ? (
+                      <>
+                        <Scissors className="h-4 w-4 mr-2" />
+                        Stylist Dashboard
+                      </>
+                    ) : (
+                      <>
+                        <User className="h-4 w-4 mr-2" />
+                        My Profile
+                      </>
+                    )}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout}>
@@ -130,12 +168,25 @@ export const Navbar = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Link to="/login">
-                <Button variant="ghost" size="sm" className="flex items-center space-x-1">
-                  <User className="h-4 w-4 mr-1" />
-                  <span>Login</span>
-                </Button>
-              </Link>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="flex items-center space-x-1">
+                    <User className="h-4 w-4 mr-1" />
+                    <span>Login</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => navigate("/login")}>
+                    <User className="h-4 w-4 mr-2" />
+                    Client Login
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => navigate("/login")}>
+                    <Scissors className="h-4 w-4 mr-2" />
+                    Stylist Login
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
             <Link to="/booking">
               <Button size="sm" className="flex items-center space-x-1">
@@ -181,12 +232,23 @@ export const Navbar = () => {
           <div className="grid grid-cols-1 gap-3 pt-2">
             {user ? (
               <>
-                <Link to="/profile" className="col-span-1">
-                  <Button variant="outline" className="w-full flex items-center justify-center">
-                    <User className="h-4 w-4 mr-2" />
-                    Dashboard
-                  </Button>
-                </Link>
+                <Button 
+                  variant="outline" 
+                  className="w-full flex items-center justify-center"
+                  onClick={navigateToDashboard}
+                >
+                  {isStylist ? (
+                    <>
+                      <Scissors className="h-4 w-4 mr-2" />
+                      Stylist Dashboard
+                    </>
+                  ) : (
+                    <>
+                      <User className="h-4 w-4 mr-2" />
+                      My Profile
+                    </>
+                  )}
+                </Button>
                 <Button 
                   variant="outline" 
                   className="w-full flex items-center justify-center text-destructive hover:text-destructive"
@@ -197,11 +259,20 @@ export const Navbar = () => {
                 </Button>
               </>
             ) : (
-              <Link to="/login" className="col-span-1">
-                <Button variant="outline" className="w-full">
-                  Login
-                </Button>
-              </Link>
+              <>
+                <Link to="/login" className="col-span-1">
+                  <Button variant="outline" className="w-full flex items-center justify-center">
+                    <User className="h-4 w-4 mr-2" />
+                    Client Login
+                  </Button>
+                </Link>
+                <Link to="/login" className="col-span-1">
+                  <Button variant="outline" className="w-full flex items-center justify-center">
+                    <Scissors className="h-4 w-4 mr-2" />
+                    Stylist Login
+                  </Button>
+                </Link>
+              </>
             )}
             <Link to="/booking" className="col-span-1">
               <Button className="w-full">Book Now</Button>

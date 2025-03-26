@@ -30,12 +30,12 @@ const App = () => (
           <Route path="/register" element={<Register />} />
           <Route path="/stylist-register" element={<StylistRegister />} />
           <Route path="/profile" element={
-            <ProtectedRoute>
+            <ProtectedRoute requireStylist={false}>
               <Profile />
             </ProtectedRoute>
           } />
           <Route path="/stylist-dashboard" element={
-            <ProtectedRoute>
+            <ProtectedRoute requireStylist={true}>
               <StylistDashboard />
             </ProtectedRoute>
           } />

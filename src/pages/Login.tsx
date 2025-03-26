@@ -23,7 +23,12 @@ const Login = () => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        navigate("/profile");
+        const metadata = session.user.user_metadata || {};
+        if (metadata.is_stylist) {
+          navigate("/stylist-dashboard");
+        } else {
+          navigate("/profile");
+        }
       }
     };
     
@@ -79,7 +84,14 @@ const Login = () => {
       }
       
       toast.success("Successfully logged in!");
-      navigate("/profile");
+      
+      // Redirect based on user role
+      const metadata = data.user?.user_metadata || {};
+      if (metadata.is_stylist) {
+        navigate("/stylist-dashboard");
+      } else {
+        navigate("/profile");
+      }
     } catch (error: any) {
       console.error("Login error:", error);
       
@@ -185,11 +197,19 @@ const Login = () => {
                   )}
                 </Button>
                 
-                <div className="text-center text-sm">
-                  Don't have an account?{" "}
-                  <Link to="/register" className="text-primary hover:underline">
-                    Create account
-                  </Link>
+                <div className="text-center text-sm mt-2 space-y-2">
+                  <div>
+                    Don't have a client account?{" "}
+                    <Link to="/register" className="text-primary hover:underline">
+                      Register as Client
+                    </Link>
+                  </div>
+                  <div>
+                    Are you a hair stylist?{" "}
+                    <Link to="/stylist-register" className="text-primary hover:underline">
+                      Register as Stylist
+                    </Link>
+                  </div>
                 </div>
               </CardFooter>
             </form>
