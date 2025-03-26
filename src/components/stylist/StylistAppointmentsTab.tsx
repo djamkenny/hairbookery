@@ -25,13 +25,14 @@ const StylistAppointmentsTab = () => {
           return;
         }
         
-        // Fetch appointments where this stylist is assigned
+        // Fetch appointments where this stylist is assigned, along with related data
+        // The query is modified to use proper join syntax
         const { data, error } = await supabase
           .from('appointments')
           .select(`
             *,
             services:service_id(name),
-            client_profile:client_id(full_name, email, phone)
+            profiles!client_id(full_name, email, phone)
           `)
           .eq('stylist_id', user.id)
           .is('canceled_at', null);
@@ -44,13 +45,13 @@ const StylistAppointmentsTab = () => {
           // Format the appointments data
           const formattedAppointments = data.map(appointment => ({
             id: appointment.id,
-            client: appointment.client_profile?.full_name || 'Client',
+            client: appointment.profiles?.full_name || 'Client',
             service: appointment.services?.name || 'Service',
             date: format(new Date(appointment.appointment_date), 'MMMM dd, yyyy'),
             time: appointment.appointment_time,
             status: appointment.status,
-            clientEmail: appointment.client_profile?.email,
-            clientPhone: appointment.client_profile?.phone
+            clientEmail: appointment.profiles?.email,
+            clientPhone: appointment.profiles?.phone
           }));
           
           setAppointments(formattedAppointments);
