@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { 
@@ -87,12 +88,24 @@ const Profile = () => {
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
   
+  // Add the missing state variables
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           setUser(user);
+          // Initialize the profile fields with user data if available
+          setEmail(user.email || "");
+          
+          // Try to get additional profile data from metadata if available
+          const metadata = user.user_metadata || {};
+          setFullName(metadata.full_name || "");
+          setPhone(metadata.phone || "");
         } else {
           navigate("/login");
         }
