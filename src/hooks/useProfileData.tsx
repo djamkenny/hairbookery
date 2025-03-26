@@ -27,7 +27,7 @@ export const useProfileData = () => {
     try {
       setLoading(true);
       
-      // Fetch appointments from the database
+      // First fetch the appointments data
       const { data: appointmentsData, error: appointmentsError } = await supabase
         .from('appointments')
         .select(`
@@ -36,13 +36,42 @@ export const useProfileData = () => {
           appointment_time,
           status,
           services:service_id(name),
-          profiles:stylist_id(full_name)
+          stylist_id
         `)
         .eq('client_id', userId);
       
       if (appointmentsError) {
         console.error("Error fetching appointments:", appointmentsError);
         return;
+      }
+      
+      if (!appointmentsData) {
+        return;
+      }
+      
+      // Get all stylist IDs to fetch their names in a separate query
+      const stylistIds = appointmentsData
+        .map(apt => apt.stylist_id)
+        .filter(Boolean);
+      
+      // Only fetch stylist profiles if we have stylist IDs
+      let stylistProfiles: Record<string, string> = {};
+      
+      if (stylistIds.length > 0) {
+        const { data: stylistsData, error: stylistsError } = await supabase
+          .from('profiles')
+          .select('id, full_name')
+          .in('id', stylistIds);
+        
+        if (stylistsError) {
+          console.error("Error fetching stylists:", stylistsError);
+        } else if (stylistsData) {
+          // Create a map of stylist IDs to names
+          stylistProfiles = stylistsData.reduce((acc, stylist) => {
+            acc[stylist.id] = stylist.full_name || 'Stylist';
+            return acc;
+          }, {} as Record<string, string>);
+        }
       }
       
       if (appointmentsData) {
@@ -53,7 +82,7 @@ export const useProfileData = () => {
           id: apt.id,
           client: userId, // Add missing required field
           service: apt.services?.name || 'Service',
-          stylist: apt.profiles?.full_name || 'Stylist',
+          stylist: stylistProfiles[apt.stylist_id] || 'Stylist',
           date: format(new Date(apt.appointment_date), 'MMMM dd, yyyy'),
           time: apt.appointment_time,
           status: apt.status,
