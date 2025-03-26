@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -10,6 +9,12 @@ import { toast } from "sonner";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
+
+interface UserRegistrationData {
+  name: string;
+  email: string;
+  password: string;
+}
 
 const Register = () => {
   const navigate = useNavigate();
@@ -83,7 +88,25 @@ const Register = () => {
     return isValid;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const registerUser = async (userData: UserRegistrationData): Promise<{ success: boolean, message: string }> => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        if (!validateEmail(userData.email)) {
+          resolve({ success: false, message: "Invalid email format" });
+          return;
+        }
+        
+        if (userData.email === "test@example.com") {
+          resolve({ success: false, message: "Email already registered" });
+          return;
+        }
+        
+        resolve({ success: true, message: "Registration successful" });
+      }, 1500);
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!validateForm()) {
@@ -92,12 +115,27 @@ const Register = () => {
     
     setIsSubmitting(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      toast.success("Account created successfully! Please check your email to verify your account.");
+    try {
+      const userData: UserRegistrationData = {
+        name,
+        email,
+        password
+      };
+      
+      const result = await registerUser(userData);
+      
+      if (result.success) {
+        toast.success("Account created successfully! Please check your email to verify your account.");
+        navigate("/login");
+      } else {
+        toast.error(result.message || "Registration failed. Please try again.");
+      }
+    } catch (error) {
+      console.error("Registration error:", error);
+      toast.error("Something went wrong. Please try again later.");
+    } finally {
       setIsSubmitting(false);
-      navigate("/login");
-    }, 1500);
+    }
   };
 
   const togglePasswordVisibility = () => {
