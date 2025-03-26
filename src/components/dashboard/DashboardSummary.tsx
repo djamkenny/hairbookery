@@ -6,11 +6,15 @@ import { CalendarIcon, HeartIcon, ScissorsIcon, BadgeIcon } from "lucide-react";
 interface DashboardSummaryProps {
   appointments: number;
   favorites: number;
+  services?: number;
+  loyaltyPoints?: number;
 }
 
 const DashboardSummary = ({ 
   appointments = 0, 
-  favorites = 0 
+  favorites = 0,
+  services = 0,
+  loyaltyPoints = 0
 }: DashboardSummaryProps) => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -45,7 +49,7 @@ const DashboardSummary = ({
           </div>
           <div>
             <p className="text-muted-foreground text-sm">Services</p>
-            <p className="text-2xl font-medium">0</p>
+            <p className="text-2xl font-medium">{services}</p>
           </div>
         </CardContent>
       </Card>
@@ -57,7 +61,7 @@ const DashboardSummary = ({
           </div>
           <div>
             <p className="text-muted-foreground text-sm">Loyalty Points</p>
-            <p className="text-2xl font-medium">0</p>
+            <p className="text-2xl font-medium">{loyaltyPoints}</p>
           </div>
         </CardContent>
       </Card>

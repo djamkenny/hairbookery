@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import StylistDashboardSummary from "@/components/stylist/StylistDashboardSummary";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -72,13 +73,15 @@ const StylistDashboard = () => {
             setBio(profileData.bio || metadata.bio || "");
           }
           
-          // Try to fetch appointments data
+          // Fetch appointments data
           try {
             const { data: appointmentsData, error: appointmentsError } = await supabase
               .from('appointments')
               .select('*');
               
-            if (!appointmentsError && appointmentsData) {
+            if (appointmentsError) throw appointmentsError;
+              
+            if (appointmentsData) {
               // Filter for this stylist's appointments
               const stylistAppointments = appointmentsData.filter(apt => 
                 apt.stylist_id === authUser.id && !apt.canceled_at
@@ -89,11 +92,11 @@ const StylistDashboard = () => {
               today.setHours(0, 0, 0, 0); // Start of today
               
               const upcoming = stylistAppointments.filter(apt => 
-                new Date(apt.appointment_date) >= today
+                new Date(apt.appointment_date) >= today && apt.status !== 'completed'
               );
               
               const completed = stylistAppointments.filter(apt => 
-                new Date(apt.appointment_date) < today && apt.status === 'completed'
+                apt.status === 'completed'
               );
               
               setUpcomingAppointments(upcoming.length);
