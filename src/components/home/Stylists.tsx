@@ -36,7 +36,8 @@ const Stylists = () => {
               name: profile.full_name || "Unnamed Stylist",
               role: profile.specialty || "Hair Stylist",
               bio: profile.bio || "No bio available",
-              image: profile.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.id}`
+              image: profile.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.id}`,
+              cardImage: profile.card_image_url
             };
           });
           
@@ -129,6 +130,7 @@ const Stylists = () => {
                     role={stylist.role}
                     bio={stylist.bio}
                     image={stylist.image}
+                    cardImage={stylist.cardImage}
                     className="animate-fade-in h-full"
                   />
                 </Link>

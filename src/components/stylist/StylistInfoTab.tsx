@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PencilIcon } from "lucide-react";
+import { PencilIcon, ImageIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -43,6 +43,8 @@ const StylistInfoTab = ({
   const [isEditing, setIsEditing] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [cardImage, setCardImage] = useState<string | null>(null);
+  const [isUploadingCard, setIsUploadingCard] = useState(false);
 
   // Create form
   const form = useForm({
@@ -96,6 +98,31 @@ const StylistInfoTab = ({
     }
   }, [refreshTrigger, setFullName, setPhone, setBio, setSpecialty, setExperience]);
 
+  // Fetch stylist card image on component mount
+  useEffect(() => {
+    const fetchCardImage = async () => {
+      if (user?.id) {
+        try {
+          const { data: profileData, error } = await supabase
+            .from('profiles')
+            .select('card_image_url')
+            .eq('id', user.id)
+            .single();
+            
+          if (error) throw error;
+          
+          if (profileData && profileData.card_image_url) {
+            setCardImage(profileData.card_image_url);
+          }
+        } catch (error) {
+          console.error("Error fetching card image:", error);
+        }
+      }
+    };
+    
+    fetchCardImage();
+  }, [user?.id, refreshTrigger]);
+
   const onSubmit = async (data: any) => {
     try {
       setIsSubmitting(true);
@@ -129,6 +156,67 @@ const StylistInfoTab = ({
     }
   };
 
+  // Handle card image upload
+  const handleCardImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    
+    if (!files || !files.length) return;
+    
+    const file = files[0];
+    
+    // Validate file size (limit to 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image is too large. Maximum size is 5MB.");
+      return;
+    }
+    
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error("Only image files are allowed.");
+      return;
+    }
+    
+    try {
+      setIsUploadingCard(true);
+      
+      // Generate a unique file name
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}-card-image-${Date.now()}.${fileExt}`;
+      const filePath = `card-images/${fileName}`;
+      
+      // Upload the file to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('stylist-images')
+        .upload(filePath, file);
+        
+      if (uploadError) throw uploadError;
+      
+      // Get the public URL for the uploaded file
+      const { data: { publicUrl } } = supabase.storage
+        .from('stylist-images')
+        .getPublicUrl(filePath);
+        
+      // Update the profile with the new card image URL
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ card_image_url: publicUrl })
+        .eq('id', user.id);
+        
+      if (updateError) throw updateError;
+      
+      // Update local state
+      setCardImage(publicUrl);
+      
+      toast.success("Card image updated successfully");
+      setRefreshTrigger(prev => prev + 1);
+    } catch (error: any) {
+      console.error("Error uploading card image:", error);
+      toast.error(error.message || "Failed to upload card image");
+    } finally {
+      setIsUploadingCard(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -142,6 +230,7 @@ const StylistInfoTab = ({
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* First column - profile details */}
         <div className="lg:col-span-2">
           <Card className="shadow-sm">
             <CardHeader>
@@ -291,19 +380,61 @@ const StylistInfoTab = ({
           </Card>
         </div>
         
+        {/* Second column - profile photo and card image */}
         <div className="lg:col-span-1">
-          <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-lg">Profile Photo</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ProfileAvatar 
-                user={user} 
-                fullName={fullName} 
-                onAvatarUpdate={handleAvatarUpdate}
-              />
-            </CardContent>
-          </Card>
+          <div className="space-y-6">
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-lg">Profile Photo</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ProfileAvatar 
+                  user={user} 
+                  fullName={fullName} 
+                  onAvatarUpdate={handleAvatarUpdate}
+                />
+              </CardContent>
+            </Card>
+            
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-lg">Card Image</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="aspect-square overflow-hidden rounded-md border border-border/40">
+                    {cardImage ? (
+                      <img 
+                        src={cardImage} 
+                        alt="Stylist Card" 
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="h-full w-full flex items-center justify-center bg-muted">
+                        <ImageIcon className="h-12 w-12 text-muted-foreground" />
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="flex flex-col gap-2">
+                    <p className="text-sm text-muted-foreground">
+                      This image will be displayed on your public stylist card.
+                    </p>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleCardImageUpload}
+                      disabled={isUploadingCard}
+                      className="cursor-pointer"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Recommended: Square image (1:1 ratio), max 5MB
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>
