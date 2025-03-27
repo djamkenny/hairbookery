@@ -34,33 +34,32 @@ const DeleteAccountDialog = ({ open, onOpenChange }: DeleteAccountDialogProps) =
         throw new Error("No user found");
       }
       
-      // Delete the user account
-      const { error } = await supabase.auth.admin.deleteUser(user.id);
-      
-      if (error) {
-        if (error.message.includes("AuthApiError: Cannot find browser session") ||
-            error.message.includes("Admin access is required")) {
-          // Client-side deletion (fallback when admin access is not available)
-          const { error: signOutError } = await supabase.auth.signOut();
-          
-          if (signOutError) throw signOutError;
-          
-          toast.success("Your account has been signed out. Please contact support to complete account deletion.");
-          navigate("/");
-          return;
-        }
-        
-        throw error;
+      // Since client-side deletion requires admin privileges, we'll:
+      // 1. Sign out the user
+      // 2. Clean up user data (if possible)
+      // 3. Redirect to home page with a message
+
+      // Optional: Try to delete user-specific data in public tables
+      // This depends on your database structure and permissions
+      try {
+        // Delete profile data if you have a profiles table
+        await supabase
+          .from('profiles')
+          .delete()
+          .eq('id', user.id);
+      } catch (dataError) {
+        console.log("Note: Some user data might remain in the database");
       }
       
-      // Sign out after successful deletion
-      await supabase.auth.signOut();
+      // Sign out the user
+      const { error: signOutError } = await supabase.auth.signOut();
+      if (signOutError) throw signOutError;
       
-      toast.success("Your account has been permanently deleted");
+      toast.success("Your account has been signed out. For permanent deletion, please contact support.");
       navigate("/");
     } catch (error: any) {
-      console.error("Error deleting account:", error);
-      toast.error(error.message || "Failed to delete account");
+      console.error("Error during account deletion process:", error);
+      toast.error(error.message || "Failed to process account deletion");
     } finally {
       setIsDeleting(false);
       onOpenChange(false);
@@ -73,15 +72,15 @@ const DeleteAccountDialog = ({ open, onOpenChange }: DeleteAccountDialogProps) =
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-destructive">
             <AlertTriangle className="h-5 w-5" />
-            Delete Account Permanently
+            Delete Account
           </DialogTitle>
           <DialogDescription>
-            This action cannot be undone. This will permanently delete your account and remove your data from our servers.
+            This will sign you out and remove your user data from our application. For complete account deletion, please contact our support team.
           </DialogDescription>
         </DialogHeader>
         <div className="py-4">
           <p className="text-sm font-medium text-destructive">
-            Are you absolutely sure you want to delete your account?
+            Are you sure you want to proceed with account deletion?
           </p>
         </div>
         <DialogFooter>
@@ -100,7 +99,7 @@ const DeleteAccountDialog = ({ open, onOpenChange }: DeleteAccountDialogProps) =
             {isDeleting ? (
               <>
                 <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent"></span>
-                Deleting...
+                Processing...
               </>
             ) : (
               "Delete Account"
