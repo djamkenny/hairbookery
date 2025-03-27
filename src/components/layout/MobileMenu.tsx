@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import NavLinks, { NavLink } from "./NavLinks";
 import UserMenu from "./UserMenu";
 import LoginMenu from "./LoginMenu";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -31,6 +32,9 @@ const MobileMenu = ({ isOpen, links, user, isStylist, onLinkClick }: MobileMenuP
           linkClassName="px-4 py-3"
           onClick={onLinkClick}
         />
+        <div className="py-2 flex justify-center">
+          <ThemeToggle variant="pills" />
+        </div>
         <div className="grid grid-cols-1 gap-3 pt-2">
           {user ? (
             <UserMenu user={user} isStylist={isStylist} isMobile={true} />

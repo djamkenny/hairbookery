@@ -14,41 +14,44 @@ import StylistDashboard from "./pages/StylistDashboard";
 import StylistDetail from "./pages/StylistDetail";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import { ThemeProvider } from "./components/theme/ThemeProvider";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <BrowserRouter>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner position="top-right" closeButton />
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/booking" element={
-            <ProtectedRoute requireStylist={false}>
-              <Booking />
-            </ProtectedRoute>
-          } />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/stylist-register" element={<StylistRegister />} />
-          <Route path="/profile" element={
-            <ProtectedRoute requireStylist={false}>
-              <Profile />
-            </ProtectedRoute>
-          } />
-          <Route path="/stylist-dashboard" element={
-            <ProtectedRoute requireStylist={true}>
-              <StylistDashboard />
-            </ProtectedRoute>
-          } />
-          <Route path="/stylist/:id" element={<StylistDetail />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </TooltipProvider>
-    </BrowserRouter>
+    <ThemeProvider>
+      <BrowserRouter>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner position="top-right" closeButton />
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/booking" element={
+              <ProtectedRoute requireStylist={false}>
+                <Booking />
+              </ProtectedRoute>
+            } />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/stylist-register" element={<StylistRegister />} />
+            <Route path="/profile" element={
+              <ProtectedRoute requireStylist={false}>
+                <Profile />
+              </ProtectedRoute>
+            } />
+            <Route path="/stylist-dashboard" element={
+              <ProtectedRoute requireStylist={true}>
+                <StylistDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/stylist/:id" element={<StylistDetail />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </TooltipProvider>
+      </BrowserRouter>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 

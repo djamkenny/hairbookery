@@ -9,6 +9,7 @@ import UserMenu from "./UserMenu";
 import LoginMenu from "./LoginMenu";
 import MobileMenu from "./MobileMenu";
 import useNavbar from "@/hooks/useNavbar";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 export const Navbar = () => {
   const { isOpen, scrolled, user, isStylist, navLinks, toggleMenu } = useNavbar();
@@ -36,6 +37,7 @@ export const Navbar = () => {
           <NavLinks links={navLinks} className="hidden md:flex items-center space-x-1" />
 
           <div className="hidden md:flex items-center space-x-4">
+            <ThemeToggle />
             {user ? (
               <UserMenu user={user} isStylist={isStylist} />
             ) : (
