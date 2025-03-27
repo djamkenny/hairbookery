@@ -37,7 +37,7 @@ const Stylists = () => {
               role: profile.specialty || "Hair Stylist",
               bio: profile.bio || "No bio available",
               image: profile.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.id}`,
-              cardImage: profile.card_image_url
+              cardImage: profile.card_image_url || undefined
             };
           });
           

@@ -14,21 +14,10 @@ const checkAndCreateStorageBuckets = async () => {
       return;
     }
     
-    // Check if stylist-images bucket exists
-    const stylistImagesBucket = buckets?.find(bucket => bucket.name === 'stylist-images');
+    // Log the existing buckets
+    console.log("Available storage buckets:", buckets);
     
-    if (!stylistImagesBucket) {
-      // Create stylist-images bucket
-      const { error: createError } = await supabase.storage.createBucket('stylist-images', {
-        public: true
-      });
-      
-      if (createError) {
-        console.error("Error creating stylist-images bucket:", createError);
-      } else {
-        console.log("Created stylist-images bucket");
-      }
-    }
+    // No need to create buckets here as they are now handled via SQL migrations
   } catch (err) {
     console.error("Error in storage bucket check:", err);
   }

@@ -90,6 +90,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           bio: string | null
+          card_image_url: string | null
           created_at: string
           email: string | null
           experience: string | null
@@ -103,6 +104,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           bio?: string | null
+          card_image_url?: string | null
           created_at?: string
           email?: string | null
           experience?: string | null
@@ -116,6 +118,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           bio?: string | null
+          card_image_url?: string | null
           created_at?: string
           email?: string | null
           experience?: string | null

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -109,7 +108,10 @@ const StylistInfoTab = ({
             .eq('id', user.id)
             .single();
             
-          if (error) throw error;
+          if (error) {
+            console.error("Error fetching card image:", error);
+            return;
+          }
           
           if (profileData && profileData.card_image_url) {
             setCardImage(profileData.card_image_url);
@@ -181,20 +183,19 @@ const StylistInfoTab = ({
       
       // Generate a unique file name
       const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}-card-image-${Date.now()}.${fileExt}`;
-      const filePath = `card-images/${fileName}`;
+      const fileName = `card-images/${user.id}/${Date.now()}.${fileExt}`;
       
       // Upload the file to Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from('stylist-images')
-        .upload(filePath, file);
+        .upload(fileName, file);
         
       if (uploadError) throw uploadError;
       
       // Get the public URL for the uploaded file
       const { data: { publicUrl } } = supabase.storage
         .from('stylist-images')
-        .getPublicUrl(filePath);
+        .getPublicUrl(fileName);
         
       // Update the profile with the new card image URL
       const { error: updateError } = await supabase
