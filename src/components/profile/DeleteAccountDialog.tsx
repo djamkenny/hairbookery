@@ -33,30 +33,56 @@ const DeleteAccountDialog = ({ open, onOpenChange }: DeleteAccountDialogProps) =
       if (!user) {
         throw new Error("No user found");
       }
-      
-      // Since client-side deletion requires admin privileges, we'll:
-      // 1. Sign out the user
-      // 2. Clean up user data (if possible)
-      // 3. Redirect to home page with a message
 
-      // Optional: Try to delete user-specific data in public tables
-      // This depends on your database structure and permissions
-      try {
-        // Delete profile data if you have a profiles table
-        await supabase
-          .from('profiles')
-          .delete()
-          .eq('id', user.id);
-      } catch (dataError) {
-        console.log("Note: Some user data might remain in the database");
+      // Get the current session for the authorization token
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error("No active session found");
       }
-      
-      // Sign out the user
-      const { error: signOutError } = await supabase.auth.signOut();
-      if (signOutError) throw signOutError;
-      
-      toast.success("Your account has been signed out. For permanent deletion, please contact support.");
-      navigate("/");
+
+      // First, try to use the admin edge function to delete the user
+      try {
+        const response = await supabase.functions.invoke('admin-actions', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: {
+            action: 'deleteUser',
+            userId: user.id
+          }
+        });
+
+        if (response.error) {
+          throw new Error(response.error.message);
+        }
+
+        console.log('Account deleted successfully through admin-actions function');
+        toast.success("Your account has been permanently deleted");
+        navigate("/");
+        return;
+      } catch (adminError: any) {
+        console.warn("Admin deletion failed, falling back to manual cleanup:", adminError.message);
+        
+        // Fallback: If admin function fails, try to clean up user data and sign out
+        try {
+          // Delete profile data if you have a profiles table
+          await supabase
+            .from('profiles')
+            .delete()
+            .eq('id', user.id);
+        } catch (dataError) {
+          console.log("Note: Some user data might remain in the database");
+        }
+        
+        // Sign out the user
+        const { error: signOutError } = await supabase.auth.signOut();
+        if (signOutError) throw signOutError;
+        
+        toast.success("Your account has been signed out. For permanent deletion, please contact support.");
+        navigate("/");
+      }
     } catch (error: any) {
       console.error("Error during account deletion process:", error);
       toast.error(error.message || "Failed to process account deletion");
@@ -75,12 +101,12 @@ const DeleteAccountDialog = ({ open, onOpenChange }: DeleteAccountDialogProps) =
             Delete Account
           </DialogTitle>
           <DialogDescription>
-            This will sign you out and remove your user data from our application. For complete account deletion, please contact our support team.
+            This action cannot be undone. This will permanently delete your account and remove your data from our servers.
           </DialogDescription>
         </DialogHeader>
         <div className="py-4">
           <p className="text-sm font-medium text-destructive">
-            Are you sure you want to proceed with account deletion?
+            Are you absolutely sure you want to delete your account?
           </p>
         </div>
         <DialogFooter>
