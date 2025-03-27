@@ -1,51 +1,42 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { PlusCircle, Edit, Trash2 } from "lucide-react";
+import { PlusCircle, Edit, Trash2, Scissors, Clock, DollarSign } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import * as z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 
-interface ServiceFormValues {
+const serviceFormSchema = z.object({
+  name: z.string().min(1, "Service name is required"),
+  description: z.string().optional(),
+  duration: z.string().min(1, "Duration is required"),
+  price: z.string().min(1, "Price is required")
+});
+
+type ServiceFormValues = z.infer<typeof serviceFormSchema>;
+
+interface Service {
+  id: string;
   name: string;
-  description: string;
+  description: string | null;
   duration: string;
   price: string;
 }
 
 const StylistServicesTab = () => {
   const [isAddingService, setIsAddingService] = useState(false);
-  const [editingServiceId, setEditingServiceId] = useState<number | null>(null);
-  
-  // Sample data - would be replaced with real data from API/database
-  const [services, setServices] = useState([
-    { 
-      id: 1, 
-      name: "Haircut & Styling", 
-      description: "Professional haircut and styling service tailored to your preferences.",
-      duration: "45 min", 
-      price: "$65" 
-    },
-    { 
-      id: 2, 
-      name: "Hair Coloring", 
-      description: "Full color service using premium products for vibrant, long-lasting results.",
-      duration: "2 hours", 
-      price: "$120" 
-    },
-    { 
-      id: 3, 
-      name: "Blowout", 
-      description: "Professional blow dry and styling to achieve a smooth, voluminous look.",
-      duration: "30 min", 
-      price: "$45" 
-    }
-  ]);
+  const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
+  const [services, setServices] = useState<Service[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const form = useForm<ServiceFormValues>({
+    resolver: zodResolver(serviceFormSchema),
     defaultValues: {
       name: "",
       description: "",
@@ -54,53 +45,200 @@ const StylistServicesTab = () => {
     }
   });
 
-  const handleAddService = (data: ServiceFormValues) => {
-    const newService = {
-      id: Date.now(),
-      name: data.name,
-      description: data.description,
-      duration: data.duration,
-      price: data.price
-    };
-    
-    setServices([...services, newService]);
-    setIsAddingService(false);
-    form.reset();
-    toast.success("Service added successfully");
+  useEffect(() => {
+    fetchServices();
+  }, []);
+
+  const fetchServices = async () => {
+    try {
+      setLoading(true);
+      
+      // Get the authenticated user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast.error("You must be logged in to view services");
+        return;
+      }
+
+      // Check if the user is a stylist
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('is_stylist')
+        .eq('id', user.id)
+        .single();
+      
+      if (profileError) {
+        console.error("Error fetching profile:", profileError);
+        return;
+      }
+
+      if (!profile?.is_stylist) {
+        toast.error("Only stylists can manage services");
+        return;
+      }
+
+      // Fetch services from the database
+      const { data, error } = await supabase
+        .from('services')
+        .select('*')
+        .order('name');
+
+      if (error) {
+        console.error("Error fetching services:", error);
+        toast.error("Failed to load services");
+        return;
+      }
+
+      const formattedServices = data.map(service => ({
+        id: service.id,
+        name: service.name,
+        description: service.description,
+        duration: `${service.duration} min`,
+        price: `$${service.price}`
+      }));
+
+      setServices(formattedServices);
+    } catch (error) {
+      console.error("Error in fetchServices:", error);
+      toast.error("An error occurred while fetching services");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleEditService = (service: any) => {
+  const handleAddService = async (data: ServiceFormValues) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast.error("You must be logged in to add services");
+        return;
+      }
+
+      // Extract numeric price and duration values
+      const priceValue = parseFloat(data.price.replace(/[^0-9.]/g, ''));
+      const durationValue = parseInt(data.duration.replace(/[^0-9]/g, ''));
+
+      const { data: newService, error } = await supabase
+        .from('services')
+        .insert({
+          name: data.name,
+          description: data.description || null,
+          price: priceValue,
+          duration: durationValue
+        })
+        .select()
+        .single();
+      
+      if (error) {
+        console.error("Error adding service:", error);
+        toast.error("Failed to add service");
+        return;
+      }
+
+      const formattedService = {
+        id: newService.id,
+        name: newService.name,
+        description: newService.description,
+        duration: `${newService.duration} min`,
+        price: `$${newService.price}`
+      };
+      
+      setServices([...services, formattedService]);
+      setIsAddingService(false);
+      form.reset();
+      toast.success("Service added successfully");
+    } catch (error) {
+      console.error("Error in handleAddService:", error);
+      toast.error("An error occurred while adding the service");
+    }
+  };
+
+  const handleEditService = (service: Service) => {
     setEditingServiceId(service.id);
     form.reset({
       name: service.name,
-      description: service.description,
+      description: service.description || "",
       duration: service.duration,
       price: service.price
     });
   };
 
-  const handleUpdateService = (data: ServiceFormValues) => {
-    const updatedServices = services.map(service => 
-      service.id === editingServiceId ? 
-        { ...service, ...data } : 
-        service
-    );
-    
-    setServices(updatedServices);
-    setEditingServiceId(null);
-    form.reset();
-    toast.success("Service updated successfully");
+  const handleUpdateService = async (data: ServiceFormValues) => {
+    try {
+      if (!editingServiceId) return;
+
+      // Extract numeric price and duration values
+      const priceValue = parseFloat(data.price.replace(/[^0-9.]/g, ''));
+      const durationValue = parseInt(data.duration.replace(/[^0-9]/g, ''));
+
+      const { error } = await supabase
+        .from('services')
+        .update({
+          name: data.name,
+          description: data.description || null,
+          price: priceValue,
+          duration: durationValue
+        })
+        .eq('id', editingServiceId);
+      
+      if (error) {
+        console.error("Error updating service:", error);
+        toast.error("Failed to update service");
+        return;
+      }
+
+      const updatedServices = services.map(service => 
+        service.id === editingServiceId ? 
+          { 
+            ...service, 
+            name: data.name,
+            description: data.description || null,
+            duration: `${durationValue} min`,
+            price: `$${priceValue}`
+          } : 
+          service
+      );
+      
+      setServices(updatedServices);
+      setEditingServiceId(null);
+      form.reset();
+      toast.success("Service updated successfully");
+    } catch (error) {
+      console.error("Error in handleUpdateService:", error);
+      toast.error("An error occurred while updating the service");
+    }
   };
 
-  const handleDeleteService = (id: number) => {
-    setServices(services.filter(service => service.id !== id));
-    toast.success("Service deleted successfully");
+  const handleDeleteService = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('services')
+        .delete()
+        .eq('id', id);
+      
+      if (error) {
+        console.error("Error deleting service:", error);
+        toast.error("Failed to delete service");
+        return;
+      }
+
+      setServices(services.filter(service => service.id !== id));
+      toast.success("Service deleted successfully");
+    } catch (error) {
+      console.error("Error in handleDeleteService:", error);
+      toast.error("An error occurred while deleting the service");
+    }
   };
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-2xl font-semibold">Services</h1>
+        <div className="flex items-center gap-2">
+          <Scissors className="h-5 w-5 text-primary" />
+          <h1 className="text-2xl font-semibold">Services</h1>
+        </div>
         
         {!isAddingService && editingServiceId === null && (
           <Button onClick={() => setIsAddingService(true)}>
@@ -163,7 +301,10 @@ const StylistServicesTab = () => {
                       <FormItem>
                         <FormLabel>Duration</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g. 45 min" {...field} />
+                          <div className="relative">
+                            <Clock className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Input placeholder="e.g. 45 min" className="pl-8" {...field} />
+                          </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -177,7 +318,10 @@ const StylistServicesTab = () => {
                       <FormItem>
                         <FormLabel>Price</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g. $65" {...field} />
+                          <div className="relative">
+                            <DollarSign className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Input placeholder="e.g. $65" className="pl-8" {...field} />
+                          </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -207,42 +351,76 @@ const StylistServicesTab = () => {
         </Card>
       )}
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {services.map((service) => (
-          <Card key={service.id} className={editingServiceId === service.id ? "opacity-50" : ""}>
-            <CardHeader>
-              <div className="flex justify-between items-start">
-                <div>
-                  <CardTitle className="text-lg">{service.name}</CardTitle>
-                  <CardDescription className="mt-2">{service.price} • {service.duration}</CardDescription>
-                </div>
-                
-                {editingServiceId !== service.id && (
-                  <div className="flex space-x-2">
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      onClick={() => handleEditService(service)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      onClick={() => handleDeleteService(service.id)}
-                    >
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[1, 2, 3].map((i) => (
+            <Card key={i} className="animate-pulse">
+              <CardHeader>
+                <div className="h-6 bg-muted rounded w-3/4 mb-2"></div>
+                <div className="h-4 bg-muted rounded w-1/4"></div>
+              </CardHeader>
+              <CardContent>
+                <div className="h-4 bg-muted rounded w-full mb-3"></div>
+                <div className="h-4 bg-muted rounded w-2/3"></div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : services.length === 0 && !isAddingService ? (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <Scissors className="h-12 w-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-medium mb-2">No services yet</h3>
+            <p className="text-muted-foreground text-center mb-4 max-w-md">
+              Add your first service by clicking the "Add Service" button above.
+            </p>
+            <Button onClick={() => setIsAddingService(true)}>
+              <PlusCircle className="h-4 w-4 mr-2" />
+              Add Your First Service
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {services.map((service) => (
+            <Card key={service.id} className={editingServiceId === service.id ? "opacity-50" : ""}>
+              <CardHeader>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <CardTitle className="text-lg">{service.name}</CardTitle>
+                    <CardDescription className="mt-2 flex items-center gap-2">
+                      <span className="flex items-center"><DollarSign className="h-3.5 w-3.5 mr-0.5" />{service.price}</span>
+                      <span className="flex items-center"><Clock className="h-3.5 w-3.5 mr-0.5" />{service.duration}</span>
+                    </CardDescription>
                   </div>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">{service.description}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+                  
+                  {editingServiceId !== service.id && (
+                    <div className="flex space-x-2">
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => handleEditService(service)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => handleDeleteService(service.id)}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">{service.description || "No description provided."}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
