@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+import DeleteAccountDialog from "./DeleteAccountDialog";
 
 interface SettingsTabProps {
   emailNotifications: boolean;
@@ -18,6 +19,7 @@ const SettingsTab = ({
   smsNotifications, 
   setSmsNotifications 
 }: SettingsTabProps) => {
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   
   const toggleEmailNotifications = (checked: boolean) => {
     setEmailNotifications(checked);
@@ -69,13 +71,22 @@ const SettingsTab = ({
               <p className="text-sm text-muted-foreground mb-3">
                 Once you delete your account, there is no going back. Please be certain.
               </p>
-              <Button variant="outline" className="text-destructive hover:bg-destructive/10">
+              <Button 
+                variant="outline" 
+                className="text-destructive hover:bg-destructive/10"
+                onClick={() => setDeleteDialogOpen(true)}
+              >
                 Delete Account
               </Button>
             </div>
           </div>
         </CardContent>
       </Card>
+      
+      <DeleteAccountDialog 
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+      />
     </div>
   );
 };

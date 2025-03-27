@@ -6,12 +6,14 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
+import DeleteAccountDialog from "../profile/DeleteAccountDialog";
 
 const StylistSettingsTab = () => {
   const [availability, setAvailability] = useState(true);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [smsNotifications, setSmsNotifications] = useState(true);
   const [bookingMode, setBookingMode] = useState("auto");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const handleSaveAvailability = () => {
     toast.success(`Your availability is now ${availability ? 'Active' : 'Inactive'}`);
@@ -152,6 +154,37 @@ const StylistSettingsTab = () => {
           </div>
         </CardContent>
       </Card>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-destructive">Danger Zone</CardTitle>
+          <CardDescription>
+            Irreversible actions that will affect your account
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col space-y-4">
+            <div>
+              <h3 className="text-base font-medium mb-1">Delete Account</h3>
+              <p className="text-sm text-muted-foreground mb-3">
+                Once you delete your account, there is no going back. Please be certain.
+              </p>
+              <Button 
+                variant="outline" 
+                className="text-destructive hover:bg-destructive/10"
+                onClick={() => setDeleteDialogOpen(true)}
+              >
+                Delete Account
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      
+      <DeleteAccountDialog 
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+      />
     </div>
   );
 };
