@@ -36,7 +36,8 @@ export const useAppointments = (userId: string | undefined) => {
         return;
       }
       
-      if (!appointmentsData) {
+      if (!appointmentsData || appointmentsData.length === 0) {
+        setLoading(false);
         return;
       }
       
@@ -65,34 +66,32 @@ export const useAppointments = (userId: string | undefined) => {
         }
       }
       
-      if (appointmentsData) {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0); // Start of today
-        
-        const formattedAppointments = appointmentsData.map(apt => ({
-          id: apt.id,
-          client: userId, // Add missing required field
-          service: apt.services?.name || 'Service',
-          stylist: stylistProfiles[apt.stylist_id] || 'Stylist',
-          date: format(new Date(apt.appointment_date), 'MMMM dd, yyyy'),
-          time: apt.appointment_time,
-          status: apt.status,
-          client_id: userId,
-          order_id: apt.order_id
-        }));
-        
-        // Split into upcoming and past appointments
-        const upcoming = formattedAppointments.filter(apt => 
-          new Date(apt.date) >= today && apt.status !== 'completed' && apt.status !== 'canceled'
-        );
-        
-        const past = formattedAppointments.filter(apt => 
-          new Date(apt.date) < today || apt.status === 'completed' || apt.status === 'canceled'
-        );
-        
-        setUpcomingAppointments(upcoming);
-        setPastAppointments(past);
-      }
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Start of today
+      
+      const formattedAppointments = appointmentsData.map(apt => ({
+        id: apt.id,
+        client: userId, // Add missing required field
+        service: apt.services?.name || 'Service',
+        stylist: stylistProfiles[apt.stylist_id] || 'Stylist',
+        date: format(new Date(apt.appointment_date), 'MMMM dd, yyyy'),
+        time: apt.appointment_time,
+        status: apt.status,
+        client_id: userId,
+        order_id: apt.order_id
+      }));
+      
+      // Split into upcoming and past appointments
+      const upcoming = formattedAppointments.filter(apt => 
+        new Date(apt.date) >= today && apt.status !== 'completed' && apt.status !== 'canceled'
+      );
+      
+      const past = formattedAppointments.filter(apt => 
+        new Date(apt.date) < today || apt.status === 'completed' || apt.status === 'canceled'
+      );
+      
+      setUpcomingAppointments(upcoming);
+      setPastAppointments(past);
     } catch (error) {
       console.error("Error in fetchAppointments:", error);
     } finally {
