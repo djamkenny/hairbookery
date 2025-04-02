@@ -17,7 +17,8 @@ import {
   User, 
   Phone, 
   Mail, 
-  Scissors
+  Scissors,
+  ClipboardList
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { 
@@ -133,6 +134,19 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
               </div>
             </div>
           </div>
+
+          {appointment.order_id && (
+            <div className="flex items-start gap-3 border rounded-lg p-3 bg-background/50 border-primary/20">
+              <div className="bg-primary/10 p-2 rounded-md">
+                <ClipboardList className="h-5 w-5 text-primary" />
+              </div>
+              <div className="space-y-1">
+                <h4 className="text-sm font-semibold leading-none">Order ID</h4>
+                <p className="text-sm text-primary font-mono">{appointment.order_id}</p>
+                <p className="text-xs text-muted-foreground">Share this ID with the client for reference</p>
+              </div>
+            </div>
+          )}
 
           <div className="flex flex-col gap-2 border rounded-lg p-3 bg-background/50">
             <div className="flex justify-between items-center">

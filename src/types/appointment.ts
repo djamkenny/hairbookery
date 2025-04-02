@@ -11,4 +11,5 @@ export interface Appointment {
   client_id: string;
   updated_at?: string;
   stylist?: string;
+  order_id?: string; // Unique order ID for client identification
 }

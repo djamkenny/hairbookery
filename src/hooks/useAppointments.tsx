@@ -26,7 +26,8 @@ export const useAppointments = (userId: string | undefined) => {
           appointment_time,
           status,
           services:service_id(name),
-          stylist_id
+          stylist_id,
+          order_id
         `)
         .eq('client_id', userId);
       
@@ -76,7 +77,8 @@ export const useAppointments = (userId: string | undefined) => {
           date: format(new Date(apt.appointment_date), 'MMMM dd, yyyy'),
           time: apt.appointment_time,
           status: apt.status,
-          client_id: userId
+          client_id: userId,
+          order_id: apt.order_id
         }));
         
         // Split into upcoming and past appointments
