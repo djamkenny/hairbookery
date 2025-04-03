@@ -63,7 +63,7 @@ export const fetchStylistAppointments = async (): Promise<Appointment[]> => {
         clientEmail: clientProfile.email,
         clientPhone: clientProfile.phone,
         client_id: appointment.client_id,
-        order_id: appointment.order_id
+        order_id: appointment.order_id || undefined
       };
     });
   } catch (error) {
@@ -72,16 +72,24 @@ export const fetchStylistAppointments = async (): Promise<Appointment[]> => {
   }
 };
 
-// Helper function to generate a unique order ID
-const generateOrderId = (): string => {
-  // Format: HB-{randomLetters}-{timestamp}
+// Helper function to generate a unique order ID with client name
+const generateOrderId = (clientName: string): string => {
+  // Format: HB-{clientInitials}-{randomLetters}-{timestamp}
+  const clientInitials = clientName
+    .split(' ')
+    .map(part => part[0])
+    .join('')
+    .toUpperCase()
+    .substring(0, 2)
+    .padEnd(2, 'X');
+    
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   const randomLetters = Array.from({ length: 3 }, () => 
     characters.charAt(Math.floor(Math.random() * characters.length))
   ).join('');
   
   const timestamp = new Date().getTime().toString().slice(-6);
-  return `HB-${randomLetters}-${timestamp}`;
+  return `HB-${clientInitials}-${randomLetters}-${timestamp}`;
 };
 
 export const updateAppointmentStatus = async (
@@ -95,11 +103,25 @@ export const updateAppointmentStatus = async (
   }
 ): Promise<void> => {
   try {
+    // Fetch client name for order ID generation
+    let clientName = "Client";
+    if (newStatus === "confirmed") {
+      const { data: clientData } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', clientId)
+        .single();
+        
+      if (clientData && clientData.full_name) {
+        clientName = clientData.full_name;
+      }
+    }
+    
     const updateData: any = { status: newStatus };
     
     // Generate order ID when confirming appointment
     if (newStatus === "confirmed") {
-      updateData.order_id = generateOrderId();
+      updateData.order_id = generateOrderId(clientName);
     }
     
     // Update appointment status
@@ -113,8 +135,9 @@ export const updateAppointmentStatus = async (
     
     // Send notification to client if confirmed
     if (newStatus === "confirmed" && appointmentInfo) {
-      const orderIdMessage = data && data[0] && data[0].order_id ? 
-        ` Your order ID is: ${data[0].order_id}` : '';
+      const orderIdData = data && data[0] ? data[0] : null;
+      const orderIdMessage = orderIdData && orderIdData.order_id ? 
+        ` Your order ID is: ${orderIdData.order_id}. Please keep this for reference.` : '';
         
       const message = `Your appointment for ${appointmentInfo.service} on ${appointmentInfo.date} at ${appointmentInfo.time} has been confirmed.${orderIdMessage}`;
       

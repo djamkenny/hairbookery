@@ -5,7 +5,8 @@ import {
   CalendarIcon, 
   ClockIcon,
   BellIcon,
-  RefreshCw
+  RefreshCw,
+  ClipboardList
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -63,6 +64,12 @@ const DashboardTab = ({
                 <div>
                   <h3 className="font-medium text-lg">{upcomingAppointments[0].service}</h3>
                   <p className="text-muted-foreground">With {upcomingAppointments[0].stylist}</p>
+                  {upcomingAppointments[0].order_id && (
+                    <div className="flex items-center mt-1 text-sm">
+                      <ClipboardList className="h-3.5 w-3.5 mr-1 text-primary" />
+                      <span className="font-mono">{upcomingAppointments[0].order_id}</span>
+                    </div>
+                  )}
                 </div>
                 <div>
                   <div className="flex items-center text-sm font-medium mb-1">

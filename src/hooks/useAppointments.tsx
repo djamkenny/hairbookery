@@ -78,7 +78,7 @@ export const useAppointments = (userId: string | undefined) => {
         time: apt.appointment_time,
         status: apt.status,
         client_id: userId,
-        order_id: apt.order_id
+        order_id: apt.order_id || undefined
       }));
       
       // Split into upcoming and past appointments
@@ -121,12 +121,18 @@ export const useAppointments = (userId: string | undefined) => {
             // Show toast notification based on the type of change
             if (payload.eventType === 'UPDATE') {
               const newStatus = payload.new.status;
+              const orderId = payload.new.order_id;
+              
               if (newStatus === 'confirmed') {
-                toast.success('An appointment has been confirmed by the stylist');
+                toast.success(
+                  orderId 
+                    ? `Your appointment has been confirmed. Order ID: ${orderId}`
+                    : 'Your appointment has been confirmed'
+                );
               } else if (newStatus === 'completed') {
-                toast.success('An appointment has been marked as completed');
+                toast.success('Your appointment has been marked as completed');
               } else if (newStatus === 'canceled') {
-                toast.error('An appointment has been canceled');
+                toast.error('Your appointment has been canceled');
               }
             }
           }
