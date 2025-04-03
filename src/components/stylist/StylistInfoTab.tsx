@@ -1,11 +1,14 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PencilIcon, MapPinIcon } from "lucide-react";
+import { PencilIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import ProfileAvatar from "@/components/profile/ProfileAvatar";
+import PersonalInfoCard from "./profile/PersonalInfoCard";
+import ProfessionalInfoCard from "./profile/ProfessionalInfoCard";
+import LocationCard from "./profile/LocationCard";
+import BioCard from "./profile/BioCard";
+import ProfilePhotoCard from "./profile/ProfilePhotoCard";
 
 interface StylistInfoTabProps {
   user: any;
@@ -95,12 +98,6 @@ const StylistInfoTab = ({
     await refreshUserProfile();
   };
 
-  // Format the stylist information for display
-  const formatExperience = (exp: string) => {
-    if (!exp) return "Not specified";
-    return isNaN(Number(exp)) ? exp : `${exp} years`;
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -134,173 +131,44 @@ const StylistInfoTab = ({
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Personal Information</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {isEditing ? (
-              <>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Full Name</label>
-                  <input
-                    type="text"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    className="w-full px-3 py-2 border border-border rounded-md"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Email</label>
-                  <input
-                    type="email"
-                    value={email}
-                    disabled
-                    className="w-full px-3 py-2 border border-border rounded-md bg-muted"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">Email cannot be changed</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Phone Number</label>
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="w-full px-3 py-2 border border-border rounded-md"
-                    placeholder="Your contact number"
-                  />
-                </div>
-              </>
-            ) : (
-              <div className="space-y-3">
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground">Full Name</h3>
-                  <p>{fullName || "Not provided"}</p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground">Email</h3>
-                  <p>{email}</p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground">Phone Number</h3>
-                  <p>{phone || "Not provided"}</p>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <PersonalInfoCard
+          isEditing={isEditing}
+          fullName={fullName}
+          setFullName={setFullName}
+          email={email}
+          phone={phone}
+          setPhone={setPhone}
+        />
         
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Professional Information</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {isEditing ? (
-              <>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Specialty</label>
-                  <input
-                    type="text"
-                    value={specialty}
-                    onChange={(e) => setSpecialty(e.target.value)}
-                    className="w-full px-3 py-2 border border-border rounded-md"
-                    placeholder="e.g. Hair Stylist, Colorist, Barber"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Experience</label>
-                  <input
-                    type="text"
-                    value={experience}
-                    onChange={(e) => setExperience(e.target.value)}
-                    className="w-full px-3 py-2 border border-border rounded-md"
-                    placeholder="Years of experience or qualifications"
-                  />
-                </div>
-              </>
-            ) : (
-              <div className="space-y-3">
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground">Specialty</h3>
-                  <p>{specialty || "Not specified"}</p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground">Experience</h3>
-                  <p>{formatExperience(experience)}</p>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <ProfessionalInfoCard
+          isEditing={isEditing}
+          specialty={specialty}
+          setSpecialty={setSpecialty}
+          experience={experience}
+          setExperience={setExperience}
+        />
         
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <MapPinIcon className="h-5 w-5 text-primary" />
-              Location
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isEditing ? (
-              <div className="space-y-2">
-                <label className="block text-sm font-medium mb-1">Salon/Workshop Address</label>
-                <input
-                  type="text"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  className="w-full px-3 py-2 border border-border rounded-md"
-                  placeholder="Enter your full salon/workshop address"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Please provide a complete address that clients can use with navigation apps or ride services
-                </p>
-              </div>
-            ) : (
-              <div>
-                {location ? (
-                  <div className="flex items-start gap-2">
-                    <MapPinIcon className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
-                    <p>{location}</p>
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground">No location provided yet. Add your salon or workshop address.</p>
-                )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <LocationCard 
+          isEditing={isEditing}
+          location={location}
+          setLocation={setLocation}
+          className="md:col-span-2"
+        />
         
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-lg">Bio</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isEditing ? (
-              <textarea
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                className="w-full h-32 px-3 py-2 border border-border rounded-md"
-                placeholder="Tell clients about yourself, your skills, and your styling philosophy"
-              />
-            ) : (
-              <p className="text-sm">{bio || "No bio provided yet."}</p>
-            )}
-          </CardContent>
-        </Card>
+        <BioCard
+          isEditing={isEditing}
+          bio={bio}
+          setBio={setBio}
+          className="md:col-span-2"
+        />
         
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-lg">Profile Photo</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ProfileAvatar 
-              user={user}
-              fullName={fullName}
-              avatarUrl={avatarUrl} 
-              onAvatarUpdate={handleAvatarUpdate}
-            />
-          </CardContent>
-        </Card>
+        <ProfilePhotoCard
+          user={user}
+          fullName={fullName}
+          avatarUrl={avatarUrl}
+          onAvatarUpdate={handleAvatarUpdate}
+          className="md:col-span-2"
+        />
       </div>
     </div>
   );
