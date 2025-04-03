@@ -8,16 +8,18 @@ interface ProfilePhotoCardProps {
   fullName: string;
   avatarUrl: string | null;
   onAvatarUpdate: (newAvatarUrl: string) => Promise<void>;
+  className?: string;
 }
 
 const ProfilePhotoCard = ({
   user,
   fullName,
   avatarUrl,
-  onAvatarUpdate
+  onAvatarUpdate,
+  className
 }: ProfilePhotoCardProps) => {
   return (
-    <Card>
+    <Card className={className}>
       <CardHeader>
         <CardTitle className="text-lg">Profile Photo</CardTitle>
       </CardHeader>

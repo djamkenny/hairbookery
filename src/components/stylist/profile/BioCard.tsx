@@ -6,15 +6,17 @@ interface BioCardProps {
   isEditing: boolean;
   bio: string;
   setBio: (bio: string) => void;
+  className?: string;
 }
 
 const BioCard = ({
   isEditing,
   bio,
-  setBio
+  setBio,
+  className
 }: BioCardProps) => {
   return (
-    <Card>
+    <Card className={className}>
       <CardHeader>
         <CardTitle className="text-lg">Bio</CardTitle>
       </CardHeader>

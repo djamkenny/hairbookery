@@ -7,15 +7,17 @@ interface LocationCardProps {
   isEditing: boolean;
   location: string;
   setLocation: (location: string) => void;
+  className?: string;
 }
 
 const LocationCard = ({
   isEditing,
   location,
-  setLocation
+  setLocation,
+  className
 }: LocationCardProps) => {
   return (
-    <Card>
+    <Card className={className}>
       <CardHeader>
         <CardTitle className="text-lg flex items-center gap-2">
           <MapPinIcon className="h-5 w-5 text-primary" />

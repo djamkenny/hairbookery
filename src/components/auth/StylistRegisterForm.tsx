@@ -3,13 +3,9 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Loader2, Scissors } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import PasswordInput from "@/components/auth/PasswordInput";
 import TermsCheckbox from "@/components/auth/TermsCheckbox";
 import { 
   validateEmail, 
@@ -17,6 +13,8 @@ import {
   createEmptyStylistFormErrors,
   StylistFormErrors
 } from "@/utils/stylistFormValidation";
+import PersonalInfoSection from "./stylist-register/PersonalInfoSection";
+import ProfessionalInfoSection from "./stylist-register/ProfessionalInfoSection";
 
 const StylistRegisterForm = () => {
   const navigate = useNavigate();
@@ -148,127 +146,29 @@ const StylistRegisterForm = () => {
         </CardHeader>
         
         <CardContent className="space-y-4">
-          {/* Personal Information */}
-          <div className="space-y-4">
-            <h3 className="font-medium">Personal Information</h3>
-            
-            <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
-              <Input
-                id="name"
-                placeholder="Enter your full name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className={formErrors.name ? "border-destructive" : ""}
-              />
-              {formErrors.name && (
-                <p className="text-sm text-destructive mt-1">{formErrors.name}</p>
-              )}
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className={formErrors.email ? "border-destructive" : ""}
-              />
-              {formErrors.email && (
-                <p className="text-sm text-destructive mt-1">{formErrors.email}</p>
-              )}
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <PasswordInput
-                id="password"
-                placeholder="Create a password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                error={formErrors.password}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <PasswordInput
-                id="confirmPassword"
-                placeholder="Confirm your password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                error={formErrors.confirmPassword}
-                confirmPassword
-              />
-            </div>
-          </div>
+          <PersonalInfoSection 
+            name={name}
+            setName={setName}
+            email={email}
+            setEmail={setEmail}
+            password={password}
+            setPassword={setPassword}
+            confirmPassword={confirmPassword}
+            setConfirmPassword={setConfirmPassword}
+            formErrors={formErrors}
+          />
           
-          {/* Professional Information */}
-          <div className="pt-2 space-y-4">
-            <h3 className="font-medium">Professional Information</h3>
-            
-            <div className="space-y-2">
-              <Label htmlFor="specialty">Specialty</Label>
-              <Input
-                id="specialty"
-                placeholder="e.g. Hair Coloring, Styling, etc."
-                value={specialty}
-                onChange={(e) => setSpecialty(e.target.value)}
-                className={formErrors.specialty ? "border-destructive" : ""}
-              />
-              {formErrors.specialty && (
-                <p className="text-sm text-destructive mt-1">{formErrors.specialty}</p>
-              )}
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="experience">Experience</Label>
-              <Input
-                id="experience"
-                placeholder="e.g. 5 years"
-                value={experience}
-                onChange={(e) => setExperience(e.target.value)}
-                className={formErrors.experience ? "border-destructive" : ""}
-              />
-              {formErrors.experience && (
-                <p className="text-sm text-destructive mt-1">{formErrors.experience}</p>
-              )}
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="location">Salon/Workshop Location</Label>
-              <Input
-                id="location"
-                placeholder="Enter the full address of your salon or workshop"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                className={formErrors.location ? "border-destructive" : ""}
-              />
-              {formErrors.location && (
-                <p className="text-sm text-destructive mt-1">{formErrors.location}</p>
-              )}
-              <p className="text-xs text-muted-foreground">
-                Provide an address that clients can easily find with navigation apps or ride services
-              </p>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="bio">Bio</Label>
-              <Textarea
-                id="bio"
-                placeholder="Tell clients about yourself and your expertise"
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                className={formErrors.bio ? "border-destructive" : ""}
-                rows={4}
-              />
-              {formErrors.bio && (
-                <p className="text-sm text-destructive mt-1">{formErrors.bio}</p>
-              )}
-            </div>
-          </div>
+          <ProfessionalInfoSection
+            specialty={specialty}
+            setSpecialty={setSpecialty}
+            experience={experience}
+            setExperience={setExperience}
+            location={location}
+            setLocation={setLocation}
+            bio={bio}
+            setBio={setBio}
+            formErrors={formErrors}
+          />
 
           <TermsCheckbox 
             checked={acceptTerms}
