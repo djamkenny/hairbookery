@@ -10,6 +10,7 @@ export const useUserProfile = () => {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -24,6 +25,7 @@ export const useUserProfile = () => {
           const metadata = user.user_metadata || {};
           setFullName(metadata.full_name || "");
           setPhone(metadata.phone || "");
+          setAvatarUrl(metadata.avatar_url || null);
         } else {
           navigate("/login");
         }
@@ -37,6 +39,24 @@ export const useUserProfile = () => {
     fetchUserProfile();
   }, [navigate]);
 
+  // This function will update all profile states with fresh data
+  const refreshUserProfile = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        setUser(user);
+        
+        const metadata = user.user_metadata || {};
+        setFullName(metadata.full_name || "");
+        setPhone(metadata.phone || "");
+        setAvatarUrl(metadata.avatar_url || null);
+      }
+    } catch (error) {
+      console.error("Error refreshing user profile:", error);
+    }
+  };
+
   return {
     loading,
     user,
@@ -44,6 +64,9 @@ export const useUserProfile = () => {
     setFullName,
     email,
     phone,
-    setPhone
+    setPhone,
+    avatarUrl,
+    setAvatarUrl,
+    refreshUserProfile
   };
 };

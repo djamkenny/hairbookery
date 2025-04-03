@@ -23,6 +23,8 @@ const Profile = () => {
     email,
     phone,
     setPhone,
+    avatarUrl,
+    refreshUserProfile,
     upcomingAppointments,
     pastAppointments,
     favoriteSylists,
@@ -55,6 +57,7 @@ const Profile = () => {
                 fullName={fullName}
                 email={email}
                 loading={loading}
+                avatarUrl={avatarUrl}
               />
             </div>
             
@@ -66,6 +69,8 @@ const Profile = () => {
               email={email}
               phone={phone}
               setPhone={setPhone}
+              avatarUrl={avatarUrl}
+              refreshUserProfile={refreshUserProfile}
               upcomingAppointments={upcomingAppointments}
               pastAppointments={pastAppointments}
               favoriteSylists={favoriteSylists}

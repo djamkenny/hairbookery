@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 import { 
@@ -17,6 +16,7 @@ import { Appointment } from "@/types/appointment";
 
 interface DashboardTabProps {
   user: any;
+  avatarUrl: string | null;
   upcomingAppointments: Appointment[];
   pastAppointments: Appointment[];
   favoriteSylists: any[];
@@ -25,7 +25,8 @@ interface DashboardTabProps {
 }
 
 const DashboardTab = ({ 
-  user, 
+  user,
+  avatarUrl,
   upcomingAppointments,
   pastAppointments,
   favoriteSylists, 

@@ -9,13 +9,19 @@ import { supabase } from "@/integrations/supabase/client";
 interface ProfileAvatarProps {
   user: any;
   fullName: string;
+  avatarUrl: string | null;
   onAvatarUpdate?: (avatarUrl: string) => void;
 }
 
-const ProfileAvatar = ({ user, fullName, onAvatarUpdate }: ProfileAvatarProps) => {
+const ProfileAvatar = ({ user, fullName, avatarUrl, onAvatarUpdate }: ProfileAvatarProps) => {
   const [uploadLoading, setUploadLoading] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [localAvatarUrl, setLocalAvatarUrl] = useState<string | null>(avatarUrl);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Update local state when prop changes
+  useEffect(() => {
+    setLocalAvatarUrl(avatarUrl);
+  }, [avatarUrl]);
 
   const handleAvatarClick = () => {
     fileInputRef.current?.click();
@@ -54,7 +60,7 @@ const ProfileAvatar = ({ user, fullName, onAvatarUpdate }: ProfileAvatarProps) =
         .from('avatars')
         .getPublicUrl(filePath);
         
-      setAvatarUrl(publicUrl);
+      setLocalAvatarUrl(publicUrl);
       
       const { error: updateError } = await supabase.auth.updateUser({
         data: { avatar_url: publicUrl }
@@ -81,18 +87,12 @@ const ProfileAvatar = ({ user, fullName, onAvatarUpdate }: ProfileAvatarProps) =
     }
   };
 
-  useEffect(() => {
-    if (user?.user_metadata?.avatar_url) {
-      setAvatarUrl(user.user_metadata.avatar_url);
-    }
-  }, [user]);
-
   return (
     <div className="flex flex-col sm:flex-row items-center gap-4">
       <div className="relative group cursor-pointer" onClick={handleAvatarClick}>
         <Avatar className="h-20 w-20 border-2 border-primary/20">
           <AvatarImage 
-            src={avatarUrl || "https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3"} 
+            src={localAvatarUrl || "https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3"} 
             alt={fullName || "User"} 
           />
           <AvatarFallback>{user?.email?.charAt(0).toUpperCase() || "U"}</AvatarFallback>

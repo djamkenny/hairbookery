@@ -24,6 +24,7 @@ interface ProfileSidebarProps {
   fullName: string;
   email: string;
   loading: boolean;
+  avatarUrl: string | null;
 }
 
 const ProfileSidebar = ({ 
@@ -32,7 +33,8 @@ const ProfileSidebar = ({
   user, 
   fullName, 
   email, 
-  loading 
+  loading,
+  avatarUrl
 }: ProfileSidebarProps) => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -52,7 +54,10 @@ const ProfileSidebar = ({
       <CardHeader className={`flex ${isMobile ? "flex-row justify-between" : "flex-row"} items-center gap-4 pb-2`}>
         <div className="flex items-center gap-3">
           <Avatar className="h-10 w-10 md:h-14 md:w-14 ring-2 ring-offset-2 ring-primary/20">
-            <AvatarImage src="https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3" alt="User" />
+            <AvatarImage 
+              src={avatarUrl || "https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3"} 
+              alt={fullName || "User"} 
+            />
             <AvatarFallback>{user?.email?.charAt(0).toUpperCase() || "U"}</AvatarFallback>
           </Avatar>
           <div>

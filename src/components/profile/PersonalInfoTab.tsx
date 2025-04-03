@@ -15,6 +15,8 @@ interface PersonalInfoTabProps {
   email: string;
   phone: string;
   setPhone: (phone: string) => void;
+  avatarUrl: string | null;
+  refreshUserProfile: () => Promise<void>;
 }
 
 const PersonalInfoTab = ({ 
@@ -23,40 +25,17 @@ const PersonalInfoTab = ({
   setFullName, 
   email, 
   phone, 
-  setPhone 
+  setPhone,
+  avatarUrl,
+  refreshUserProfile
 }: PersonalInfoTabProps) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Function to refresh user data when avatar is updated
-  const handleAvatarUpdate = async (avatarUrl: string) => {
-    // Trigger a refresh by incrementing the refreshTrigger state
-    setRefreshTrigger(prev => prev + 1);
+  const handleAvatarUpdate = async (newAvatarUrl: string) => {
+    // Call the refreshUserProfile function to update all user data
+    await refreshUserProfile();
   };
-
-  // Fetch the latest user data when refreshTrigger changes
-  useEffect(() => {
-    const refreshUserData = async () => {
-      try {
-        const { data: { user: updatedUser } } = await supabase.auth.getUser();
-        if (updatedUser && updatedUser.user_metadata) {
-          // Update any relevant state with the fresh user data
-          if (updatedUser.user_metadata.full_name) {
-            setFullName(updatedUser.user_metadata.full_name);
-          }
-          if (updatedUser.user_metadata.phone) {
-            setPhone(updatedUser.user_metadata.phone);
-          }
-        }
-      } catch (error) {
-        console.error("Error refreshing user data:", error);
-      }
-    };
-
-    if (refreshTrigger > 0) {
-      refreshUserData();
-    }
-  }, [refreshTrigger, setFullName, setPhone]);
 
   return (
     <div className="space-y-6">
@@ -99,6 +78,7 @@ const PersonalInfoTab = ({
           <ProfileAvatar 
             user={user} 
             fullName={fullName} 
+            avatarUrl={avatarUrl}
             onAvatarUpdate={handleAvatarUpdate}
           />
         </CardContent>

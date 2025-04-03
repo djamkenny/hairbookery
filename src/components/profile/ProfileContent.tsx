@@ -1,4 +1,3 @@
-
 import React from "react";
 import DashboardTab from "@/components/profile/DashboardTab";
 import AppointmentsTab from "@/components/profile/AppointmentsTab";
@@ -16,6 +15,8 @@ interface ProfileContentProps {
   email: string;
   phone: string;
   setPhone: (phone: string) => void;
+  avatarUrl: string | null;
+  refreshUserProfile: () => Promise<void>;
   upcomingAppointments: Appointment[];
   pastAppointments: Appointment[];
   favoriteSylists: any[];
@@ -36,6 +37,8 @@ const ProfileContent = ({
   email,
   phone,
   setPhone,
+  avatarUrl,
+  refreshUserProfile,
   upcomingAppointments,
   pastAppointments,
   favoriteSylists,
@@ -54,6 +57,7 @@ const ProfileContent = ({
       {activeTab === "dashboard" && (
         <DashboardTab 
           user={user}
+          avatarUrl={avatarUrl}
           upcomingAppointments={upcomingAppointments}
           pastAppointments={pastAppointments}
           favoriteSylists={favoriteSylists}
@@ -79,6 +83,8 @@ const ProfileContent = ({
           email={email}
           phone={phone}
           setPhone={setPhone}
+          avatarUrl={avatarUrl}
+          refreshUserProfile={refreshUserProfile}
         />
       )}
       

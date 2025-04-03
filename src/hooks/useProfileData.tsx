@@ -16,7 +16,10 @@ export const useProfileData = () => {
     setFullName,
     email,
     phone,
-    setPhone
+    setPhone,
+    avatarUrl,
+    setAvatarUrl,
+    refreshUserProfile
   } = useUserProfile();
   
   // Get appointments data
@@ -55,6 +58,9 @@ export const useProfileData = () => {
     email,
     phone,
     setPhone,
+    avatarUrl,
+    setAvatarUrl,
+    refreshUserProfile,
     upcomingAppointments,
     pastAppointments,
     favoriteSylists,
