@@ -1,15 +1,13 @@
 
-// Common validations across forms
-export const validateEmail = (email: string): boolean => {
+export function validateEmail(email: string) {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
-};
+}
 
-export const validatePassword = (password: string): boolean => {
+export function validatePassword(password: string) {
   return password.length >= 8;
-};
+}
 
-// Stylist form errors interface
 export interface StylistFormErrors {
   name: string;
   email: string;
@@ -18,11 +16,11 @@ export interface StylistFormErrors {
   specialty: string;
   experience: string;
   bio: string;
+  location: string;
   terms: string;
 }
 
-// Create empty stylist form errors
-export const createEmptyStylistFormErrors = (): StylistFormErrors => {
+export function createEmptyStylistFormErrors(): StylistFormErrors {
   return {
     name: "",
     email: "",
@@ -31,6 +29,7 @@ export const createEmptyStylistFormErrors = (): StylistFormErrors => {
     specialty: "",
     experience: "",
     bio: "",
+    location: "",
     terms: ""
   };
-};
+}

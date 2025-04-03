@@ -3,7 +3,7 @@ import React from "react";
 import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { CalendarIcon, ClockIcon, StarIcon } from "lucide-react";
+import { CalendarIcon, ClockIcon, StarIcon, MapPin } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 
@@ -19,7 +19,8 @@ const stylists = [
     specialties: ["Protective Styles", "Natural Hair Care", "Textured Cuts", "Braiding"],
     availability: ["Monday", "Tuesday", "Thursday", "Friday", "Saturday"],
     rating: 4.9,
-    reviewCount: 127
+    reviewCount: 127,
+    location: "125 Beauty Ave, Suite 10, New York, NY"
   },
   {
     id: 2,
@@ -31,7 +32,8 @@ const stylists = [
     specialties: ["Fades", "Hair Designs", "Beard Grooming", "Line-ups"],
     availability: ["Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
     rating: 4.8,
-    reviewCount: 143
+    reviewCount: 143,
+    location: "240 Style Street, Chicago, IL"
   },
   {
     id: 3,
@@ -43,7 +45,8 @@ const stylists = [
     specialties: ["Custom Color Formulation", "Balayage", "Color Correction", "Fashion Colors"],
     availability: ["Tuesday", "Wednesday", "Friday", "Saturday", "Sunday"],
     rating: 4.9,
-    reviewCount: 116
+    reviewCount: 116,
+    location: "500 Main St, Atlanta, GA"
   },
   {
     id: 4,
@@ -55,7 +58,8 @@ const stylists = [
     specialties: ["Box Braids", "Twist Styles", "Locs Maintenance", "Natural Updos"],
     availability: ["Monday", "Tuesday", "Thursday", "Saturday"],
     rating: 4.7,
-    reviewCount: 98
+    reviewCount: 98,
+    location: "1200 Hollywood Blvd, Los Angeles, CA"
   }
 ];
 
@@ -101,6 +105,24 @@ const StylistDetail = () => {
                         ))}
                       </div>
                     </div>
+
+                    {stylist.location && (
+                      <div className="space-y-2">
+                        <h3 className="font-medium flex items-center gap-1">
+                          <MapPin className="h-4 w-4 text-primary" />
+                          Location
+                        </h3>
+                        <p className="text-sm text-muted-foreground">{stylist.location}</p>
+                        <a 
+                          href={`https://maps.google.com/?q=${encodeURIComponent(stylist.location)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-primary hover:underline inline-flex items-center gap-1"
+                        >
+                          Open in Maps
+                        </a>
+                      </div>
+                    )}
                     
                     <Link to={`/booking?stylist=${stylist.id}`}>
                       <Button className="w-full">

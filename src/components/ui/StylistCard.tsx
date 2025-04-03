@@ -2,6 +2,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface StylistCardProps {
@@ -11,6 +12,7 @@ interface StylistCardProps {
   bio: string;
   image: string;
   cardImage?: string;
+  location?: string;
   className?: string;
   style?: React.CSSProperties;
 }
@@ -22,6 +24,7 @@ const StylistCard = ({
   bio, 
   image,
   cardImage,
+  location,
   className,
   style
 }: StylistCardProps) => {
@@ -44,7 +47,14 @@ const StylistCard = ({
       <div className="p-6">
         <h3 className="text-xl font-medium mb-1">{name}</h3>
         <p className="text-primary text-sm mb-3">{role}</p>
-        <p className="text-muted-foreground text-sm mb-4">{bio}</p>
+        <p className="text-muted-foreground text-sm mb-3">{bio}</p>
+        
+        {location && (
+          <div className="flex items-start gap-2 mb-4">
+            <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+            <span className="text-sm text-muted-foreground">{location}</span>
+          </div>
+        )}
         
         <Link to={`/booking?stylist=${id}`}>
           <Button variant="outline" className="w-full">

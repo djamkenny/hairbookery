@@ -27,6 +27,7 @@ const StylistRegisterForm = () => {
   const [specialty, setSpecialty] = useState("");
   const [experience, setExperience] = useState("");
   const [bio, setBio] = useState("");
+  const [location, setLocation] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [formErrors, setFormErrors] = useState<StylistFormErrors>(createEmptyStylistFormErrors());
@@ -76,6 +77,11 @@ const StylistRegisterForm = () => {
       isValid = false;
     }
 
+    if (!location.trim()) {
+      errors.location = "Salon/workshop location is required";
+      isValid = false;
+    }
+
     if (!acceptTerms) {
       errors.terms = "You must accept the terms and conditions";
       isValid = false;
@@ -105,7 +111,8 @@ const StylistRegisterForm = () => {
             is_stylist: true,
             specialty,
             experience,
-            bio
+            bio,
+            location
           },
         },
       });
@@ -228,6 +235,23 @@ const StylistRegisterForm = () => {
               {formErrors.experience && (
                 <p className="text-sm text-destructive mt-1">{formErrors.experience}</p>
               )}
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="location">Salon/Workshop Location</Label>
+              <Input
+                id="location"
+                placeholder="Enter the full address of your salon or workshop"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                className={formErrors.location ? "border-destructive" : ""}
+              />
+              {formErrors.location && (
+                <p className="text-sm text-destructive mt-1">{formErrors.location}</p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                Provide an address that clients can easily find with navigation apps or ride services
+              </p>
             </div>
             
             <div className="space-y-2">
