@@ -1,24 +1,12 @@
 
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Filter, ArrowUpDown, Search, CalendarDays } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import AppointmentsTable from "./AppointmentsTable";
 import { Appointment } from "@/types/appointment";
 import { fetchStylistAppointments, updateAppointmentStatus } from "@/services/appointmentService";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { 
-  ToggleGroup, 
-  ToggleGroupItem 
-} from "@/components/ui/toggle-group";
+import AppointmentFilters from "./AppointmentFilters";
 import AppointmentDetailsModal from "./AppointmentDetailsModal";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -176,56 +164,16 @@ const StylistAppointmentsTab = () => {
       <h1 className="text-2xl font-semibold">Appointments</h1>
       
       {/* Filtering and Sorting Controls */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center">
-        <div className="flex flex-1 items-center gap-2">
-          <div className="relative w-full max-w-xs">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search client or service..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-8 max-w-xs"
-            />
-          </div>
-          
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[180px]">
-              <span className="flex items-center gap-2">
-                <Filter className="h-4 w-4" />
-                <SelectValue placeholder="Filter by status" />
-              </span>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="confirmed">Confirmed</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-              <SelectItem value="canceled">Canceled</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <ToggleGroup type="single" variant="outline">
-            <ToggleGroupItem value="date" onClick={() => handleSort('date')}>
-              <CalendarDays className="h-4 w-4 mr-1" />
-              Date {sortKey === 'date' && (sortDirection === 'asc' ? '↑' : '↓')}
-            </ToggleGroupItem>
-            <ToggleGroupItem value="client" onClick={() => handleSort('client')}>
-              Client {sortKey === 'client' && (sortDirection === 'asc' ? '↑' : '↓')}
-            </ToggleGroupItem>
-            <ToggleGroupItem value="status" onClick={() => handleSort('status')}>
-              Status {sortKey === 'status' && (sortDirection === 'asc' ? '↑' : '↓')}
-            </ToggleGroupItem>
-          </ToggleGroup>
-          
-          {(statusFilter !== "all" || searchQuery || sortKey) && (
-            <Button variant="ghost" size="sm" onClick={clearFilters}>
-              Clear filters
-            </Button>
-          )}
-        </div>
-      </div>
+      <AppointmentFilters
+        statusFilter={statusFilter}
+        setStatusFilter={setStatusFilter}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        sortKey={sortKey}
+        sortDirection={sortDirection}
+        handleSort={handleSort}
+        clearFilters={clearFilters}
+      />
       
       <Card>
         <CardHeader>
