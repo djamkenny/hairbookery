@@ -3,7 +3,8 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { 
   CalendarIcon, 
-  ClockIcon 
+  ClockIcon,
+  ClipboardList
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -46,6 +47,12 @@ const AppointmentsTab = ({
                       <div>
                         <h3 className="font-medium text-base md:text-lg">{appointment.service}</h3>
                         <p className="text-sm text-muted-foreground">With {appointment.stylist}</p>
+                        {appointment.order_id && (
+                          <div className="flex items-center mt-2 gap-2 p-1.5 bg-primary/5 rounded border border-primary/10 w-fit">
+                            <ClipboardList className="h-3.5 w-3.5 text-primary" />
+                            <span className="text-sm font-mono text-primary">{appointment.order_id}</span>
+                          </div>
+                        )}
                       </div>
                       <div className="mt-2 sm:mt-0 sm:text-right">
                         <div className="flex items-center sm:justify-end text-xs md:text-sm font-medium mb-1">
