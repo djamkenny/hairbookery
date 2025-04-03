@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import StylistDashboardSummary from "@/components/stylist/StylistDashboardSummary";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
@@ -9,8 +10,10 @@ import StylistClientsTab from "@/components/stylist/StylistClientsTab";
 import StylistServicesTab from "@/components/stylist/StylistServicesTab";
 import StylistSettingsTab from "@/components/stylist/StylistSettingsTab";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2 } from "lucide-react";
+import { Loader2, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 
 const StylistDashboard = () => {
   const [activeTab, setActiveTab] = useState("profile");
@@ -22,6 +25,7 @@ const StylistDashboard = () => {
   const [specialty, setSpecialty] = useState("");
   const [experience, setExperience] = useState("");
   const [bio, setBio] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   
   // Dashboard stats - initials with default values
   const [upcomingAppointments, setUpcomingAppointments] = useState(0);
@@ -135,7 +139,30 @@ const StylistDashboard = () => {
   
   return (
     <main className="container py-10">
-      <h1 className="text-3xl font-bold mb-8">Stylist Dashboard</h1>
+      <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0 mb-8">
+        <div>
+          <Breadcrumb className="mb-2">
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild>
+                  <Link to="/">Home</Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <span>Stylist Dashboard</span>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+          <h1 className="text-3xl font-bold">Stylist Dashboard</h1>
+        </div>
+        <Link to="/">
+          <Button variant="outline" className="flex items-center gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Home
+          </Button>
+        </Link>
+      </div>
       
       <StylistDashboardSummary 
         upcomingAppointments={upcomingAppointments}
@@ -195,6 +222,19 @@ const StylistDashboard = () => {
               setExperience={setExperience}
               bio={bio}
               setBio={setBio}
+              avatarUrl={avatarUrl}
+              refreshUserProfile={async () => {
+                try {
+                  const { data: { user } } = await supabase.auth.getUser();
+                  
+                  if (user) {
+                    const metadata = user.user_metadata || {};
+                    setAvatarUrl(metadata.avatar_url || null);
+                  }
+                } catch (error) {
+                  console.error("Error refreshing user profile:", error);
+                }
+              }}
             />
           </TabsContent>
           
