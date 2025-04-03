@@ -1,6 +1,6 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import AppointmentsTable from "./AppointmentsTable";
@@ -39,16 +39,13 @@ const StylistAppointmentsTab = () => {
     loadAppointments();
   }, []);
   
-  // Filter and search appointments whenever filters or search query changes
   useEffect(() => {
     let result = [...appointments];
     
-    // Filter by status
     if (statusFilter !== "all") {
       result = result.filter(appointment => appointment.status === statusFilter);
     }
     
-    // Filter by search query (client name or service)
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       result = result.filter(
@@ -72,7 +69,6 @@ const StylistAppointmentsTab = () => {
         appointmentInfo
       );
       
-      // Update local state
       setAppointments(prev => 
         prev.map(appointment => 
           appointment.id === appointmentId 
@@ -90,7 +86,6 @@ const StylistAppointmentsTab = () => {
 
   const handleCancelAppointment = async (appointmentId: string, clientId: string) => {
     try {
-      // Update appointment status to canceled
       const { error } = await supabase
         .from('appointments')
         .update({ 
@@ -101,7 +96,6 @@ const StylistAppointmentsTab = () => {
       
       if (error) throw error;
 
-      // Send notification to client
       const appointmentInfo = appointments.find(a => a.id === appointmentId);
       if (appointmentInfo) {
         const message = `Your appointment for ${appointmentInfo.service} on ${appointmentInfo.date} at ${appointmentInfo.time} has been canceled.`;
@@ -117,7 +111,6 @@ const StylistAppointmentsTab = () => {
           }]);
       }
       
-      // Update local state
       setAppointments(prev => 
         prev.map(appointment => 
           appointment.id === appointmentId 
@@ -144,10 +137,8 @@ const StylistAppointmentsTab = () => {
 
   const handleSort = (key: keyof Appointment) => {
     if (sortKey === key) {
-      // Toggle direction if already sorting by this key
       setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
     } else {
-      // Set new sort key and default to ascending
       setSortKey(key);
       setSortDirection('asc');
     }
@@ -163,7 +154,6 @@ const StylistAppointmentsTab = () => {
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold">Appointments</h1>
       
-      {/* Filtering and Sorting Controls */}
       <AppointmentFilters
         statusFilter={statusFilter}
         setStatusFilter={setStatusFilter}
@@ -213,7 +203,6 @@ const StylistAppointmentsTab = () => {
         </CardContent>
       </Card>
 
-      {/* Appointment Details Modal */}
       <AppointmentDetailsModal
         appointment={selectedAppointment}
         isOpen={isDetailsModalOpen}
