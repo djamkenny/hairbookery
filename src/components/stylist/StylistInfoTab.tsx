@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { PencilIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -45,11 +45,44 @@ const StylistInfoTab = ({
 }: StylistInfoTabProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [location, setLocation] = useState(user?.user_metadata?.location || "");
+  const [location, setLocation] = useState("");
+  
+  // Fetch the location from user metadata or profile when component mounts
+  useEffect(() => {
+    const fetchLocation = async () => {
+      try {
+        // Try to get location from user metadata first
+        let locationValue = user?.user_metadata?.location || "";
+        
+        // If not in metadata, try to get from profiles table
+        if (!locationValue) {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('location')
+            .eq('id', user?.id)
+            .single();
+            
+          if (data && !error) {
+            locationValue = data.location || "";
+          }
+        }
+        
+        setLocation(locationValue);
+      } catch (error) {
+        console.error("Error fetching location:", error);
+      }
+    };
+    
+    if (user) {
+      fetchLocation();
+    }
+  }, [user]);
 
   const handleSave = async () => {
     try {
       setIsLoading(true);
+      
+      console.log("Saving profile with location:", location);
       
       // Update profile data in Supabase
       const { error: profileError } = await supabase
@@ -66,7 +99,10 @@ const StylistInfoTab = ({
           updated_at: new Date().toISOString(),
         });
       
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error("Profile update error:", profileError);
+        throw profileError;
+      }
       
       // Also update user metadata
       const { error: userError } = await supabase.auth.updateUser({
@@ -81,7 +117,10 @@ const StylistInfoTab = ({
         }
       });
       
-      if (userError) throw userError;
+      if (userError) {
+        console.error("User metadata update error:", userError);
+        throw userError;
+      }
       
       toast.success("Profile updated successfully");
       setIsEditing(false);

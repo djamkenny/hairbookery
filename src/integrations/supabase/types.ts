@@ -100,6 +100,7 @@ export type Database = {
           full_name: string | null
           id: string
           is_stylist: boolean | null
+          location: string | null
           phone: string | null
           specialty: string | null
           updated_at: string
@@ -114,6 +115,7 @@ export type Database = {
           full_name?: string | null
           id: string
           is_stylist?: boolean | null
+          location?: string | null
           phone?: string | null
           specialty?: string | null
           updated_at?: string
@@ -128,6 +130,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           is_stylist?: boolean | null
+          location?: string | null
           phone?: string | null
           specialty?: string | null
           updated_at?: string

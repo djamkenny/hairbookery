@@ -11,6 +11,7 @@ export const useUserProfile = () => {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [location, setLocation] = useState("");
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -26,6 +27,22 @@ export const useUserProfile = () => {
           setFullName(metadata.full_name || "");
           setPhone(metadata.phone || "");
           setAvatarUrl(metadata.avatar_url || null);
+          setLocation(metadata.location || "");
+          
+          // Also fetch data from profiles table to ensure we have the most up-to-date info
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('full_name, phone, avatar_url, location')
+            .eq('id', user.id)
+            .single();
+            
+          if (profile) {
+            // Use profile data if available (it might be more up-to-date)
+            if (profile.full_name) setFullName(profile.full_name);
+            if (profile.phone) setPhone(profile.phone);
+            if (profile.avatar_url) setAvatarUrl(profile.avatar_url);
+            if (profile.location) setLocation(profile.location);
+          }
         } else {
           navigate("/login");
         }
@@ -51,6 +68,21 @@ export const useUserProfile = () => {
         setFullName(metadata.full_name || "");
         setPhone(metadata.phone || "");
         setAvatarUrl(metadata.avatar_url || null);
+        setLocation(metadata.location || "");
+        
+        // Also fetch from profiles table
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('full_name, phone, avatar_url, location')
+          .eq('id', user.id)
+          .single();
+          
+        if (profile) {
+          if (profile.full_name) setFullName(profile.full_name);
+          if (profile.phone) setPhone(profile.phone);
+          if (profile.avatar_url) setAvatarUrl(profile.avatar_url);
+          if (profile.location) setLocation(profile.location);
+        }
       }
     } catch (error) {
       console.error("Error refreshing user profile:", error);
@@ -67,6 +99,8 @@ export const useUserProfile = () => {
     setPhone,
     avatarUrl,
     setAvatarUrl,
+    location,
+    setLocation,
     refreshUserProfile
   };
 };

@@ -2,6 +2,8 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MapPinIcon } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface LocationCardProps {
   isEditing: boolean;
@@ -27,12 +29,12 @@ const LocationCard = ({
       <CardContent>
         {isEditing ? (
           <div className="space-y-2">
-            <label className="block text-sm font-medium mb-1">Salon/Workshop Address</label>
-            <input
-              type="text"
+            <Label htmlFor="location" className="block text-sm font-medium">Salon/Workshop Address</Label>
+            <Input
+              id="location"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              className="w-full px-3 py-2 border border-border rounded-md"
+              className="w-full"
               placeholder="Enter your full salon/workshop address"
             />
             <p className="text-xs text-muted-foreground mt-1">
