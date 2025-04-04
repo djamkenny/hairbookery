@@ -10,7 +10,7 @@ export const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
           <div className="space-y-4">
             <Link to="/" className="text-foreground text-xl font-semibold flex items-center group">
-              <span className="hairline mr-1">hair</span>
+              <span className="hairline mr-1">K n L</span>
               <span className="text-primary group-hover:text-foreground transition-colors">bookery</span>
             </Link>
             <p className="text-muted-foreground">
@@ -55,13 +55,13 @@ export const Footer = () => {
               <li className="text-muted-foreground">123 Styling Street</li>
               <li className="text-muted-foreground">New York, NY 10001</li>
               <li className="text-muted-foreground">+1 (555) 123-4567</li>
-              <li><a href="mailto:info@hairbookery.com" className="text-primary hover:text-primary/80 transition-colors">info@hairbookery.com</a></li>
+              <li><a href="mailto:info@knlbookery.com" className="text-primary hover:text-primary/80 transition-colors">info@knlbookery.com</a></li>
             </ul>
           </div>
         </div>
         
         <div className="border-t border-border/50 pt-8 mt-8 flex flex-col md:flex-row items-center justify-between">
-          <p className="text-muted-foreground text-sm mb-4 md:mb-0">&copy; {new Date().getFullYear()} Hairbookery. All rights reserved.</p>
+          <p className="text-muted-foreground text-sm mb-4 md:mb-0">&copy; {new Date().getFullYear()} K n L bookery. All rights reserved.</p>
           <div className="flex space-x-6">
             <Link to="/terms" className="text-muted-foreground hover:text-primary text-sm transition-colors">Terms of Service</Link>
             <Link to="/privacy" className="text-muted-foreground hover:text-primary text-sm transition-colors">Privacy Policy</Link>

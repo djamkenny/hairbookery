@@ -30,7 +30,7 @@ export const Navbar = () => {
             to="/" 
             className="text-foreground text-xl font-semibold flex items-center group"
           >
-            <span className="hairline mr-1">hair</span>
+            <span className="hairline mr-1">K n L</span>
             <span className="text-primary group-hover:text-foreground transition-colors">bookery</span>
           </Link>
 
