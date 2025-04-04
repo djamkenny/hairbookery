@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PencilIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -48,22 +48,28 @@ const StylistInfoTab = ({
   const [location, setLocation] = useState("");
   
   // Fetch the location from user metadata or profile when component mounts
-  useEffect(() => {
+  React.useEffect(() => {
     const fetchLocation = async () => {
       try {
         // Try to get location from user metadata first
         let locationValue = user?.user_metadata?.location || "";
         
         // If not in metadata, try to get from profiles table
-        if (!locationValue) {
-          const { data, error } = await supabase
-            .from('profiles')
-            .select('location')
-            .eq('id', user?.id)
-            .single();
-            
-          if (data && !error) {
-            locationValue = data.location || "";
+        if (!locationValue && user) {
+          try {
+            const { data, error } = await supabase
+              .from('profiles')
+              .select('location')
+              .eq('id', user.id)
+              .single();
+              
+            if (error) {
+              console.error("Error fetching location:", error);
+            } else if (data && data.location) {
+              locationValue = data.location;
+            }
+          } catch (error) {
+            console.error("Error in location fetch:", error);
           }
         }
         
