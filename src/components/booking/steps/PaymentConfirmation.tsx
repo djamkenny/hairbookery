@@ -2,6 +2,7 @@
 import React from "react";
 import { format } from "date-fns";
 import PaymentForm from "../PaymentForm";
+import { formatPrice } from "../utils/formatUtils";
 
 interface PaymentConfirmationProps {
   selectedService: any;
@@ -29,6 +30,13 @@ const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
             <p className="text-muted-foreground">Service</p>
             <p className="font-medium">
               {selectedService ? selectedService.name : "Not selected"}
+            </p>
+          </div>
+          
+          <div>
+            <p className="text-muted-foreground">Price</p>
+            <p className="font-medium">
+              {selectedService ? formatPrice(selectedService.price) : "-"}
             </p>
           </div>
           
