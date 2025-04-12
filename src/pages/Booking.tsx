@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import BookingForm from "@/components/booking/BookingForm";
@@ -18,7 +18,7 @@ const Booking = () => {
             <div className="text-center mb-8 md:mb-12 animate-fade-in">
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold mb-3 md:mb-4">Book Your Appointment</h1>
               <p className="text-muted-foreground text-balance max-w-xl mx-auto text-sm md:text-base">
-                Schedule your appointment with our specialists. Choose your preferred service, specialist, date and time.
+                Schedule your appointment with our specialists. Choose your preferred service, specialist, date and time, and complete payment.
               </p>
             </div>
             

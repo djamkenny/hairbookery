@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { CalendarIcon, Clock } from "lucide-react";
+import { CalendarIcon, Clock, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -24,6 +24,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import PaymentForm from "./PaymentForm";
 
 // Time slots available for booking
 const timeSlots = [
@@ -51,6 +52,9 @@ export const BookingForm = () => {
   const [stylists, setStylists] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  
+  // Add new state for multi-step form
+  const [step, setStep] = useState(1);
   
   useEffect(() => {
     const fetchData = async () => {
@@ -125,6 +129,12 @@ export const BookingForm = () => {
       return;
     }
     
+    // If on step 1, move to payment step
+    if (step === 1) {
+      setStep(2);
+      return;
+    }
+    
     setIsSubmitting(true);
     
     try {
@@ -154,6 +164,7 @@ export const BookingForm = () => {
       setStylist("");
       setTime("");
       setNotes("");
+      setStep(1);
       
       // Redirect to dashboard after successful booking
       navigate("/profile");
@@ -195,151 +206,246 @@ export const BookingForm = () => {
     ? stylists.find(s => s.id === stylist) 
     : null;
 
+  const handlePaymentSuccess = () => {
+    handleSubmit({ preventDefault: () => {} } as React.FormEvent);
+  };
+
+  const handleGoBack = () => {
+    setStep(1);
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="service">Select Service</Label>
-            <Select value={service} onValueChange={setService}>
-              <SelectTrigger id="service" className={loading ? "animate-pulse" : ""}>
-                <SelectValue placeholder="Choose a service" />
-              </SelectTrigger>
-              <SelectContent>
-                {services.map((svc) => (
-                  <SelectItem key={svc.id} value={svc.id}>
-                    {svc.name} - {formatPrice(svc.price)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="stylist">Select Stylist</Label>
-            <Select value={stylist} onValueChange={setStylist}>
-              <SelectTrigger id="stylist" className={loading ? "animate-pulse" : ""}>
-                <SelectValue placeholder="Choose a stylist" />
-              </SelectTrigger>
-              <SelectContent>
-                {stylists.map((sty) => (
-                  <SelectItem key={sty.id} value={sty.id}>
-                    {sty.full_name || "Stylist"}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="date">Select Date</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !date && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {date ? format(date, "PPP") : <span>Select a date</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={date}
-                  onSelect={setDate}
-                  initialFocus
-                  disabled={(date) => 
-                    date < new Date() || 
-                    date.getDay() === 0 // Sunday closed
-                  }
-                  className={cn("p-3 pointer-events-auto")}
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="time">Select Time</Label>
-            <Select value={time} onValueChange={setTime}>
-              <SelectTrigger id="time">
-                <SelectValue placeholder="Choose a time" />
-              </SelectTrigger>
-              <SelectContent>
-                {timeSlots.map((slot) => (
-                  <SelectItem key={slot} value={slot}>
-                    <div className="flex items-center">
-                      <Clock className="mr-2 h-3.5 w-3.5" />
-                      <span>{slot}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Full Name</Label>
-            <Input
-              id="name"
-              placeholder="Enter your full name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={currentUser !== null} // Disable if user is logged in
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="phone">Phone Number</Label>
-            <Input
-              id="phone"
-              placeholder="Enter your phone number"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="notes">Special Requests or Notes</Label>
-            <Textarea
-              id="notes"
-              placeholder="Add any special requests or notes for your stylist"
-              rows={4}
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-            />
-          </div>
-        </div>
-      </div>
-      
-      <Card className="overflow-hidden">
-        <CardContent className="p-6">
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-medium">Booking Summary</h3>
-              {selectedService && (
-                <span className="text-primary font-medium">
-                  {formatPrice(selectedService.price)}
-                </span>
-              )}
+    <div className="space-y-6">
+      {step === 1 ? (
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="service">Select Service</Label>
+                <Select value={service} onValueChange={setService}>
+                  <SelectTrigger id="service" className={loading ? "animate-pulse" : ""}>
+                    <SelectValue placeholder="Choose a service" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {services.map((svc) => (
+                      <SelectItem key={svc.id} value={svc.id}>
+                        {svc.name} - {formatPrice(svc.price)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="stylist">Select Stylist</Label>
+                <Select value={stylist} onValueChange={setStylist}>
+                  <SelectTrigger id="stylist" className={loading ? "animate-pulse" : ""}>
+                    <SelectValue placeholder="Choose a stylist" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {stylists.map((sty) => (
+                      <SelectItem key={sty.id} value={sty.id}>
+                        {sty.full_name || "Stylist"}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="date">Select Date</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !date && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {date ? format(date, "PPP") : <span>Select a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={date}
+                      onSelect={setDate}
+                      initialFocus
+                      disabled={(date) => 
+                        date < new Date() || 
+                        date.getDay() === 0 // Sunday closed
+                      }
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="time">Select Time</Label>
+                <Select value={time} onValueChange={setTime}>
+                  <SelectTrigger id="time">
+                    <SelectValue placeholder="Choose a time" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {timeSlots.map((slot) => (
+                      <SelectItem key={slot} value={slot}>
+                        <div className="flex items-center">
+                          <Clock className="mr-2 h-3.5 w-3.5" />
+                          <span>{slot}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Full Name</Label>
+                <Input
+                  id="name"
+                  placeholder="Enter your full name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={currentUser !== null} // Disable if user is logged in
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone Number</Label>
+                <Input
+                  id="phone"
+                  placeholder="Enter your phone number"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="notes">Special Requests or Notes</Label>
+                <Textarea
+                  id="notes"
+                  placeholder="Add any special requests or notes for your stylist"
+                  rows={4}
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+          
+          <Card className="overflow-hidden">
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-medium">Booking Summary</h3>
+                  {selectedService && (
+                    <span className="text-primary font-medium">
+                      {formatPrice(selectedService.price)}
+                    </span>
+                  )}
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <p className="text-muted-foreground">Service</p>
+                    <p className="font-medium">
+                      {selectedService ? selectedService.name : "Not selected"}
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <p className="text-muted-foreground">Stylist</p>
+                    <p className="font-medium">
+                      {selectedStylist ? selectedStylist.full_name : "Not selected"}
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <p className="text-muted-foreground">Date</p>
+                    <p className="font-medium">
+                      {date ? format(date, "PPP") : "Not selected"}
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <p className="text-muted-foreground">Time</p>
+                    <p className="font-medium">
+                      {time || "Not selected"}
+                    </p>
+                  </div>
+                  
+                  {selectedService && (
+                    <div>
+                      <p className="text-muted-foreground">Duration</p>
+                      <p className="font-medium">
+                        {formatDuration(selectedService.duration)}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Button 
+            type="submit" 
+            className="w-full"
+            disabled={isSubmitting || !currentUser || !date || !service || !stylist || !time || !name || !phone}
+          >
+            {isSubmitting ? (
+              <div className="loading-dots">
+                <span>•</span>
+                <span>•</span>
+                <span>•</span>
+              </div>
+            ) : (
+              <span className="flex items-center">
+                Continue to Payment
+                <ChevronRight className="ml-2 h-4 w-4" />
+              </span>
+            )}
+          </Button>
+          
+          {!currentUser && (
+            <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-md text-center">
+              <p className="text-yellow-800 text-sm">
+                You need to <a href="/login" className="text-primary font-medium hover:underline">log in</a> to book an appointment
+              </p>
+            </div>
+          )}
+          
+          <p className="text-center text-sm text-muted-foreground">
+            By booking an appointment, you agree to our{" "}
+            <a href="/terms" className="text-primary hover:underline">
+              Terms of Service
+            </a>{" "}
+            and{" "}
+            <a href="/privacy" className="text-primary hover:underline">
+              Privacy Policy
+            </a>
+            .
+          </p>
+        </form>
+      ) : (
+        <div className="space-y-6">
+          <div className="bg-muted/50 p-4 rounded-lg">
+            <h2 className="text-lg font-medium mb-2">Complete Your Booking</h2>
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div>
                 <p className="text-muted-foreground">Service</p>
@@ -349,75 +455,23 @@ export const BookingForm = () => {
               </div>
               
               <div>
-                <p className="text-muted-foreground">Stylist</p>
+                <p className="text-muted-foreground">Date & Time</p>
                 <p className="font-medium">
-                  {selectedStylist ? selectedStylist.full_name : "Not selected"}
+                  {date ? `${format(date, "PPP")} at ${time}` : "Not selected"}
                 </p>
               </div>
-              
-              <div>
-                <p className="text-muted-foreground">Date</p>
-                <p className="font-medium">
-                  {date ? format(date, "PPP") : "Not selected"}
-                </p>
-              </div>
-              
-              <div>
-                <p className="text-muted-foreground">Time</p>
-                <p className="font-medium">
-                  {time || "Not selected"}
-                </p>
-              </div>
-              
-              {selectedService && (
-                <div>
-                  <p className="text-muted-foreground">Duration</p>
-                  <p className="font-medium">
-                    {formatDuration(selectedService.duration)}
-                  </p>
-                </div>
-              )}
             </div>
           </div>
-        </CardContent>
-      </Card>
-      
-      <Button 
-        type="submit" 
-        className="w-full"
-        disabled={isSubmitting || !currentUser}
-      >
-        {isSubmitting ? (
-          <div className="loading-dots">
-            <span>•</span>
-            <span>•</span>
-            <span>•</span>
-          </div>
-        ) : (
-          "Confirm Booking"
-        )}
-      </Button>
-      
-      {!currentUser && (
-        <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-md text-center">
-          <p className="text-yellow-800 text-sm">
-            You need to <a href="/login" className="text-primary font-medium hover:underline">log in</a> to book an appointment
-          </p>
+          
+          <PaymentForm
+            amount={selectedService ? selectedService.price : 0}
+            onSuccess={handlePaymentSuccess}
+            onCancel={handleGoBack}
+            isSubmitting={isSubmitting}
+          />
         </div>
       )}
-      
-      <p className="text-center text-sm text-muted-foreground">
-        By booking an appointment, you agree to our{" "}
-        <a href="/terms" className="text-primary hover:underline">
-          Terms of Service
-        </a>{" "}
-        and{" "}
-        <a href="/privacy" className="text-primary hover:underline">
-          Privacy Policy
-        </a>
-        .
-      </p>
-    </form>
+    </div>
   );
 };
 
