@@ -53,12 +53,12 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
               <CardContent className="p-4 space-y-3">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h4 className="font-medium">{appointment.client_name}</h4>
-                    <p className="text-sm text-muted-foreground">{appointment.service_name}</p>
+                    <h4 className="font-medium">{appointment.client}</h4>
+                    <p className="text-sm text-muted-foreground">{appointment.service}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm">{new Date(appointment.appointment_date).toLocaleDateString()}</p>
-                    <p className="text-sm">{appointment.appointment_time}</p>
+                    <p className="text-sm">{appointment.date}</p>
+                    <p className="text-sm">{appointment.time}</p>
                   </div>
                 </div>
                 <div className="flex justify-between items-center pt-2 border-t border-border/30">
