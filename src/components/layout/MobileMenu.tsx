@@ -21,15 +21,15 @@ const MobileMenu = ({ isOpen, links, user, isStylist, onLinkClick }: MobileMenuP
   return (
     <div
       className={cn(
-        "md:hidden absolute left-0 right-0 backdrop border-b border-border/50 transition-all duration-300 overflow-hidden",
-        isOpen ? "max-h-screen opacity-100" : "max-h-0 opacity-0"
+        "md:hidden absolute left-0 right-0 top-full backdrop border-b border-border/50 transition-all duration-300 overflow-hidden z-40 shadow-lg",
+        isOpen ? "max-h-[80vh] opacity-100" : "max-h-0 opacity-0"
       )}
     >
-      <div className="container mx-auto px-4 py-4 space-y-4">
+      <div className="w-full mx-auto px-4 py-4 space-y-4 overflow-y-auto max-h-[70vh] hide-scrollbar">
         <NavLinks 
           links={links} 
           className="flex flex-col space-y-1"
-          linkClassName="px-4 py-3"
+          linkClassName="px-4 py-3 text-base"
           onClick={onLinkClick}
         />
         <div className="py-2 flex justify-center">
@@ -41,7 +41,7 @@ const MobileMenu = ({ isOpen, links, user, isStylist, onLinkClick }: MobileMenuP
           ) : (
             <LoginMenu isMobile={true} />
           )}
-          <Link to="/booking" className="col-span-1">
+          <Link to="/booking" className="col-span-1" onClick={onLinkClick}>
             <Button className="w-full">
               <Calendar className="h-4 w-4 mr-2" />
               Book Now

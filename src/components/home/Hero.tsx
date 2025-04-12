@@ -3,10 +3,13 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const Hero = () => {
+  const isMobile = useIsMobile();
+  
   return (
-    <section className="relative min-h-[92vh] flex items-center pt-20">
+    <section className="relative min-h-[90vh] flex items-center pt-16 md:pt-20">
       <div 
         className="absolute inset-0 bg-salon-100 z-[-1] overflow-hidden"
         style={{
@@ -18,24 +21,24 @@ export const Hero = () => {
         }}
       />
       
-      <div className="container mx-auto px-4 py-12 md:py-24">
+      <div className="container mx-auto px-4 py-8 md:py-12 lg:py-24">
         <div className="max-w-3xl mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight mb-6 animate-fade-in">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight mb-4 md:mb-6 animate-fade-in">
             Experience <span className="text-primary">Premium</span> Hair Care
           </h1>
-          <p className="text-lg md:text-xl text-muted-foreground mb-10 text-balance animate-slide-in">
+          <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 md:mb-10 text-balance animate-slide-in">
             Book appointments with our expert stylists and transform your look.
             We provide exceptional service tailored to your unique style.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-slide-up">
-            <Link to="/booking">
-              <Button size="lg" className="w-full sm:w-auto">
+            <Link to="/booking" className="w-full sm:w-auto">
+              <Button size={isMobile ? "default" : "lg"} className="w-full">
                 <Calendar className="mr-2 h-4 w-4" />
                 Book Appointment
               </Button>
             </Link>
-            <Link to="/#services">
-              <Button variant="outline" size="lg" className="w-full sm:w-auto">
+            <Link to="/#services" className="w-full sm:w-auto">
+              <Button variant="outline" size={isMobile ? "default" : "lg"} className="w-full">
                 Explore Services
               </Button>
             </Link>

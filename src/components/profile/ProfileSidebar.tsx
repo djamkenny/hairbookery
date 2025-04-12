@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { 
@@ -50,10 +49,10 @@ const ProfileSidebar = ({
   };
 
   return (
-    <Card className={`${isMobile ? "shadow-sm" : "sticky top-24"} animate-fade-in shadow-md border border-border/30`}>
-      <CardHeader className={`flex ${isMobile ? "flex-row justify-between" : "flex-row"} items-center gap-4 pb-2`}>
+    <Card className={`${isMobile ? "shadow-sm mb-6" : "sticky top-24"} animate-fade-in shadow-md border border-border/30`}>
+      <CardHeader className={`flex ${isMobile ? "flex-row justify-between" : "flex-col"} items-center gap-4 pb-2`}>
         <div className="flex items-center gap-3">
-          <Avatar className="h-10 w-10 md:h-14 md:w-14 ring-2 ring-offset-2 ring-primary/20">
+          <Avatar className="h-10 w-10 md:h-12 md:w-12 ring-2 ring-offset-2 ring-primary/20">
             <AvatarImage 
               src={avatarUrl || "https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3"} 
               alt={fullName || "User"} 
@@ -61,43 +60,67 @@ const ProfileSidebar = ({
             <AvatarFallback>{user?.email?.charAt(0).toUpperCase() || "U"}</AvatarFallback>
           </Avatar>
           <div>
-            <h3 className="text-base md:text-lg font-semibold">{fullName || "User"}</h3>
-            <p className="text-xs md:text-sm text-muted-foreground truncate max-w-[150px] md:max-w-full">{email}</p>
+            <h3 className="text-base font-semibold">{fullName || "User"}</h3>
+            <p className="text-xs text-muted-foreground truncate max-w-[150px] md:max-w-full">{email}</p>
           </div>
         </div>
       </CardHeader>
       <CardContent className="p-0">
         <nav className="mt-2 md:mt-4 overflow-x-auto scrollbar-none">
-          <div className={`${isMobile ? "flex py-2 px-1 gap-1 md:gap-2" : "flex flex-col"}`}>
-            <Link to="#" onClick={() => setActiveTab("dashboard")} className={`${isMobile ? "flex-shrink-0 min-w-[110px] px-3 py-2 text-sm justify-center" : "flex items-center justify-between px-4 py-3"} ${activeTab === "dashboard" ? "bg-secondary text-primary" : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"} transition-colors rounded-md`}>
+          <div className={`${isMobile ? "flex py-2 px-1 gap-1 overflow-x-auto hide-scrollbar" : "flex flex-col"}`}>
+            <Link 
+              to="#" 
+              onClick={() => setActiveTab("dashboard")} 
+              className={`${isMobile ? "flex-shrink-0 min-w-[105px] px-3 py-2 text-sm justify-center" : "flex items-center justify-between px-4 py-3"} ${activeTab === "dashboard" ? "bg-secondary text-primary" : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"} transition-colors rounded-md`}
+            >
               <div className={`flex items-center ${isMobile ? "flex-col gap-1" : ""}`}>
                 <LineChartIcon className={`${isMobile ? "h-4 w-4" : "mr-2 h-4 w-4"}`} />
                 <span>Dashboard</span>
               </div>
               {!isMobile && <ChevronRightIcon className="h-4 w-4" />}
             </Link>
-            <Link to="#" onClick={() => setActiveTab("appointments")} className={`${isMobile ? "flex-shrink-0 min-w-[110px] px-3 py-2 text-sm justify-center" : "flex items-center justify-between px-4 py-3"} ${activeTab === "appointments" ? "bg-secondary text-primary" : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"} transition-colors rounded-md`}>
+            
+            <Link 
+              to="#" 
+              onClick={() => setActiveTab("appointments")} 
+              className={`${isMobile ? "flex-shrink-0 min-w-[105px] px-3 py-2 text-sm justify-center" : "flex items-center justify-between px-4 py-3"} ${activeTab === "appointments" ? "bg-secondary text-primary" : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"} transition-colors rounded-md`}
+            >
               <div className={`flex items-center ${isMobile ? "flex-col gap-1" : ""}`}>
                 <CalendarIcon className={`${isMobile ? "h-4 w-4" : "mr-2 h-4 w-4"}`} />
                 <span>Appointments</span>
               </div>
               {!isMobile && <ChevronRightIcon className="h-4 w-4" />}
             </Link>
-            <Link to="#" onClick={() => setActiveTab("profile")} className={`${isMobile ? "flex-shrink-0 min-w-[110px] px-3 py-2 text-sm justify-center" : "flex items-center justify-between px-4 py-3"} ${activeTab === "profile" ? "bg-secondary text-primary" : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"} transition-colors rounded-md`}>
+            
+            <Link 
+              to="#" 
+              onClick={() => setActiveTab("profile")} 
+              className={`${isMobile ? "flex-shrink-0 min-w-[105px] px-3 py-2 text-sm justify-center" : "flex items-center justify-between px-4 py-3"} ${activeTab === "profile" ? "bg-secondary text-primary" : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"} transition-colors rounded-md`}
+            >
               <div className={`flex items-center ${isMobile ? "flex-col gap-1" : ""}`}>
                 <UserIcon className={`${isMobile ? "h-4 w-4" : "mr-2 h-4 w-4"}`} />
                 <span>Profile</span>
               </div>
               {!isMobile && <ChevronRightIcon className="h-4 w-4" />}
             </Link>
-            <Link to="#" onClick={() => setActiveTab("favorites")} className={`${isMobile ? "flex-shrink-0 min-w-[110px] px-3 py-2 text-sm justify-center" : "flex items-center justify-between px-4 py-3"} ${activeTab === "favorites" ? "bg-secondary text-primary" : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"} transition-colors rounded-md`}>
+            
+            <Link 
+              to="#" 
+              onClick={() => setActiveTab("favorites")} 
+              className={`${isMobile ? "flex-shrink-0 min-w-[105px] px-3 py-2 text-sm justify-center" : "flex items-center justify-between px-4 py-3"} ${activeTab === "favorites" ? "bg-secondary text-primary" : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"} transition-colors rounded-md`}
+            >
               <div className={`flex items-center ${isMobile ? "flex-col gap-1" : ""}`}>
                 <HeartIcon className={`${isMobile ? "h-4 w-4" : "mr-2 h-4 w-4"}`} />
                 <span>Favorites</span>
               </div>
               {!isMobile && <ChevronRightIcon className="h-4 w-4" />}
             </Link>
-            <Link to="#" onClick={() => setActiveTab("settings")} className={`${isMobile ? "flex-shrink-0 min-w-[110px] px-3 py-2 text-sm justify-center" : "flex items-center justify-between px-4 py-3"} ${activeTab === "settings" ? "bg-secondary text-primary" : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"} transition-colors rounded-md`}>
+            
+            <Link 
+              to="#" 
+              onClick={() => setActiveTab("settings")} 
+              className={`${isMobile ? "flex-shrink-0 min-w-[105px] px-3 py-2 text-sm justify-center" : "flex items-center justify-between px-4 py-3"} ${activeTab === "settings" ? "bg-secondary text-primary" : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"} transition-colors rounded-md`}
+            >
               <div className={`flex items-center ${isMobile ? "flex-col gap-1" : ""}`}>
                 <SettingsIcon className={`${isMobile ? "h-4 w-4" : "mr-2 h-4 w-4"}`} />
                 <span>Settings</span>

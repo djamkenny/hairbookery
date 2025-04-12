@@ -1,6 +1,7 @@
 
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 // Sample gallery images
 const galleryImages = [
@@ -37,18 +38,21 @@ const galleryImages = [
 ];
 
 const Gallery = () => {
+  const isMobile = useIsMobile();
+  const visibleImages = isMobile ? galleryImages.slice(0, 4) : galleryImages;
+  
   return (
-    <section id="gallery" className="py-20 bg-muted/30">
-      <div className="container mx-auto px-4">
-        <div className="text-center max-w-xl mx-auto mb-12">
-          <h2 className="text-3xl md:text-4xl font-semibold mb-4">Our Style Gallery</h2>
+    <section id="gallery" className="section-padding bg-muted/30">
+      <div className="container mx-auto">
+        <div className="text-center max-w-xl mx-auto mb-8 md:mb-12">
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold mb-3 md:mb-4">Our Style Gallery</h2>
           <p className="text-muted-foreground text-balance">
             Browse through our gallery of hairstyles to find inspiration for your next look.
           </p>
         </div>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
-          {galleryImages.map((item, index) => (
+        <div className="responsive-grid animate-fade-in">
+          {visibleImages.map((item, index) => (
             <Card 
               key={item.id} 
               className="overflow-hidden hover:shadow-md transition-all duration-300 group"
@@ -59,6 +63,7 @@ const Gallery = () => {
                   src={item.image} 
                   alt={item.caption} 
                   className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  loading="lazy"
                 />
               </div>
               <CardContent className="p-4">
@@ -67,6 +72,18 @@ const Gallery = () => {
             </Card>
           ))}
         </div>
+        
+        {isMobile && (
+          <div className="mt-6 text-center">
+            <a href="#" className="text-primary hover:text-primary/80 inline-flex items-center">
+              View all styles
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                <path d="M5 12h14"></path>
+                <path d="m12 5 7 7-7 7"></path>
+              </svg>
+            </a>
+          </div>
+        )}
       </div>
     </section>
   );

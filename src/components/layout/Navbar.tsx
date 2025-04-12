@@ -20,15 +20,15 @@ export const Navbar = () => {
       className={cn(
         "fixed top-0 left-0 w-full z-50 transition-all duration-300",
         scrolled || isOpen 
-          ? "backdrop py-3 border-b border-border/50" 
-          : "py-5"
+          ? "backdrop py-2 sm:py-3 border-b border-border/50" 
+          : "py-3 sm:py-5"
       )}
     >
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto">
         <div className="flex items-center justify-between">
           <Link 
             to="/" 
-            className="text-foreground text-xl font-semibold flex items-center group"
+            className="text-foreground text-lg sm:text-xl font-semibold flex items-center group"
           >
             <span className="hairline mr-1">K n L</span>
             <span className="text-primary group-hover:text-foreground transition-colors">bookery</span>
@@ -53,7 +53,7 @@ export const Navbar = () => {
 
           <button
             onClick={toggleMenu}
-            className="md:hidden p-2 hover:bg-secondary/80 rounded-md"
+            className="md:hidden p-2 hover:bg-secondary/80 rounded-md focus:outline-none"
             aria-label="Toggle menu"
           >
             {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}

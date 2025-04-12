@@ -1,3 +1,4 @@
+
 import React from "react";
 import DashboardTab from "@/components/profile/DashboardTab";
 import AppointmentsTab from "@/components/profile/AppointmentsTab";
@@ -53,7 +54,7 @@ const ProfileContent = ({
   const isMobile = useIsMobile();
   
   return (
-    <div className={`${isMobile ? "order-1" : "lg:col-span-3"} animate-slide-in space-y-6`}>
+    <div className={`${isMobile ? "w-full" : "lg:col-span-3"} animate-slide-in space-y-6`}>
       {activeTab === "dashboard" && (
         <DashboardTab 
           user={user}
