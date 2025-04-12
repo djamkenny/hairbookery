@@ -7,6 +7,34 @@ import StylistCard from "@/components/ui/StylistCard";
 
 const specialists = [
   {
+    id: 1,
+    name: "Sarah Johnson",
+    role: "Hair Stylist",
+    bio: "Sarah brings 10+ years of expertise to create stunning cuts, colors, and styles for all hair types.",
+    image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=761&q=80"
+  },
+  {
+    id: 2,
+    name: "Michael Chen",
+    role: "Hair Stylist",
+    bio: "Michael specializes in creative color techniques, texture transformations, and editorial styling.",
+    image: "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1148&q=80"
+  },
+  {
+    id: 3,
+    name: "Jessica Lee",
+    role: "Hair Stylist",
+    bio: "Jessica is known for her precision cutting and ability to create personalized looks that enhance each client's features.",
+    image: "https://images.unsplash.com/photo-1450297166380-cabe503887e5?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1145&q=80"
+  },
+  {
+    id: 4,
+    name: "David Wilson",
+    role: "Hair Stylist",
+    bio: "David's passion for innovative techniques and trends makes him the perfect stylist for bold, fashion-forward looks.",
+    image: "https://images.unsplash.com/photo-1508341591423-4347099e1f19?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1474&q=80"
+  },
+  {
     id: 5,
     name: "Nia Jackson",
     role: "Nail Technician",
@@ -49,30 +77,38 @@ const Specialists = () => {
         <div className="text-center max-w-xl mx-auto mb-10">
           <h2 className="text-3xl md:text-4xl font-semibold mb-4">Our Specialists</h2>
           <p className="text-muted-foreground text-balance">
-            Meet our skilled nail technicians and laundry specialists who provide top-quality service with expertise and care.
+            Meet our skilled specialists who provide top-quality service with expertise and care across various service areas.
           </p>
         </div>
         
-        <div className="flex justify-center mb-8 gap-3">
+        <div className="flex justify-center mb-8 gap-3 flex-wrap">
           <Button 
             variant={activeRole === "all" ? "default" : "outline"} 
             onClick={() => setActiveRole("all")}
-            className="animate-fade-in"
+            className="animate-fade-in mb-2"
           >
             All Specialists
           </Button>
           <Button 
-            variant={activeRole === "nail" ? "default" : "outline"} 
-            onClick={() => setActiveRole("nail")}
-            className="animate-fade-in flex items-center gap-2"
+            variant={activeRole === "hair" ? "default" : "outline"} 
+            onClick={() => setActiveRole("hair")}
+            className="animate-fade-in flex items-center gap-2 mb-2"
           >
             <Scissors className="h-4 w-4" />
+            Hair Stylists
+          </Button>
+          <Button 
+            variant={activeRole === "nail" ? "default" : "outline"} 
+            onClick={() => setActiveRole("nail")}
+            className="animate-fade-in flex items-center gap-2 mb-2"
+          >
+            <Droplets className="h-4 w-4" />
             Nail Technicians
           </Button>
           <Button 
             variant={activeRole === "laundry" ? "default" : "outline"} 
             onClick={() => setActiveRole("laundry")}
-            className="animate-fade-in flex items-center gap-2"
+            className="animate-fade-in flex items-center gap-2 mb-2"
           >
             <WashingMachine className="h-4 w-4" />
             Laundry Specialists

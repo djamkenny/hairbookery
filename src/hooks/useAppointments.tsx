@@ -56,11 +56,11 @@ export const useAppointments = (userId: string | undefined) => {
           .in('id', stylistIds);
         
         if (stylistsError) {
-          console.error("Error fetching stylists:", stylistsError);
+          console.error("Error fetching specialists:", stylistsError);
         } else if (stylistsData) {
-          // Create a map of stylist IDs to names
-          stylistProfiles = stylistsData.reduce((acc, stylist) => {
-            acc[stylist.id] = stylist.full_name || 'Stylist';
+          // Create a map of specialist IDs to names
+          stylistProfiles = stylistsData.reduce((acc, profile) => {
+            acc[profile.id] = profile.full_name || 'Specialist';
             return acc;
           }, {} as Record<string, string>);
         }
@@ -73,7 +73,7 @@ export const useAppointments = (userId: string | undefined) => {
         id: apt.id,
         client: userId, // Add missing required field
         service: apt.services?.name || 'Service',
-        stylist: stylistProfiles[apt.stylist_id] || 'Stylist',
+        stylist: stylistProfiles[apt.stylist_id] || 'Specialist',
         date: format(new Date(apt.appointment_date), 'MMMM dd, yyyy'),
         time: apt.appointment_time,
         status: apt.status,

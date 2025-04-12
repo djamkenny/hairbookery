@@ -31,8 +31,8 @@ const AppointmentsTab = ({
     <div className="space-y-4 md:space-y-6">
       <h1 className="text-xl md:text-2xl font-semibold">Your Appointments</h1>
       
-      <Tabs defaultValue="upcoming">
-        <TabsList className="mb-4 md:mb-6 w-full">
+      <Tabs defaultValue="upcoming" className="w-full overflow-hidden">
+        <TabsList className="mb-4 md:mb-6 w-full overflow-x-auto hide-scrollbar">
           <TabsTrigger value="upcoming" className="flex-1">Upcoming</TabsTrigger>
           <TabsTrigger value="past" className="flex-1">Past</TabsTrigger>
         </TabsList>

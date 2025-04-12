@@ -133,32 +133,32 @@ export const Services = () => {
           </p>
         </div>
         
-        <div className="flex justify-center mb-8 gap-3">
+        <div className="flex justify-center mb-8 gap-3 flex-wrap">
           <Button 
             variant={activeCategory === "all" ? "default" : "outline"} 
             onClick={() => setActiveCategory("all")}
-            className="animate-fade-in"
+            className="animate-fade-in mb-2"
           >
             All Services
           </Button>
           <Button 
             variant={activeCategory === "hair" ? "default" : "outline"} 
             onClick={() => setActiveCategory("hair")}
-            className="animate-fade-in"
+            className="animate-fade-in mb-2"
           >
             Hair
           </Button>
           <Button 
             variant={activeCategory === "nail" ? "default" : "outline"} 
             onClick={() => setActiveCategory("nail")}
-            className="animate-fade-in"
+            className="animate-fade-in mb-2"
           >
             Nail
           </Button>
           <Button 
             variant={activeCategory === "laundry" ? "default" : "outline"} 
             onClick={() => setActiveCategory("laundry")}
-            className="animate-fade-in"
+            className="animate-fade-in mb-2"
           >
             Laundry
           </Button>

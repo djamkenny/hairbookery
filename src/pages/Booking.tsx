@@ -18,7 +18,7 @@ const Booking = () => {
             <div className="text-center mb-8 md:mb-12 animate-fade-in">
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold mb-3 md:mb-4">Book Your Appointment</h1>
               <p className="text-muted-foreground text-balance max-w-xl mx-auto text-sm md:text-base">
-                Schedule your salon appointment with our expert stylists. Choose your preferred service, stylist, date and time.
+                Schedule your appointment with our specialists. Choose your preferred service, specialist, date and time.
               </p>
             </div>
             
