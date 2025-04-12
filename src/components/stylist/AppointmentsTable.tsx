@@ -44,17 +44,17 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
   if (isMobile) {
     // Mobile card view
     return (
-      <div className="space-y-4">
+      <div className="space-y-4 w-full overflow-x-hidden">
         {sortedAppointments.length === 0 ? (
           <p className="text-center text-muted-foreground py-4">No appointments found</p>
         ) : (
           sortedAppointments.map((appointment) => (
-            <Card key={appointment.id} className="border border-border/30">
+            <Card key={appointment.id} className="border border-border/30 w-full">
               <CardContent className="p-4 space-y-3">
                 <div className="flex justify-between items-start">
-                  <div>
-                    <h4 className="font-medium">{appointment.client}</h4>
-                    <p className="text-sm text-muted-foreground">{appointment.service}</p>
+                  <div className="max-w-[60%]">
+                    <h4 className="font-medium truncate">{appointment.client}</h4>
+                    <p className="text-sm text-muted-foreground truncate">{appointment.service}</p>
                   </div>
                   <div className="text-right">
                     <p className="text-sm">{appointment.date}</p>
@@ -99,30 +99,40 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
     );
   }
 
-  // Desktop table view
+  // Desktop table view - wrap in responsive container
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Client</TableHead>
-          <TableHead>Service</TableHead>
-          <TableHead>Date</TableHead>
-          <TableHead>Time</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead>Actions</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {sortedAppointments.map((appointment) => (
-          <AppointmentRow 
-            key={appointment.id}
-            appointment={appointment}
-            onUpdateStatus={onUpdateStatus}
-            onViewDetails={onViewDetails}
-          />
-        ))}
-      </TableBody>
-    </Table>
+    <div className="w-full overflow-x-auto">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Client</TableHead>
+            <TableHead>Service</TableHead>
+            <TableHead>Date</TableHead>
+            <TableHead>Time</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {sortedAppointments.length === 0 ? (
+            <TableRow>
+              <TableHead colSpan={6} className="text-center h-24 text-muted-foreground">
+                No appointments found
+              </TableHead>
+            </TableRow>
+          ) : (
+            sortedAppointments.map((appointment) => (
+              <AppointmentRow 
+                key={appointment.id}
+                appointment={appointment}
+                onUpdateStatus={onUpdateStatus}
+                onViewDetails={onViewDetails}
+              />
+            ))
+          )}
+        </TableBody>
+      </Table>
+    </div>
   );
 };
 

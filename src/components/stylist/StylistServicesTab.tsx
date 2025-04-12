@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,6 +10,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useIsMobile, useBreakpoint } from "@/hooks/use-mobile";
 
 const serviceFormSchema = z.object({
   name: z.string().min(1, "Service name is required"),
@@ -34,6 +34,8 @@ const StylistServicesTab = () => {
   const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
+  const isMobile = useIsMobile();
+  const breakpoint = useBreakpoint();
 
   const form = useForm<ServiceFormValues>({
     resolver: zodResolver(serviceFormSchema),
@@ -232,8 +234,18 @@ const StylistServicesTab = () => {
     }
   };
 
+  const getGridCols = () => {
+    if (breakpoint === 'xxs' || breakpoint === 'xs' || breakpoint === 'sm') {
+      return 'grid-cols-1';
+    } else if (breakpoint === 'md') {
+      return 'grid-cols-2';
+    } else {
+      return 'grid-cols-3';
+    }
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full overflow-x-hidden">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center gap-2">
           <Scissors className="h-5 w-5 text-primary" />
@@ -249,7 +261,7 @@ const StylistServicesTab = () => {
       </div>
       
       {(isAddingService || editingServiceId !== null) && (
-        <Card>
+        <Card className="w-full">
           <CardHeader>
             <CardTitle>{editingServiceId !== null ? "Edit Service" : "Add New Service"}</CardTitle>
             <CardDescription>
@@ -329,7 +341,7 @@ const StylistServicesTab = () => {
                   />
                 </div>
                 
-                <div className="flex justify-end gap-2 pt-2">
+                <div className="flex flex-wrap justify-end gap-2 pt-2">
                   <Button 
                     type="button" 
                     variant="outline" 
@@ -352,7 +364,7 @@ const StylistServicesTab = () => {
       )}
       
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className={`grid ${getGridCols()} gap-4`}>
           {[1, 2, 3].map((i) => (
             <Card key={i} className="animate-pulse">
               <CardHeader>
@@ -371,7 +383,7 @@ const StylistServicesTab = () => {
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Scissors className="h-12 w-12 text-muted-foreground mb-4" />
             <h3 className="text-lg font-medium mb-2">No services yet</h3>
-            <p className="text-muted-foreground text-center mb-4 max-w-md">
+            <p className="text-sm text-muted-foreground text-center mb-4 max-w-md">
               Add your first service by clicking the "Add Service" button above.
             </p>
             <Button onClick={() => setIsAddingService(true)}>
@@ -381,21 +393,21 @@ const StylistServicesTab = () => {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className={`grid ${getGridCols()} gap-4`}>
           {services.map((service) => (
             <Card key={service.id} className={editingServiceId === service.id ? "opacity-50" : ""}>
               <CardHeader>
                 <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle className="text-lg">{service.name}</CardTitle>
-                    <CardDescription className="mt-2 flex items-center gap-2">
+                  <div className="max-w-[70%]">
+                    <CardTitle className="text-lg truncate">{service.name}</CardTitle>
+                    <CardDescription className="mt-2 flex flex-wrap items-center gap-2">
                       <span className="flex items-center"><DollarSign className="h-3.5 w-3.5 mr-0.5" />{service.price}</span>
                       <span className="flex items-center"><Clock className="h-3.5 w-3.5 mr-0.5" />{service.duration}</span>
                     </CardDescription>
                   </div>
                   
                   {editingServiceId !== service.id && (
-                    <div className="flex space-x-2">
+                    <div className="flex space-x-1">
                       <Button 
                         variant="ghost" 
                         size="icon"
@@ -415,7 +427,7 @@ const StylistServicesTab = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground">{service.description || "No description provided."}</p>
+                <p className="text-sm text-muted-foreground line-clamp-3">{service.description || "No description provided."}</p>
               </CardContent>
             </Card>
           ))}

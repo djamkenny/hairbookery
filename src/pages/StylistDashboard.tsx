@@ -14,6 +14,7 @@ import { Loader2, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
+import { useIsMobile, useBreakpoint } from "@/hooks/use-mobile";
 
 const StylistDashboard = () => {
   const [activeTab, setActiveTab] = useState("profile");
@@ -26,6 +27,8 @@ const StylistDashboard = () => {
   const [experience, setExperience] = useState("");
   const [bio, setBio] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const isMobile = useIsMobile();
+  const breakpoint = useBreakpoint();
   
   // Dashboard stats - initials with default values
   const [upcomingAppointments, setUpcomingAppointments] = useState(0);
@@ -138,28 +141,30 @@ const StylistDashboard = () => {
   }
   
   return (
-    <main className="container py-10">
-      <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0 mb-8">
+    <main className="container py-6 md:py-10 px-4 sm:px-6 lg:px-8 overflow-x-hidden">
+      <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0 mb-6 md:mb-8">
         <div>
-          <Breadcrumb className="mb-2">
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink asChild>
-                  <Link to="/">Home</Link>
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <span>Stylist Dashboard</span>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-          <h1 className="text-3xl font-bold">Stylist Dashboard</h1>
+          {!isMobile && (
+            <Breadcrumb className="mb-2">
+              <BreadcrumbList>
+                <BreadcrumbItem>
+                  <BreadcrumbLink asChild>
+                    <Link to="/">Home</Link>
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <span>Stylist Dashboard</span>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
+          )}
+          <h1 className="text-2xl md:text-3xl font-bold">Stylist Dashboard</h1>
         </div>
         <Link to="/">
-          <Button variant="outline" className="flex items-center gap-2">
+          <Button variant="outline" className="flex items-center gap-2 shrink-0">
             <ArrowLeft className="h-4 w-4" />
-            Back to Home
+            {!isMobile && "Back to Home"}
           </Button>
         </Link>
       </div>
@@ -171,44 +176,83 @@ const StylistDashboard = () => {
         rating={rating}
       />
       
-      <div className="mt-8">
-        <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <Card className="border border-border/40">
-            <TabsList className="w-full justify-start p-0 h-auto bg-transparent border-b border-border/40 rounded-none">
-              <TabsTrigger 
-                value="profile" 
-                className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3 px-6"
-              >
-                Profile
-              </TabsTrigger>
-              <TabsTrigger 
-                value="appointments" 
-                className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3 px-6"
-              >
-                Appointments
-              </TabsTrigger>
-              <TabsTrigger 
-                value="clients" 
-                className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3 px-6"
-              >
-                Clients
-              </TabsTrigger>
-              <TabsTrigger 
-                value="services" 
-                className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3 px-6"
-              >
-                Services
-              </TabsTrigger>
-              <TabsTrigger 
-                value="settings" 
-                className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3 px-6"
-              >
-                Settings
-              </TabsTrigger>
+      <div className="mt-6 md:mt-8 w-full overflow-hidden">
+        <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="space-y-6 w-full">
+          <Card className="border border-border/40 w-full overflow-x-auto">
+            <TabsList className="w-full justify-start p-0 h-auto bg-transparent border-b border-border/40 rounded-none overflow-x-auto">
+              {['xxs', 'xs'].includes(breakpoint) ? (
+                // For very small screens, make tabs scrollable
+                <div className="flex overflow-x-auto hide-scrollbar min-w-full">
+                  <TabsTrigger 
+                    value="profile" 
+                    className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3 px-4 whitespace-nowrap"
+                  >
+                    Profile
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="appointments" 
+                    className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3 px-4 whitespace-nowrap"
+                  >
+                    Appointments
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="clients" 
+                    className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3 px-4 whitespace-nowrap"
+                  >
+                    Clients
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="services" 
+                    className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3 px-4 whitespace-nowrap"
+                  >
+                    Services
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="settings" 
+                    className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3 px-4 whitespace-nowrap"
+                  >
+                    Settings
+                  </TabsTrigger>
+                </div>
+              ) : (
+                // For larger screens, flex display
+                <>
+                  <TabsTrigger 
+                    value="profile" 
+                    className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3 px-6"
+                  >
+                    Profile
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="appointments" 
+                    className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3 px-6"
+                  >
+                    Appointments
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="clients" 
+                    className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3 px-6"
+                  >
+                    Clients
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="services" 
+                    className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3 px-6"
+                  >
+                    Services
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="settings" 
+                    className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3 px-6"
+                  >
+                    Settings
+                  </TabsTrigger>
+                </>
+              )}
             </TabsList>
           </Card>
           
-          <TabsContent value="profile">
+          <TabsContent value="profile" className="w-full mt-4">
             <StylistInfoTab 
               user={user}
               fullName={fullName}
@@ -238,19 +282,19 @@ const StylistDashboard = () => {
             />
           </TabsContent>
           
-          <TabsContent value="appointments">
+          <TabsContent value="appointments" className="w-full mt-4">
             <StylistAppointmentsTab />
           </TabsContent>
           
-          <TabsContent value="clients">
+          <TabsContent value="clients" className="w-full mt-4">
             <StylistClientsTab />
           </TabsContent>
           
-          <TabsContent value="services">
+          <TabsContent value="services" className="w-full mt-4">
             <StylistServicesTab />
           </TabsContent>
           
-          <TabsContent value="settings">
+          <TabsContent value="settings" className="w-full mt-4">
             <StylistSettingsTab />
           </TabsContent>
         </Tabs>
