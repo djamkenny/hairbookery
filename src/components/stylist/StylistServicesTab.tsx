@@ -127,13 +127,15 @@ const StylistServicesTab = () => {
         duration: durationValue
       });
 
+      // Insert new service with the stylist_id attached (this is what we need to add)
       const { data: newService, error } = await supabase
         .from('services')
         .insert({
           name: data.name,
           description: data.description || null,
           price: priceValue,
-          duration: durationValue
+          duration: durationValue,
+          stylist_id: user.id // Add stylist_id to link service to stylist
         })
         .select()
         .single();
