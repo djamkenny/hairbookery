@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -64,10 +63,11 @@ const StylistServicesTab = () => {
         return;
       }
 
-      // Fetch services from the database
+      // Fetch services from the database - filter by stylist_id
       const { data, error } = await supabase
         .from('services')
         .select('*')
+        .eq('stylist_id', user.id) // Only get services for this stylist
         .order('name');
 
       if (error) {
@@ -166,7 +166,7 @@ const StylistServicesTab = () => {
     }
   };
 
-  const handleEditService = (service: Service) => {
+  const handleEditService = async (service: Service) => {
     // Remove the "min" from duration and "$" from price
     const durationValue = service.duration.replace(/\D/g, '');
     const priceValue = service.price.replace(/[^0-9.]/g, '');
@@ -202,13 +202,22 @@ const StylistServicesTab = () => {
         return;
       }
 
+      // Get user for stylist_id
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast.error("You must be logged in to update services");
+        return;
+      }
+
       const { error } = await supabase
         .from('services')
         .update({
           name: data.name,
           description: data.description || null,
           price: priceValue,
-          duration: durationValue
+          duration: durationValue,
+          stylist_id: user.id // Add stylist_id here as well
         })
         .eq('id', editingServiceId);
       
