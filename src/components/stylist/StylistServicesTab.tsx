@@ -15,6 +15,7 @@ const StylistServicesTab = () => {
   const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingFormValues, setEditingFormValues] = useState<ServiceFormValues | undefined>(undefined);
   const isMobile = useIsMobile();
   const breakpoint = useBreakpoint();
 
@@ -39,7 +40,7 @@ const StylistServicesTab = () => {
     }
   };
 
-  const handleEditService = async (service: Service) => {
+  const handleEditService = (service: Service) => {
     // Remove the "min" from duration and "$" from price
     const durationValue = service.duration.replace(/\D/g, '');
     const priceValue = service.price.replace(/[^0-9.]/g, '');
@@ -54,6 +55,7 @@ const StylistServicesTab = () => {
       price: priceValue
     };
     
+    setEditingFormValues(formValues);
     return formValues;
   };
 
@@ -84,6 +86,7 @@ const StylistServicesTab = () => {
       
       setServices(updatedServices);
       setEditingServiceId(null);
+      setEditingFormValues(undefined);
       toast.success("Service updated successfully");
     }
   };
@@ -100,6 +103,7 @@ const StylistServicesTab = () => {
   const cancelForm = () => {
     setIsAddingService(false);
     setEditingServiceId(null);
+    setEditingFormValues(undefined);
   };
 
   const getGridCols = () => {
@@ -130,10 +134,7 @@ const StylistServicesTab = () => {
       
       {(isAddingService || editingServiceId !== null) && (
         <ServiceForm 
-          defaultValues={editingServiceId ? 
-            services.find(s => s.id === editingServiceId) && 
-            handleEditService(services.find(s => s.id === editingServiceId)!) : 
-            undefined}
+          defaultValues={editingFormValues}
           onSubmit={editingServiceId ? handleUpdateServiceSubmit : handleAddServiceSubmit}
           onCancel={cancelForm}
           isEditing={editingServiceId !== null}
@@ -145,9 +146,8 @@ const StylistServicesTab = () => {
         loading={loading}
         editingServiceId={editingServiceId}
         onAddService={() => setIsAddingService(true)}
-        onEditService={async (service) => {
-          const formValues = await handleEditService(service);
-          // This step just prepares the form, the actual API call happens on submit
+        onEditService={(service) => {
+          handleEditService(service);
         }}
         onDeleteService={handleDeleteService}
         gridCols={getGridCols()}

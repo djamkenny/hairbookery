@@ -2,7 +2,7 @@
 import React from "react";
 import { ServiceCard } from "./ServiceCard";
 import { Service } from "./types";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Scissors } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
