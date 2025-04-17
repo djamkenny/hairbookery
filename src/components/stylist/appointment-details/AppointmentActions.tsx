@@ -43,8 +43,8 @@ const AppointmentActions: React.FC<AppointmentActionsProps> = ({
   };
 
   return (
-    <div className="flex justify-between items-center">
-      <div>
+    <>
+      <div className="flex space-x-2">
         {status === "pending" && onUpdateStatus && (
           <Button 
             onClick={() => {
@@ -52,7 +52,7 @@ const AppointmentActions: React.FC<AppointmentActionsProps> = ({
               onClose();
             }}
           >
-            Confirm Appointment
+            Confirm
           </Button>
         )}
         {status === "confirmed" && onUpdateStatus && (
@@ -62,14 +62,14 @@ const AppointmentActions: React.FC<AppointmentActionsProps> = ({
               onClose();
             }}
           >
-            Mark as Completed
+            Complete
           </Button>
         )}
         {(status === "pending" || status === "confirmed") && onCancelAppointment && (
           <AlertDialog open={isCancelAlertOpen} onOpenChange={setIsCancelAlertOpen}>
             <AlertDialogTrigger asChild>
-              <Button variant="destructive" className="ml-2">
-                Cancel Appointment
+              <Button variant="destructive">
+                Cancel
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
@@ -90,7 +90,7 @@ const AppointmentActions: React.FC<AppointmentActionsProps> = ({
         )}
       </div>
       <Button variant="outline" onClick={onClose}>Close</Button>
-    </div>
+    </>
   );
 };
 

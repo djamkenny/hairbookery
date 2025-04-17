@@ -9,12 +9,7 @@ import {
   DialogFooter
 } from "@/components/ui/dialog";
 import { Appointment } from "@/types/appointment";
-import { Separator } from "@/components/ui/separator";
-import ClientInfoCard from "./appointment-details/ClientInfoCard";
-import DateTimeCards from "./appointment-details/DateTimeCards";
-import OrderIdCard from "./appointment-details/OrderIdCard";
-import ServiceStatusCard from "./appointment-details/ServiceStatusCard";
-import AppointmentActions from "./appointment-details/AppointmentActions";
+import AppointmentDetailsContent from "./appointment-details/AppointmentDetailsContent";
 
 interface AppointmentDetailsModalProps {
   appointment: Appointment | null;
@@ -43,40 +38,12 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
           </DialogDescription>
         </DialogHeader>
         
-        <div className="grid gap-4 py-3">
-          <ClientInfoCard 
-            client={appointment.client}
-            clientEmail={appointment.clientEmail}
-            clientPhone={appointment.clientPhone}
-          />
-
-          <DateTimeCards 
-            date={appointment.date}
-            time={appointment.time}
-          />
-
-          {appointment.order_id && (
-            <OrderIdCard orderId={appointment.order_id} />
-          )}
-
-          <ServiceStatusCard 
-            service={appointment.service}
-            status={appointment.status}
-          />
-        </div>
-
-        <Separator />
-
-        <DialogFooter>
-          <AppointmentActions 
-            status={appointment.status}
-            appointmentId={appointment.id}
-            clientId={appointment.client_id}
-            onUpdateStatus={onUpdateStatus}
-            onCancelAppointment={onCancelAppointment}
-            onClose={onClose}
-          />
-        </DialogFooter>
+        <AppointmentDetailsContent
+          appointment={appointment}
+          onUpdateStatus={onUpdateStatus}
+          onCancelAppointment={onCancelAppointment}
+          onClose={onClose}
+        />
       </DialogContent>
     </Dialog>
   );
