@@ -72,7 +72,8 @@ export const addService = async (formData: ServiceFormValues): Promise<Service |
       name: formData.name,
       description: formData.description,
       price: priceValue,
-      duration: durationValue
+      duration: durationValue,
+      stylist_id: user.id  // This is critical - we need to explicitly set the stylist_id
     });
 
     // Insert new service with the stylist_id attached
@@ -83,7 +84,7 @@ export const addService = async (formData: ServiceFormValues): Promise<Service |
         description: formData.description || null,
         price: priceValue,
         duration: durationValue,
-        stylist_id: user.id
+        stylist_id: user.id  // Make sure to set this to satisfy RLS policy
       })
       .select()
       .single();
