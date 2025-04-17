@@ -69,9 +69,31 @@ export const addService = async (formData: ServiceFormValues): Promise<Service |
       return null;
     }
 
-    console.log("Submitting service with stylist_id:", user.id);
+    const userId = user.id;
+    console.log("User ID for service creation:", userId);
 
-    // Insert new service with the stylist_id attached
+    // Try using a different approach - first fetch the user's profile to confirm identity
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('id, is_stylist')
+      .eq('id', userId)
+      .single();
+
+    if (profileError) {
+      console.error("Profile validation error:", profileError);
+      toast.error("Could not validate stylist profile");
+      return null;
+    }
+
+    if (!profileData.is_stylist) {
+      console.error("User is not a stylist");
+      toast.error("Only stylists can add services");
+      return null;
+    }
+
+    console.log("Confirmed stylist status, proceeding with service creation");
+
+    // Insert new service with explicit columns
     const { data: newService, error } = await supabase
       .from('services')
       .insert({
@@ -79,13 +101,27 @@ export const addService = async (formData: ServiceFormValues): Promise<Service |
         description: formData.description || null,
         price: priceValue,
         duration: durationValue,
-        stylist_id: user.id  // Make sure this is set correctly
+        stylist_id: userId
       })
       .select()
       .single();
     
     if (error) {
       console.error("Error adding service:", error);
+      
+      // Additional logging for RLS debugging
+      if (error.code === '42501') {
+        console.error("RLS policy error details:", {
+          message: error.message,
+          hint: error.hint,
+          details: error.details
+        });
+        
+        // Try a direct query to check user permissions
+        const { data: permissions } = await supabase.rpc('check_service_permissions');
+        console.log("User service permissions:", permissions);
+      }
+      
       toast.error("Failed to add service: " + error.message);
       return null;
     }
@@ -134,16 +170,33 @@ export const updateService = async (serviceId: string, formData: ServiceFormValu
       return false;
     }
 
+    const userId = user.id;
+    console.log("Updating service with ID:", serviceId, "for stylist:", userId);
+
+    // First verify we have permission to update this service
+    const { data: serviceCheck, error: checkError } = await supabase
+      .from('services')
+      .select('id')
+      .eq('id', serviceId)
+      .eq('stylist_id', userId)
+      .single();
+      
+    if (checkError) {
+      console.error("Service permission check error:", checkError);
+      toast.error("You don't have permission to update this service");
+      return false;
+    }
+
     const { error } = await supabase
       .from('services')
       .update({
         name: formData.name,
         description: formData.description || null,
         price: priceValue,
-        duration: durationValue,
-        stylist_id: user.id  // Ensure stylist_id is set correctly
+        duration: durationValue
       })
-      .eq('id', serviceId);
+      .eq('id', serviceId)
+      .eq('stylist_id', userId);  // Add this constraint for extra safety
     
     if (error) {
       console.error("Error updating service:", error);
@@ -161,10 +214,22 @@ export const updateService = async (serviceId: string, formData: ServiceFormValu
 
 export const deleteService = async (serviceId: string): Promise<boolean> => {
   try {
+    // Get the authenticated user
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      toast.error("You must be logged in to delete services");
+      return false;
+    }
+    
+    const userId = user.id;
+    console.log("Deleting service with ID:", serviceId, "for stylist:", userId);
+
     const { error } = await supabase
       .from('services')
       .delete()
-      .eq('id', serviceId);
+      .eq('id', serviceId)
+      .eq('stylist_id', userId);  // Add this constraint for extra safety
     
     if (error) {
       console.error("Error deleting service:", error);
@@ -177,5 +242,23 @@ export const deleteService = async (serviceId: string): Promise<boolean> => {
     console.error("Error in deleteService:", error);
     toast.error(`An error occurred while deleting the service: ${error.message || "Unknown error"}`);
     return false;
+  }
+};
+
+// Helper function to check service permissions
+// This needs to be created in Supabase
+export const checkServicePermissions = async (): Promise<{canCreate: boolean, canUpdate: boolean, canDelete: boolean}> => {
+  try {
+    const { data, error } = await supabase.rpc('check_service_permissions');
+    
+    if (error) {
+      console.error("Error checking permissions:", error);
+      return { canCreate: false, canUpdate: false, canDelete: false };
+    }
+    
+    return data || { canCreate: false, canUpdate: false, canDelete: false };
+  } catch (error) {
+    console.error("Error in checkServicePermissions:", error);
+    return { canCreate: false, canUpdate: false, canDelete: false };
   }
 };
