@@ -43,6 +43,7 @@ export const fetchServices = async (): Promise<Service[]> => {
 
 export const addService = async (formData: ServiceFormValues): Promise<Service | null> => {
   try {
+    // Get the authenticated user
     const { data: { user } } = await supabase.auth.getUser();
     
     if (!user) {
@@ -68,13 +69,7 @@ export const addService = async (formData: ServiceFormValues): Promise<Service |
       return null;
     }
 
-    console.log("Submitting service:", {
-      name: formData.name,
-      description: formData.description,
-      price: priceValue,
-      duration: durationValue,
-      stylist_id: user.id  // This is critical - we need to explicitly set the stylist_id
-    });
+    console.log("Submitting service with stylist_id:", user.id);
 
     // Insert new service with the stylist_id attached
     const { data: newService, error } = await supabase
@@ -84,7 +79,7 @@ export const addService = async (formData: ServiceFormValues): Promise<Service |
         description: formData.description || null,
         price: priceValue,
         duration: durationValue,
-        stylist_id: user.id  // Make sure to set this to satisfy RLS policy
+        stylist_id: user.id  // Make sure this is set correctly
       })
       .select()
       .single();
@@ -113,6 +108,14 @@ export const addService = async (formData: ServiceFormValues): Promise<Service |
 
 export const updateService = async (serviceId: string, formData: ServiceFormValues): Promise<boolean> => {
   try {
+    // Get the authenticated user
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      toast.error("You must be logged in to update services");
+      return false;
+    }
+    
     // Extract numeric price and duration values
     const priceStr = formData.price.replace(/[^0-9.]/g, '');
     const durationStr = formData.duration.replace(/[^0-9]/g, '');
@@ -131,14 +134,6 @@ export const updateService = async (serviceId: string, formData: ServiceFormValu
       return false;
     }
 
-    // Get user for stylist_id
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      toast.error("You must be logged in to update services");
-      return false;
-    }
-
     const { error } = await supabase
       .from('services')
       .update({
@@ -146,7 +141,7 @@ export const updateService = async (serviceId: string, formData: ServiceFormValu
         description: formData.description || null,
         price: priceValue,
         duration: durationValue,
-        stylist_id: user.id
+        stylist_id: user.id  // Ensure stylist_id is set correctly
       })
       .eq('id', serviceId);
     
