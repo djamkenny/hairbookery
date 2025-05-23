@@ -8,29 +8,51 @@ import { useIsMobile, useBreakpoint } from "@/hooks/use-mobile";
 import { ServiceForm, ServiceFormValues } from "./services/ServiceForm";
 import { ServiceList } from "./services/ServiceList";
 import { Service } from "./services/types";
-import { fetchServices, addService, updateService, deleteService } from "./services/serviceApi";
+import { fetchServices, addService, updateService, deleteService, checkServicePermissions } from "./services/serviceApi";
 
 const StylistServicesTab = () => {
   const [isAddingService, setIsAddingService] = useState(false);
   const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
+  const [permissions, setPermissions] = useState({
+    canCreate: false,
+    canUpdate: false,
+    canDelete: false
+  });
   const [editingFormValues, setEditingFormValues] = useState<ServiceFormValues | undefined>(undefined);
   const isMobile = useIsMobile();
   const breakpoint = useBreakpoint();
 
   useEffect(() => {
-    loadServices();
+    const initializeTab = async () => {
+      try {
+        setLoading(true);
+        // Check permissions first
+        const perms = await checkServicePermissions();
+        console.log("Service permissions:", perms);
+        setPermissions(perms);
+        
+        // Then load services
+        const servicesData = await fetchServices();
+        setServices(servicesData);
+      } catch (error) {
+        console.error("Error initializing services tab:", error);
+        toast.error("Failed to load services");
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    initializeTab();
   }, []);
 
-  const loadServices = async () => {
-    setLoading(true);
-    const servicesData = await fetchServices();
-    setServices(servicesData);
-    setLoading(false);
-  };
-
   const handleAddServiceSubmit = async (data: ServiceFormValues) => {
+    if (!permissions.canCreate) {
+      toast.error("You don't have permission to add services");
+      return;
+    }
+    
     const newService = await addService(data);
     
     if (newService) {
@@ -124,13 +146,19 @@ const StylistServicesTab = () => {
           <h1 className="text-2xl font-semibold">Services</h1>
         </div>
         
-        {!isAddingService && editingServiceId === null && (
+        {!isAddingService && editingServiceId === null && permissions.canCreate && (
           <Button onClick={() => setIsAddingService(true)}>
             <PlusCircle className="h-4 w-4 mr-2" />
             Add Service
           </Button>
         )}
       </div>
+      
+      {!permissions.canCreate && !loading && (
+        <div className="bg-amber-100 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-md p-4 text-amber-800 dark:text-amber-200">
+          <p>Your account doesn't have permission to manage services. If you believe this is an error, please contact support.</p>
+        </div>
+      )}
       
       {(isAddingService || editingServiceId !== null) && (
         <ServiceForm 

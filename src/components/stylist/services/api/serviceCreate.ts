@@ -29,6 +29,26 @@ export const addService = async (formData: ServiceFormValues): Promise<Service |
     const userId = user.id;
     console.log("User ID for service creation:", userId);
 
+    // First check permissions explicitly
+    const { data: permissions } = await supabase.rpc('check_service_permissions') as { 
+      data: { 
+        canCreate: boolean; 
+        canUpdate: boolean; 
+        canDelete: boolean;
+        user_id?: string;
+        is_stylist?: boolean;
+        error?: string;
+      } | null 
+    };
+    
+    console.log("Service permissions check result:", permissions);
+    
+    if (!permissions?.canCreate) {
+      console.error("Permission check failed:", permissions?.error || "Unknown error");
+      toast.error("You don't have permission to create services. Please ensure your account is set up as a stylist.");
+      return null;
+    }
+
     // Validate stylist profile
     const validationResult = await validateStylistProfile(userId);
     if (!validationResult.valid) {
@@ -56,7 +76,7 @@ export const addService = async (formData: ServiceFormValues): Promise<Service |
       console.error("Error adding service:", error);
       
       // Additional logging for RLS debugging
-      await logRlsError(error);
+      await logRlsError(error, userId);
       
       toast.error("Failed to add service: " + error.message);
       return null;
@@ -81,13 +101,22 @@ export const addService = async (formData: ServiceFormValues): Promise<Service |
 /**
  * Logs detailed information for RLS policy errors
  */
-async function logRlsError(error: any) {
+async function logRlsError(error: any, userId: string) {
   if (error.code === '42501') {
     console.error("RLS policy error details:", {
       message: error.message,
       hint: error.hint,
       details: error.details
     });
+    
+    // Get user profile information
+    const { data: userProfile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+    
+    console.log("User profile data:", userProfile);
     
     // Try a direct query to check user permissions
     const { data: permissions } = await supabase.rpc('check_service_permissions') as { 

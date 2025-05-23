@@ -6,6 +6,17 @@ import { supabase } from "@/integrations/supabase/client";
  */
 export const checkServicePermissions = async (): Promise<{canCreate: boolean, canUpdate: boolean, canDelete: boolean}> => {
   try {
+    console.log("Checking service permissions...");
+    
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      console.log("No authenticated user found");
+      return { canCreate: false, canUpdate: false, canDelete: false };
+    }
+    
+    console.log("Checking permissions for user ID:", user.id);
+    
     const { data, error } = await supabase.rpc('check_service_permissions') as {
       data: {
         canCreate: boolean;
@@ -22,6 +33,8 @@ export const checkServicePermissions = async (): Promise<{canCreate: boolean, ca
       console.error("Error checking permissions:", error);
       return { canCreate: false, canUpdate: false, canDelete: false };
     }
+    
+    console.log("Permission check results:", data);
     
     return data ? { 
       canCreate: data.canCreate, 

@@ -38,6 +38,9 @@ export const validateStylistProfile = async (userId: string): Promise<{
   error?: string;
 }> => {
   try {
+    // Log the user ID we're checking
+    console.log("Validating stylist profile for user ID:", userId);
+    
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select('id, is_stylist')
@@ -45,13 +48,16 @@ export const validateStylistProfile = async (userId: string): Promise<{
       .single();
 
     if (profileError) {
+      console.error("Error fetching profile:", profileError);
       return { 
         valid: false, 
         error: "Could not validate stylist profile" 
       };
     }
 
-    if (!profileData.is_stylist) {
+    console.log("Profile data retrieved:", profileData);
+
+    if (!profileData || !profileData.is_stylist) {
       return { 
         valid: false, 
         error: "Only stylists can add services" 
