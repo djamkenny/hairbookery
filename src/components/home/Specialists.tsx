@@ -1,62 +1,35 @@
-
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Scissors, Droplets, WashingMachine } from "lucide-react";
 import StylistCard from "@/components/ui/StylistCard";
+import { supabase } from "@/integrations/supabase/client";
 
-const specialists = [
+// Keep the hardcoded specialists for demo purposes
+const hardcodedSpecialists = [
   {
-    id: 1,
-    name: "Sarah Johnson",
-    role: "Hair Stylist",
-    bio: "Sarah brings 10+ years of expertise to create stunning cuts, colors, and styles for all hair types.",
-    image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=761&q=80"
-  },
-  {
-    id: 2,
-    name: "Michael Chen",
-    role: "Hair Stylist",
-    bio: "Michael specializes in creative color techniques, texture transformations, and editorial styling.",
-    image: "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1148&q=80"
-  },
-  {
-    id: 3,
-    name: "Jessica Lee",
-    role: "Hair Stylist",
-    bio: "Jessica is known for her precision cutting and ability to create personalized looks that enhance each client's features.",
-    image: "https://images.unsplash.com/photo-1450297166380-cabe503887e5?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1145&q=80"
-  },
-  {
-    id: 4,
-    name: "David Wilson",
-    role: "Hair Stylist",
-    bio: "David's passion for innovative techniques and trends makes him the perfect stylist for bold, fashion-forward looks.",
-    image: "https://images.unsplash.com/photo-1508341591423-4347099e1f19?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1474&q=80"
-  },
-  {
-    id: 5,
+    id: "demo-5",
     name: "Nia Jackson",
     role: "Nail Technician",
     bio: "With over 8 years of experience, Nia specializes in intricate nail art designs and gel extensions.",
     image: "https://images.unsplash.com/photo-1589156280159-27698a70f29e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80"
   },
   {
-    id: 6,
+    id: "demo-6",
     name: "Marcus Brown",
     role: "Nail Technician",
     bio: "Marcus is known for his precision work with acrylics and his dedication to nail health and maintenance.",
     image: "https://images.unsplash.com/photo-1531384441138-2736e62e0919?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80"
   },
   {
-    id: 7,
+    id: "demo-7",
     name: "Tiana Wilson",
     role: "Laundry Specialist",
     bio: "Tiana has extensive knowledge in fabric care and specializes in handling delicate materials and stain removal.",
     image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80"
   },
   {
-    id: 8,
+    id: "demo-8",
     name: "Jamal Foster",
     role: "Laundry Specialist",
     bio: "With 10+ years in textile care, Jamal provides expert advice on garment preservation and restoration.",
@@ -65,11 +38,55 @@ const specialists = [
 ];
 
 const Specialists = () => {
-  const [activeRole, setActiveRole] = React.useState("all");
+  const [activeRole, setActiveRole] = useState("all");
+  const [registeredStylists, setRegisteredStylists] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch registered stylists from the database
+  useEffect(() => {
+    const fetchStylists = async () => {
+      try {
+        console.log("Fetching registered stylists...");
+        
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id, full_name, specialty, bio, avatar_url, location')
+          .eq('is_stylist', true)
+          .not('full_name', 'is', null); // Only get stylists with names
+        
+        if (error) {
+          console.error("Error fetching stylists:", error);
+        } else {
+          console.log("Fetched stylists:", data);
+          
+          // Transform the data to match the expected format
+          const transformedStylists = data?.map(stylist => ({
+            id: stylist.id,
+            name: stylist.full_name || "Unnamed Stylist",
+            role: stylist.specialty || "Hair Stylist",
+            bio: stylist.bio || "Professional stylist with expertise in modern techniques.",
+            image: stylist.avatar_url || "https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=761&q=80",
+            location: stylist.location
+          })) || [];
+          
+          setRegisteredStylists(transformedStylists);
+        }
+      } catch (error) {
+        console.error("Error in fetchStylists:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStylists();
+  }, []);
+
+  // Combine registered stylists with hardcoded ones
+  const allSpecialists = [...registeredStylists, ...hardcodedSpecialists];
   
   const filteredSpecialists = activeRole === "all" 
-    ? specialists 
-    : specialists.filter(specialist => specialist.role.toLowerCase().includes(activeRole));
+    ? allSpecialists 
+    : allSpecialists.filter(specialist => specialist.role.toLowerCase().includes(activeRole));
 
   return (
     <section id="specialists" className="py-20 bg-muted/30">
@@ -115,19 +132,26 @@ const Specialists = () => {
           </Button>
         </div>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          {filteredSpecialists.map((specialist) => (
-            <StylistCard
-              key={specialist.id}
-              id={specialist.id}
-              name={specialist.name}
-              role={specialist.role}
-              bio={specialist.bio}
-              image={specialist.image}
-              className="animate-fade-in"
-            />
-          ))}
-        </div>
+        {loading ? (
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">Loading specialists...</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            {filteredSpecialists.map((specialist) => (
+              <StylistCard
+                key={specialist.id}
+                id={specialist.id}
+                name={specialist.name}
+                role={specialist.role}
+                bio={specialist.bio}
+                image={specialist.image}
+                location={specialist.location}
+                className="animate-fade-in"
+              />
+            ))}
+          </div>
+        )}
         
         <div className="text-center">
           <Link to="/booking">
