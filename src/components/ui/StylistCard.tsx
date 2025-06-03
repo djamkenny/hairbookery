@@ -2,7 +2,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { MapPin } from "lucide-react";
+import { MapPin, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface StylistCardProps {
@@ -56,11 +56,20 @@ const StylistCard = ({
           </div>
         )}
         
-        <Link to={`/booking?stylist=${id}`}>
-          <Button variant="outline" className="w-full">
-            Book with {name.split(" ")[0]}
-          </Button>
-        </Link>
+        <div className="space-y-2">
+          <Link to={`/stylist/${id}`}>
+            <Button variant="outline" className="w-full">
+              <User className="h-4 w-4 mr-2" />
+              View Profile
+            </Button>
+          </Link>
+          
+          <Link to={`/booking?stylist=${id}`}>
+            <Button className="w-full">
+              Book with {name.split(" ")[0]}
+            </Button>
+          </Link>
+        </div>
       </div>
     </div>
   );
