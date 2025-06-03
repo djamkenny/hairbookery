@@ -23,13 +23,7 @@ export const useUserProfile = () => {
           setUser(user);
           setEmail(user.email || "");
           
-          const metadata = user.user_metadata || {};
-          setFullName(metadata.full_name || "");
-          setPhone(metadata.phone || "");
-          setAvatarUrl(metadata.avatar_url || null);
-          setLocation(metadata.location || "");
-          
-          // Fetch data from profiles table
+          // Fetch data from profiles table first (more up-to-date)
           try {
             const { data: profile, error } = await supabase
               .from('profiles')
@@ -39,15 +33,27 @@ export const useUserProfile = () => {
               
             if (error) {
               console.error("Error fetching profile data:", error);
+              // Fall back to user metadata
+              const metadata = user.user_metadata || {};
+              setFullName(metadata.full_name || "");
+              setPhone(metadata.phone || "");
+              setAvatarUrl(metadata.avatar_url || null);
+              setLocation(metadata.location || "");
             } else if (profile) {
-              // Use profile data if available (it might be more up-to-date)
-              if (profile.full_name) setFullName(profile.full_name);
-              if (profile.phone) setPhone(profile.phone);
-              if (profile.avatar_url) setAvatarUrl(profile.avatar_url);
-              if (profile.location) setLocation(profile.location);
+              // Use profile data (it might be more up-to-date)
+              setFullName(profile.full_name || "");
+              setPhone(profile.phone || "");
+              setAvatarUrl(profile.avatar_url || null);
+              setLocation(profile.location || "");
             }
           } catch (error) {
             console.error("Error in profile fetch:", error);
+            // Fall back to user metadata
+            const metadata = user.user_metadata || {};
+            setFullName(metadata.full_name || "");
+            setPhone(metadata.phone || "");
+            setAvatarUrl(metadata.avatar_url || null);
+            setLocation(metadata.location || "");
           }
         } else {
           navigate("/login");
@@ -70,13 +76,7 @@ export const useUserProfile = () => {
       if (user) {
         setUser(user);
         
-        const metadata = user.user_metadata || {};
-        setFullName(metadata.full_name || "");
-        setPhone(metadata.phone || "");
-        setAvatarUrl(metadata.avatar_url || null);
-        setLocation(metadata.location || "");
-        
-        // Also fetch from profiles table
+        // Fetch from profiles table first
         try {
           const { data: profile, error } = await supabase
             .from('profiles')
@@ -86,11 +86,17 @@ export const useUserProfile = () => {
             
           if (error) {
             console.error("Error refreshing profile data:", error);
+            // Fall back to user metadata
+            const metadata = user.user_metadata || {};
+            setFullName(metadata.full_name || "");
+            setPhone(metadata.phone || "");
+            setAvatarUrl(metadata.avatar_url || null);
+            setLocation(metadata.location || "");
           } else if (profile) {
-            if (profile.full_name) setFullName(profile.full_name);
-            if (profile.phone) setPhone(profile.phone);
-            if (profile.avatar_url) setAvatarUrl(profile.avatar_url);
-            if (profile.location) setLocation(profile.location);
+            setFullName(profile.full_name || "");
+            setPhone(profile.phone || "");
+            setAvatarUrl(profile.avatar_url || null);
+            setLocation(profile.location || "");
           }
         } catch (error) {
           console.error("Error in profile refresh:", error);

@@ -13,6 +13,7 @@ export const useStylistDashboard = () => {
   const [experience, setExperience] = useState("");
   const [bio, setBio] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [location, setLocation] = useState("");
   
   // Dashboard stats
   const [upcomingAppointments, setUpcomingAppointments] = useState(0);
@@ -32,17 +33,9 @@ export const useStylistDashboard = () => {
         
         if (authUser) {
           setUser(authUser);
-          
-          // Get user metadata if available
-          const metadata = authUser.user_metadata || {};
-          setFullName(metadata.full_name || "");
           setEmail(authUser.email || "");
-          setPhone(metadata.phone || "");
-          setSpecialty(metadata.specialty || "");
-          setExperience(metadata.experience || "");
-          setBio(metadata.bio || "");
           
-          // Fetch profile data from profiles table
+          // Fetch profile data from profiles table first
           const { data: profileData, error: profileError } = await supabase
             .from('profiles')
             .select('*')
@@ -52,15 +45,24 @@ export const useStylistDashboard = () => {
           if (profileError && profileError.code !== 'PGRST116') {
             // PGRST116 is "row not found" error, which we can handle
             console.error("Error fetching profile data:", profileError);
-          }
-          
-          if (profileData) {
-            // Update state with profile data
-            setFullName(profileData.full_name || metadata.full_name || "");
-            setPhone(profileData.phone || metadata.phone || "");
-            setSpecialty(profileData.specialty || metadata.specialty || "");
-            setExperience(profileData.experience || metadata.experience || "");
-            setBio(profileData.bio || metadata.bio || "");
+            // Fall back to user metadata
+            const metadata = authUser.user_metadata || {};
+            setFullName(metadata.full_name || "");
+            setPhone(metadata.phone || "");
+            setSpecialty(metadata.specialty || "");
+            setExperience(metadata.experience || "");
+            setBio(metadata.bio || "");
+            setAvatarUrl(metadata.avatar_url || null);
+            setLocation(metadata.location || "");
+          } else if (profileData) {
+            // Update state with profile data (prioritize over metadata)
+            setFullName(profileData.full_name || "");
+            setPhone(profileData.phone || "");
+            setSpecialty(profileData.specialty || "");
+            setExperience(profileData.experience || "");
+            setBio(profileData.bio || "");
+            setAvatarUrl(profileData.avatar_url || null);
+            setLocation(profileData.location || "");
           }
           
           // Fetch appointments data
@@ -120,8 +122,27 @@ export const useStylistDashboard = () => {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (user) {
-        const metadata = user.user_metadata || {};
-        setAvatarUrl(metadata.avatar_url || null);
+        // Fetch fresh data from profiles table
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('avatar_url, full_name, phone, specialty, experience, bio, location')
+          .eq('id', user.id)
+          .single();
+          
+        if (profileError) {
+          console.error("Error refreshing profile data:", profileError);
+          // Fall back to user metadata
+          const metadata = user.user_metadata || {};
+          setAvatarUrl(metadata.avatar_url || null);
+        } else if (profileData) {
+          setAvatarUrl(profileData.avatar_url || null);
+          setFullName(profileData.full_name || "");
+          setPhone(profileData.phone || "");
+          setSpecialty(profileData.specialty || "");
+          setExperience(profileData.experience || "");
+          setBio(profileData.bio || "");
+          setLocation(profileData.location || "");
+        }
       }
     } catch (error) {
       console.error("Error refreshing user profile:", error);
@@ -145,6 +166,8 @@ export const useStylistDashboard = () => {
     bio,
     setBio,
     avatarUrl,
+    location,
+    setLocation,
     upcomingAppointments,
     totalClients,
     completedAppointments,

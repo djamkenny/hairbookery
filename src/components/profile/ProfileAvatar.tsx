@@ -62,12 +62,24 @@ const ProfileAvatar = ({ user, fullName, avatarUrl, onAvatarUpdate }: ProfileAva
         
       setLocalAvatarUrl(publicUrl);
       
+      // Update both auth metadata and profiles table
       const { error: updateError } = await supabase.auth.updateUser({
         data: { avatar_url: publicUrl }
       });
       
       if (updateError) {
         throw updateError;
+      }
+
+      // Also update the profiles table
+      const { error: profileUpdateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('id', user?.id);
+
+      if (profileUpdateError) {
+        console.error("Error updating profile avatar:", profileUpdateError);
+        // Don't throw here as auth update succeeded
       }
       
       // Call the onAvatarUpdate callback to notify parent component
