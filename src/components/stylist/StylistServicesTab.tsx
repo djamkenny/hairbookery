@@ -1,184 +1,45 @@
 
 import React, { useState, useEffect } from "react";
-import { PlusCircle, Scissors } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import { useIsMobile, useBreakpoint } from "@/hooks/use-mobile";
-
-import { ServiceForm, ServiceFormValues } from "./services/ServiceForm";
 import { ServiceList } from "./services/ServiceList";
 import { Service } from "./services/types";
-import { fetchServices, addService, updateService, deleteService, checkServicePermissions } from "./services/serviceApi";
+import { fetchServices } from "./services/serviceApi";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 const StylistServicesTab = () => {
-  const [isAddingService, setIsAddingService] = useState(false);
-  const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
-  const [permissions, setPermissions] = useState({
-    canCreate: false,
-    canUpdate: false,
-    canDelete: false
-  });
-  const [editingFormValues, setEditingFormValues] = useState<ServiceFormValues | undefined>(undefined);
-  const isMobile = useIsMobile();
-  const breakpoint = useBreakpoint();
+
+  const loadServices = async () => {
+    try {
+      setLoading(true);
+      const fetchedServices = await fetchServices();
+      setServices(fetchedServices);
+    } catch (error: any) {
+      console.error("Error fetching services:", error);
+      toast.error(error.message || "Failed to load services");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const initializeTab = async () => {
-      try {
-        setLoading(true);
-        // Check permissions first
-        const perms = await checkServicePermissions();
-        console.log("Service permissions:", perms);
-        setPermissions(perms);
-        
-        // Then load services
-        const servicesData = await fetchServices();
-        setServices(servicesData);
-      } catch (error) {
-        console.error("Error initializing services tab:", error);
-        toast.error("Failed to load services");
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    initializeTab();
+    loadServices();
   }, []);
 
-  const handleAddServiceSubmit = async (data: ServiceFormValues) => {
-    if (!permissions.canCreate) {
-      toast.error("You don't have permission to add services");
-      return;
-    }
-    
-    const newService = await addService(data);
-    
-    if (newService) {
-      setServices([...services, newService]);
-      setIsAddingService(false);
-      toast.success("Service added successfully");
-    }
-  };
-
-  const handleEditService = (service: Service) => {
-    // Remove the "min" from duration and "$" from price
-    const durationValue = service.duration.replace(/\D/g, '');
-    const priceValue = service.price.replace(/[^0-9.]/g, '');
-    
-    setEditingServiceId(service.id);
-    
-    // Prepare form values for editing
-    const formValues: ServiceFormValues = {
-      name: service.name,
-      description: service.description || "",
-      duration: durationValue,
-      price: priceValue
-    };
-    
-    setEditingFormValues(formValues);
-    return formValues;
-  };
-
-  const handleUpdateServiceSubmit = async (data: ServiceFormValues) => {
-    if (!editingServiceId) return;
-    
-    const success = await updateService(editingServiceId, data);
-    
-    if (success) {
-      // Extract values for UI update
-      const priceStr = data.price.replace(/[^0-9.]/g, '');
-      const durationStr = data.duration.replace(/[^0-9]/g, '');
-      const priceValue = priceStr ? parseFloat(priceStr) : 0;
-      const durationValue = durationStr ? parseInt(durationStr) : 0;
-      
-      // Update local state
-      const updatedServices = services.map(service => 
-        service.id === editingServiceId ? 
-          { 
-            ...service, 
-            name: data.name,
-            description: data.description || null,
-            duration: `${durationValue} min`,
-            price: `$${priceValue}`
-          } : 
-          service
-      );
-      
-      setServices(updatedServices);
-      setEditingServiceId(null);
-      setEditingFormValues(undefined);
-      toast.success("Service updated successfully");
-    }
-  };
-
-  const handleDeleteService = async (id: string) => {
-    const success = await deleteService(id);
-    
-    if (success) {
-      setServices(services.filter(service => service.id !== id));
-      toast.success("Service deleted successfully");
-    }
-  };
-
-  const cancelForm = () => {
-    setIsAddingService(false);
-    setEditingServiceId(null);
-    setEditingFormValues(undefined);
-  };
-
-  const getGridCols = () => {
-    if (breakpoint === 'xxs' || breakpoint === 'xs' || breakpoint === 'sm') {
-      return 'grid-cols-1';
-    } else if (breakpoint === 'md') {
-      return 'grid-cols-2';
-    } else {
-      return 'grid-cols-3';
-    }
-  };
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6 w-full overflow-x-hidden">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div className="flex items-center gap-2">
-          <Scissors className="h-5 w-5 text-primary" />
-          <h1 className="text-2xl font-semibold">Services</h1>
-        </div>
-        
-        {!isAddingService && editingServiceId === null && permissions.canCreate && (
-          <Button onClick={() => setIsAddingService(true)}>
-            <PlusCircle className="h-4 w-4 mr-2" />
-            Add Service
-          </Button>
-        )}
-      </div>
-      
-      {!permissions.canCreate && !loading && (
-        <div className="bg-amber-100 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-md p-4 text-amber-800 dark:text-amber-200">
-          <p>Your account doesn't have permission to manage services. If you believe this is an error, please contact support.</p>
-        </div>
-      )}
-      
-      {(isAddingService || editingServiceId !== null) && (
-        <ServiceForm 
-          defaultValues={editingFormValues}
-          onSubmit={editingServiceId ? handleUpdateServiceSubmit : handleAddServiceSubmit}
-          onCancel={cancelForm}
-          isEditing={editingServiceId !== null}
-        />
-      )}
-      
+    <div className="space-y-6">
       <ServiceList 
-        services={services}
-        loading={loading}
-        editingServiceId={editingServiceId}
-        onAddService={() => setIsAddingService(true)}
-        onEditService={(service) => {
-          handleEditService(service);
-        }}
-        onDeleteService={handleDeleteService}
-        gridCols={getGridCols()}
+        services={services} 
+        onServicesChange={loadServices}
       />
     </div>
   );
