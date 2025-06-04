@@ -5,4 +5,6 @@ export interface Service {
   description: string | null;
   duration: string;
   price: string;
+  stylist_id: string;
+  image_urls: string[];
 }

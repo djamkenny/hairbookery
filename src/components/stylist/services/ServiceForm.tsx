@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Clock, DollarSign } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { ServiceImageUpload } from "./ServiceImageUpload";
 
 const serviceFormSchema = z.object({
   name: z.string().min(1, "Service name is required"),
@@ -25,14 +26,22 @@ interface ServiceFormProps {
   onSubmit: (data: ServiceFormValues) => Promise<void>;
   onCancel: () => void;
   isEditing: boolean;
+  serviceId?: string;
+  currentImages?: string[];
+  onImagesUpdate?: (images: string[]) => void;
 }
 
 export const ServiceForm: React.FC<ServiceFormProps> = ({
   defaultValues,
   onSubmit,
   onCancel,
-  isEditing
+  isEditing,
+  serviceId,
+  currentImages = [],
+  onImagesUpdate
 }) => {
+  const [localImages, setLocalImages] = useState<string[]>(currentImages);
+  
   const form = useForm<ServiceFormValues>({
     resolver: zodResolver(serviceFormSchema),
     defaultValues: defaultValues || {
@@ -42,6 +51,13 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
       price: ""
     }
   });
+
+  const handleImagesUpdate = (images: string[]) => {
+    setLocalImages(images);
+    if (onImagesUpdate) {
+      onImagesUpdate(images);
+    }
+  };
 
   return (
     <Card className="w-full">
@@ -53,7 +69,7 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
             : "Fill in the details to add a new service to your offerings"}
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
@@ -138,6 +154,16 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
             </div>
           </form>
         </Form>
+
+        {isEditing && serviceId && (
+          <div className="border-t pt-6">
+            <ServiceImageUpload
+              serviceId={serviceId}
+              currentImages={localImages}
+              onImagesUpdate={handleImagesUpdate}
+            />
+          </div>
+        )}
       </CardContent>
     </Card>
   );
