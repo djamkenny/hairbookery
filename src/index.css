@@ -48,42 +48,42 @@
   }
 
   .dark {
-    --background: 30 10% 10%;
-    --foreground: 30 10% 98%;
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
 
-    --card: 30 10% 12%;
-    --card-foreground: 30 10% 98%;
+    --card: 240 10% 5.9%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 30 10% 12%;
-    --popover-foreground: 30 10% 98%;
+    --popover: 240 10% 5.9%;
+    --popover-foreground: 0 0% 98%;
 
-    --primary: 30 20% 80%;
-    --primary-foreground: 30 10% 10%;
+    --primary: 263 70% 65%;
+    --primary-foreground: 240 10% 3.9%;
 
-    --secondary: 30 10% 20%;
-    --secondary-foreground: 30 10% 98%;
+    --secondary: 240 4% 15.9%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 30 10% 20%;
-    --muted-foreground: 30 10% 70%;
+    --muted: 240 4% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
 
-    --accent: 30 10% 20%;
-    --accent-foreground: 30 10% 98%;
+    --accent: 240 4% 15.9%;
+    --accent-foreground: 0 0% 98%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 30 10% 98%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 30 10% 20%;
-    --input: 30 10% 20%;
-    --ring: 30 20% 30%;
+    --border: 240 4% 15.9%;
+    --input: 240 4% 15.9%;
+    --ring: 263 70% 65%;
 
-    --sidebar-background: 240 5.9% 10%;
+    --sidebar-background: 240 10% 3.9%;
     --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-primary: 263 70% 65%;
+    --sidebar-primary-foreground: 240 10% 3.9%;
+    --sidebar-accent: 240 4% 15.9%;
     --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-border: 240 4% 15.9%;
+    --sidebar-ring: 263 70% 65%;
   }
 }
 
@@ -95,12 +95,24 @@
   html {
     scroll-behavior: smooth;
     -webkit-tap-highlight-color: transparent;
-    overflow-x: hidden; /* Prevent horizontal overflow */
+    overflow-x: hidden;
   }
 
   body {
     @apply bg-background text-foreground font-sans antialiased overflow-x-hidden;
     font-family: 'Inter', sans-serif;
+    background: hsl(var(--background));
+  }
+
+  .dark body {
+    background: linear-gradient(135deg, 
+      hsl(240, 10%, 3.9%) 0%, 
+      hsl(240, 12%, 5%) 25%, 
+      hsl(260, 15%, 4%) 50%, 
+      hsl(240, 10%, 3.9%) 75%, 
+      hsl(235, 8%, 4.5%) 100%
+    );
+    background-attachment: fixed;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -111,12 +123,10 @@
     @apply outline-none ring-2 ring-primary/20 ring-offset-2 ring-offset-background;
   }
   
-  /* Make images responsive by default */
   img {
     @apply max-w-full h-auto;
   }
   
-  /* Add momentum scrolling for iOS */
   .momentum-scroll {
     -webkit-overflow-scrolling: touch;
   }
@@ -128,7 +138,7 @@
   }
 
   .hairline {
-    @apply relative inline-block after:absolute after:content-[''] after:w-full after:h-[1px] after:bg-primary/50 after:bottom-0 after:left-0;
+    @apply relative inline-block after:absolute after:content-[''] after:w-full after:h-[1px] after:bg-gradient-to-r after:from-primary/50 after:via-primary after:to-primary/50 after:bottom-0 after:left-0;
   }
 
   .hover-scale {
@@ -137,6 +147,16 @@
 
   .backdrop {
     @apply bg-background/80 backdrop-blur-md;
+  }
+
+  .dark .backdrop {
+    background: linear-gradient(135deg, 
+      hsla(240, 10%, 3.9%, 0.8) 0%, 
+      hsla(260, 15%, 4%, 0.85) 50%, 
+      hsla(235, 8%, 4.5%, 0.8) 100%
+    );
+    backdrop-filter: blur(20px);
+    border: 1px solid hsla(263, 70%, 65%, 0.1);
   }
   
   .container {
@@ -150,6 +170,13 @@
   .mobile-menu-link {
     @apply flex items-center py-3 px-4 text-foreground hover:bg-secondary/80 rounded-md transition-colors;
   }
+
+  .dark .mobile-menu-link:hover {
+    background: linear-gradient(135deg, 
+      hsla(263, 70%, 65%, 0.1) 0%, 
+      hsla(270, 50%, 50%, 0.1) 100%
+    );
+  }
   
   .responsive-grid {
     @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6;
@@ -159,29 +186,66 @@
     @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6;
   }
   
-  /* Better card styles for mobile */
   .mobile-card {
     @apply p-3 md:p-4 rounded-lg border border-border/30;
   }
+
+  .dark .mobile-card {
+    background: linear-gradient(135deg, 
+      hsla(240, 10%, 5.9%, 0.8) 0%, 
+      hsla(260, 15%, 6%, 0.9) 50%, 
+      hsla(240, 10%, 5.9%, 0.8) 100%
+    );
+    border: 1px solid hsla(263, 70%, 65%, 0.2);
+    box-shadow: 0 4px 20px hsla(263, 70%, 65%, 0.1);
+  }
   
-  /* Touch-friendly button sizes */
   .touch-button {
     @apply min-h-[44px] px-4;
   }
   
-  /* Improved truncation for mobile */
   .mobile-truncate {
     @apply truncate max-w-full;
   }
   
-  /* For horizontal scrollable areas */
   .scroll-container {
     @apply overflow-x-auto hide-scrollbar momentum-scroll;
   }
   
-  /* Fix for inputs on iOS */
   .ios-input-fix {
     @apply appearance-none;
+  }
+
+  /* Premium gradient backgrounds for dark mode */
+  .dark .gradient-card {
+    background: linear-gradient(135deg, 
+      hsla(240, 10%, 5.9%, 0.9) 0%, 
+      hsla(263, 70%, 8%, 0.8) 25%, 
+      hsla(270, 50%, 6%, 0.9) 50%, 
+      hsla(260, 60%, 7%, 0.85) 75%, 
+      hsla(240, 10%, 5.9%, 0.9) 100%
+    );
+    border: 1px solid hsla(263, 70%, 65%, 0.3);
+    box-shadow: 
+      0 4px 20px hsla(263, 70%, 65%, 0.15),
+      0 0 40px hsla(270, 50%, 50%, 0.1);
+  }
+
+  .dark .premium-gradient {
+    background: linear-gradient(135deg,
+      hsla(263, 70%, 65%, 0.1) 0%,
+      hsla(270, 50%, 50%, 0.15) 25%,
+      hsla(280, 60%, 45%, 0.1) 50%,
+      hsla(290, 55%, 55%, 0.12) 75%,
+      hsla(263, 70%, 65%, 0.08) 100%
+    );
+  }
+
+  .dark .glow-effect {
+    box-shadow: 
+      0 0 20px hsla(263, 70%, 65%, 0.2),
+      0 0 40px hsla(270, 50%, 50%, 0.1),
+      0 0 60px hsla(280, 60%, 45%, 0.05);
   }
 }
 
@@ -237,23 +301,19 @@
     display: none;
   }
   
-  /* Increase touch targets */
   button, a, input, select, textarea {
     @apply min-h-[36px] sm:min-h-[40px];
   }
   
-  /* Better spacing for mobile forms */
   form {
     @apply space-y-4;
   }
   
-  /* Improve form inputs on mobile */
   input, select, textarea {
     @apply py-2 px-3 text-base;
   }
 }
 
-/* Fix for iOS input zooming */
 @media screen and (max-width: 768px) {
   input[type="text"], 
   input[type="email"], 
@@ -267,12 +327,10 @@
   }
 }
 
-/* Ensure tables are responsive */
 .table-responsive {
   @apply w-full overflow-x-auto;
 }
 
-/* Improve mobile tabs appearance */
 .mobile-tabs {
   @apply flex overflow-x-auto hide-scrollbar;
 }
@@ -281,7 +339,6 @@
   @apply whitespace-nowrap;
 }
 
-/* Fix for iOS and Android form elements */
 input:active,
 input:focus,
 textarea:active,
