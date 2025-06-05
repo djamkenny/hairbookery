@@ -65,7 +65,7 @@ const services = [
     description: "Professional nail care treatments focused on shaping, polishing, and beautifying your nails.",
     price: "$35+",
     duration: "45 mins",
-    image: "",
+    image: "https://photos.fife.usercontent.google.com/pw/AP1GczPvYh2j-kbuvUp9JqN-qE5NDeWGu9Y6HJiYdBAWXezGYjC3iV3k_Jo=w148-h197-no?authuser=0",
     category: "nail"
   },
   {
