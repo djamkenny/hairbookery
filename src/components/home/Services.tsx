@@ -56,7 +56,7 @@ const services = [
     description: "Quality hair extensions applied by certified professionals for added length and volume.",
     price: "$200+",
     duration: "180 mins",
-    image: "https://images.unsplash.com/photo-1621545950740-173193219f1c?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80",
+    image: "https://photos.fife.usercontent.google.com/pw/AP1GczOLx2Z4_uFEcJw0MiWXSvyesfmXJnUK45iZHGZjFaIIWGFF1xeNfjY=w659-h878-s-no-gm?authuser=0",
     category: "hair"
   },
   {
