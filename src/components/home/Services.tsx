@@ -11,7 +11,7 @@ const services = [
     description: "Precision cut and professional styling to create the perfect look for your face shape and preferences.",
     price: "$45+",
     duration: "45 mins",
-    image: "https://images.unsplash.com/photo-1626676108696-5604956e838f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80",
+    image: "",
     category: "hair"
   },
   {
@@ -20,7 +20,7 @@ const services = [
     description: "Expert color services from subtle highlights to bold transformations using premium products.",
     price: "$75+",
     duration: "90 mins",
-    image: "https://images.unsplash.com/photo-1596815064285-45ed8a9c0463?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1173&q=80",
+    image: "",
     category: "hair"
   },
   {
@@ -29,7 +29,7 @@ const services = [
     description: "Hand-painted highlights that create a natural, sun-kissed look with seamless blending.",
     price: "$120+",
     duration: "120 mins",
-    image: "https://images.unsplash.com/photo-1580618672591-eb180b1a973f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1074&q=80",
+    image: "",
     category: "hair"
   },
   {
@@ -38,7 +38,7 @@ const services = [
     description: "Professional blow dry and styling to achieve smooth, voluminous, or textured finishes.",
     price: "$35+",
     duration: "30 mins",
-    image: "https://images.unsplash.com/photo-1544717305-2782549b5136?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1169&q=80",
+    image: "",
     category: "hair"
   },
   {
@@ -47,7 +47,7 @@ const services = [
     description: "Intensive treatment to repair damaged hair, restore moisture, and enhance shine.",
     price: "$30+",
     duration: "20 mins",
-    image: "https://images.unsplash.com/photo-1541533848490-bc8115cd6522?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80",
+    image: "",
     category: "hair"
   },
   {
@@ -65,7 +65,7 @@ const services = [
     description: "Professional nail care treatments focused on shaping, polishing, and beautifying your nails.",
     price: "$35+",
     duration: "45 mins",
-    image: "https://images.unsplash.com/photo-1604654894611-6973b7069ce9?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80",
+    image: "",
     category: "nail"
   },
   {
@@ -74,7 +74,7 @@ const services = [
     description: "Comprehensive foot care that includes soaking, exfoliation, nail trimming, and polish application.",
     price: "$45+",
     duration: "60 mins",
-    image: "https://images.unsplash.com/photo-1519014816548-bf5fe059798b?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80",
+    image: "",
     category: "nail"
   },
   {
@@ -83,7 +83,7 @@ const services = [
     description: "Durable gel extensions that add length and strength to your natural nails with custom designs.",
     price: "$65+",
     duration: "75 mins",
-    image: "https://images.unsplash.com/photo-1632345031435-8727f6897d53?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80",
+    image: "",
     category: "nail"
   },
   {
@@ -92,7 +92,7 @@ const services = [
     description: "Professional cleaning service for delicate fabrics and garments that require special care.",
     price: "$15+",
     duration: "24 hours",
-    image: "https://images.unsplash.com/photo-1545173168-9f1947eebb7f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1171&q=80",
+    image: "",
     category: "laundry"
   },
   {
@@ -101,7 +101,7 @@ const services = [
     description: "Convenient laundry service where your clothes are washed, dried, and neatly folded for pickup.",
     price: "$2.50/lb",
     duration: "24 hours",
-    image: "https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80",
+    image: "",
     category: "laundry"
   },
   {
@@ -110,7 +110,7 @@ const services = [
     description: "Professional pressing service to keep your garments wrinkle-free and looking crisp.",
     price: "$3+/item",
     duration: "48 hours",
-    image: "https://images.unsplash.com/photo-1626806819282-2c1dc01a5e0c?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80",
+    image: "",
     category: "laundry"
   }
 ];
