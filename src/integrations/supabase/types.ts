@@ -143,6 +143,7 @@ export type Database = {
           description: string | null
           duration: number
           id: string
+          image_urls: string[] | null
           name: string
           price: number
           stylist_id: string | null
@@ -153,6 +154,7 @@ export type Database = {
           description?: string | null
           duration: number
           id?: string
+          image_urls?: string[] | null
           name: string
           price: number
           stylist_id?: string | null
@@ -163,6 +165,7 @@ export type Database = {
           description?: string | null
           duration?: number
           id?: string
+          image_urls?: string[] | null
           name?: string
           price?: number
           stylist_id?: string | null
