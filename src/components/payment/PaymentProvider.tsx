@@ -9,9 +9,10 @@ interface PaymentContextType {
   subscriptionEnd: string | null;
   loading: boolean;
   checkSubscription: () => Promise<void>;
-  createPayment: (amount: number, description: string) => Promise<string | null>;
+  createPayment: (amount: number, description: string, priceId?: string) => Promise<{ clientSecret: string; sessionId: string; url: string } | null>;
   createSubscription: (priceId: string, planType: string) => Promise<string | null>;
   openCustomerPortal: () => Promise<void>;
+  checkSessionStatus: (sessionId: string) => Promise<{ status: string; customer_email: string } | null>;
 }
 
 const PaymentContext = createContext<PaymentContextType | null>(null);
@@ -34,20 +35,14 @@ export const PaymentProvider: React.FC<PaymentProviderProps> = ({ children }) =>
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // PSEUDOCODE: Check subscription status
+  // Check subscription status
   const checkSubscription = async () => {
     try {
       setLoading(true);
-      // TODO: Call check-subscription edge function
-      // TODO: Update state with subscription status
-      // TODO: Handle authentication errors
-      // TODO: Update local state with response data
-      
       const { data, error } = await supabase.functions.invoke('check-subscription');
       
       if (error) throw error;
       
-      // TODO: Update state variables from response
       setIsSubscribed(data.subscribed || false);
       setSubscriptionTier(data.subscription_tier || null);
       setSubscriptionEnd(data.subscription_end || null);
@@ -59,21 +54,28 @@ export const PaymentProvider: React.FC<PaymentProviderProps> = ({ children }) =>
     }
   };
 
-  // PSEUDOCODE: Create one-time payment
-  const createPayment = async (amount: number, description: string): Promise<string | null> => {
+  // Create one-time payment (based on your Flask /create-checkout-session)
+  const createPayment = async (
+    amount: number, 
+    description: string, 
+    priceId?: string
+  ): Promise<{ clientSecret: string; sessionId: string; url: string } | null> => {
     try {
-      // TODO: Validate amount is positive
-      // TODO: Call create-payment edge function
-      // TODO: Handle authentication requirements
-      // TODO: Return checkout URL for redirection
-      
+      if (amount <= 0) {
+        throw new Error("Amount must be positive");
+      }
+
       const { data, error } = await supabase.functions.invoke('create-payment', {
-        body: { amount, description }
+        body: { amount, description, priceId }
       });
       
       if (error) throw error;
       
-      return data.url;
+      return {
+        clientSecret: data.clientSecret,
+        sessionId: data.sessionId,
+        url: data.url
+      };
     } catch (error) {
       console.error("Payment creation failed:", error);
       toast.error("Failed to create payment");
@@ -81,14 +83,29 @@ export const PaymentProvider: React.FC<PaymentProviderProps> = ({ children }) =>
     }
   };
 
-  // PSEUDOCODE: Create subscription
+  // Check session status (based on your Flask /session-status)
+  const checkSessionStatus = async (sessionId: string): Promise<{ status: string; customer_email: string } | null> => {
+    try {
+      const { data, error } = await supabase.functions.invoke('session-status', {
+        body: { session_id: sessionId }
+      });
+      
+      if (error) throw error;
+      
+      return {
+        status: data.status,
+        customer_email: data.customer_email
+      };
+    } catch (error) {
+      console.error("Session status check failed:", error);
+      toast.error("Failed to check session status");
+      return null;
+    }
+  };
+
+  // Create subscription
   const createSubscription = async (priceId: string, planType: string): Promise<string | null> => {
     try {
-      // TODO: Validate priceId and planType
-      // TODO: Call create-subscription edge function
-      // TODO: Handle existing subscription scenarios
-      // TODO: Return checkout URL for subscription
-      
       const { data, error } = await supabase.functions.invoke('create-subscription', {
         body: { priceId, planType }
       });
@@ -103,13 +120,9 @@ export const PaymentProvider: React.FC<PaymentProviderProps> = ({ children }) =>
     }
   };
 
-  // PSEUDOCODE: Open customer portal
+  // Open customer portal
   const openCustomerPortal = async () => {
     try {
-      // TODO: Call customer-portal edge function
-      // TODO: Open portal in new tab
-      // TODO: Handle no subscription scenarios
-      
       const { data, error } = await supabase.functions.invoke('customer-portal');
       
       if (error) throw error;
@@ -121,13 +134,12 @@ export const PaymentProvider: React.FC<PaymentProviderProps> = ({ children }) =>
     }
   };
 
-  // PSEUDOCODE: Initialize subscription check on mount
+  // Initialize subscription check on mount
   useEffect(() => {
-    // TODO: Check if user is authenticated
-    // TODO: Call checkSubscription if authenticated
-    // TODO: Set up periodic subscription checks
-    
-    checkSubscription();
+    const { data: { user } } = supabase.auth.getUser();
+    if (user) {
+      checkSubscription();
+    }
   }, []);
 
   const value: PaymentContextType = {
@@ -139,6 +151,7 @@ export const PaymentProvider: React.FC<PaymentProviderProps> = ({ children }) =>
     createPayment,
     createSubscription,
     openCustomerPortal,
+    checkSessionStatus,
   };
 
   return (

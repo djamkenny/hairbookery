@@ -7,6 +7,7 @@ import { usePayment } from "./PaymentProvider";
 interface PaymentButtonProps {
   amount: number;
   description: string;
+  priceId?: string; // Optional Stripe price ID
   serviceId?: string;
   appointmentId?: string;
   className?: string;
@@ -16,6 +17,7 @@ interface PaymentButtonProps {
 export const PaymentButton: React.FC<PaymentButtonProps> = ({
   amount,
   description,
+  priceId,
   serviceId,
   appointmentId,
   className,
@@ -24,21 +26,19 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
   const [loading, setLoading] = useState(false);
   const { createPayment } = usePayment();
 
-  // PSEUDOCODE: Handle payment creation
   const handlePayment = async () => {
     try {
       setLoading(true);
       
-      // TODO: Validate amount is positive
-      // TODO: Validate user is authenticated
-      // TODO: Create payment session with metadata
-      // TODO: Redirect to Stripe checkout
+      if (amount <= 0) {
+        throw new Error("Invalid amount");
+      }
       
-      const checkoutUrl = await createPayment(amount, description);
+      const result = await createPayment(amount, description, priceId);
       
-      if (checkoutUrl) {
-        // TODO: Open checkout in new tab or same window
-        window.open(checkoutUrl, '_blank');
+      if (result?.url) {
+        // Open checkout in new tab (similar to your Flask setup)
+        window.open(result.url, '_blank');
       }
     } catch (error) {
       console.error("Payment failed:", error);
