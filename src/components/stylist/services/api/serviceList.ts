@@ -33,8 +33,10 @@ export const fetchServices = async (): Promise<Service[]> => {
       id: service.id,
       name: service.name,
       description: service.description,
-      duration: `${service.duration} min`,
-      price: `$${service.price}`
+      duration: `${service.duration}`,
+      price: `${service.price}`,
+      stylist_id: service.stylist_id,
+      image_urls: service.image_urls || []
     }));
   } catch (error) {
     console.error("Error in fetchServices:", error);

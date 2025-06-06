@@ -67,7 +67,8 @@ export const addService = async (formData: ServiceFormValues): Promise<Service |
         description: formData.description || null,
         price: priceValue,
         duration: durationValue,
-        stylist_id: userId
+        stylist_id: userId,
+        image_urls: []
       })
       .select()
       .single();
@@ -88,8 +89,10 @@ export const addService = async (formData: ServiceFormValues): Promise<Service |
       id: newService.id,
       name: newService.name,
       description: newService.description,
-      duration: `${newService.duration} min`,
-      price: `$${newService.price}`
+      duration: `${newService.duration}`,
+      price: `${newService.price}`,
+      stylist_id: newService.stylist_id,
+      image_urls: newService.image_urls || []
     };
   } catch (error: any) {
     console.error("Error in addService:", error);
