@@ -42,6 +42,8 @@ serve(async (req) => {
       throw new Error("Valid amount is required");
     }
 
+    console.log("Creating payment with amount:", amount, "currency:", currency);
+
     // Initialize Stripe
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2023-10-16",
@@ -58,11 +60,11 @@ serve(async (req) => {
       customerId = customers.data[0].id;
     }
 
-    // Create checkout session (based on your Flask code structure)
+    // Create checkout session for hosted checkout (not embedded)
     const sessionConfig: any = {
-      ui_mode: 'embedded',
       mode: 'payment',
-      return_url: `${req.headers.get("origin") || "http://localhost:3000"}/return?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${req.headers.get("origin") || "http://localhost:3000"}/return?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${req.headers.get("origin") || "http://localhost:3000"}/booking`,
     };
 
     // Set customer info
@@ -85,7 +87,7 @@ serve(async (req) => {
         price_data: {
           currency: currency,
           product_data: {
-            name: description || "Payment",
+            name: description || "Appointment Payment",
           },
           unit_amount: amount,
         },
@@ -100,7 +102,9 @@ serve(async (req) => {
       appointment_id: appointmentId || '',
     };
 
+    console.log("Creating Stripe session with config:", sessionConfig);
     const session = await stripe.checkout.sessions.create(sessionConfig);
+    console.log("Stripe session created:", { id: session.id, url: session.url });
 
     // Store payment record in Supabase
     const supabaseService = createClient(
@@ -120,7 +124,7 @@ serve(async (req) => {
       appointment_id: appointmentId,
     });
 
-    // Return client secret (matching your Flask response)
+    // Return session details
     return new Response(JSON.stringify({ 
       clientSecret: session.client_secret,
       sessionId: session.id,
