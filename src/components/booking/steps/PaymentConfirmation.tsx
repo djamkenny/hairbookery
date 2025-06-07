@@ -21,6 +21,10 @@ const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
   handleGoBack,
   isSubmitting,
 }) => {
+  // Ensure price is treated as dollars, not cents
+  const servicePrice = selectedService ? parseFloat(selectedService.price) : 0;
+  console.log("Service price for payment:", { raw: selectedService?.price, parsed: servicePrice });
+
   return (
     <div className="space-y-6">
       <div className="bg-muted/50 p-4 rounded-lg">
@@ -50,7 +54,7 @@ const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
       </div>
       
       <PaymentForm
-        amount={selectedService ? selectedService.price : 0}
+        amount={servicePrice}
         onSuccess={handlePaymentSuccess}
         onCancel={handleGoBack}
         isSubmitting={isSubmitting}

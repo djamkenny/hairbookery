@@ -26,11 +26,15 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
     try {
       setProcessing(true);
       
-      if (amount <= 0) {
-        throw new Error("Invalid amount");
+      // Ensure amount is in cents and meets minimum requirement
+      const amountInCents = Math.round(amount * 100);
+      console.log("Payment amount:", { original: amount, inCents: amountInCents });
+      
+      if (amountInCents < 50) {
+        throw new Error("Payment amount must be at least $0.50");
       }
       
-      const result = await createPayment(amount, "Appointment Payment");
+      const result = await createPayment(amountInCents, "Appointment Payment");
       
       if (result?.url) {
         // Open checkout in new tab (similar to your Flask setup)
@@ -44,11 +48,14 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
       }
     } catch (error) {
       console.error("Payment failed:", error);
-      toast.error("Payment failed. Please try again.");
+      toast.error(error instanceof Error ? error.message : "Payment failed. Please try again.");
     } finally {
       setProcessing(false);
     }
   };
+
+  // Convert cents back to dollars for display
+  const displayAmount = (amount / 100).toFixed(2);
 
   return (
     <Card>
@@ -59,7 +66,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
         <div className="bg-muted/50 p-4 rounded-lg">
           <div className="flex justify-between items-center">
             <span className="text-sm font-medium">Total Amount:</span>
-            <span className="text-lg font-bold">${(amount / 100).toFixed(2)}</span>
+            <span className="text-lg font-bold">${displayAmount}</span>
           </div>
         </div>
         
@@ -75,7 +82,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
           </Button>
           <Button 
             onClick={handlePayment}
-            disabled={processing || isSubmitting || amount <= 0}
+            disabled={processing || isSubmitting || amount < 0.50}
             className="w-full"
           >
             {processing ? (
