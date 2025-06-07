@@ -136,10 +136,16 @@ export const PaymentProvider: React.FC<PaymentProviderProps> = ({ children }) =>
 
   // Initialize subscription check on mount
   useEffect(() => {
-    const { data: { user } } = supabase.auth.getUser();
-    if (user) {
-      checkSubscription();
-    }
+    const initCheck = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        checkSubscription();
+      } else {
+        setLoading(false);
+      }
+    };
+    
+    initCheck();
   }, []);
 
   const value: PaymentContextType = {

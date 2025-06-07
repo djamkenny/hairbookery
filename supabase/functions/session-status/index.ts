@@ -15,12 +15,11 @@ serve(async (req) => {
   }
 
   try {
-    // Get session_id from query parameters
-    const url = new URL(req.url);
-    const sessionId = url.searchParams.get('session_id');
+    // Get session_id from request body (matching the frontend call)
+    const { session_id } = await req.json();
     
-    if (!sessionId) {
-      throw new Error("session_id parameter is required");
+    if (!session_id) {
+      throw new Error("session_id is required");
     }
 
     // Initialize Stripe
@@ -29,7 +28,7 @@ serve(async (req) => {
     });
 
     // Retrieve session (matching your Flask code)
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    const session = await stripe.checkout.sessions.retrieve(session_id);
 
     // Update payment status in database if completed
     if (session.status === 'complete') {
@@ -45,7 +44,7 @@ serve(async (req) => {
           status: 'completed',
           stripe_payment_intent_id: session.payment_intent
         })
-        .eq('stripe_session_id', sessionId);
+        .eq('stripe_session_id', session_id);
     }
 
     // Return status and customer email (matching your Flask response)

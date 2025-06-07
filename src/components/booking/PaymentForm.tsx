@@ -1,19 +1,10 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CreditCard, Loader2 } from "lucide-react";
+import { usePayment } from "@/components/payment/PaymentProvider";
 import { toast } from "sonner";
-import CardHolderField from "./payment/CardHolderField";
-import CreditCardField from "./payment/CreditCardField";
-import ExpiryDateField from "./payment/ExpiryDateField";
-import CVVField from "./payment/CVVField";
-import TotalAmount from "./payment/TotalAmount";
-import { 
-  PaymentErrors, 
-  createEmptyPaymentErrors, 
-  validatePaymentForm,
-  hasErrors
-} from "./utils/paymentValidation";
 
 interface PaymentFormProps {
   amount: number;
@@ -28,155 +19,80 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
   onCancel,
   isSubmitting 
 }) => {
-  // Form state
-  const [cardNumber, setCardNumber] = useState("");
-  const [expiryMonth, setExpiryMonth] = useState("");
-  const [expiryYear, setExpiryYear] = useState("");
-  const [cvv, setCvv] = useState("");
-  const [name, setName] = useState("");
-  
-  // Validation state
-  const [errors, setErrors] = useState<PaymentErrors>(createEmptyPaymentErrors());
-  const [touched, setTouched] = useState({
-    cardNumber: false,
-    expiryDate: false,
-    cvv: false,
-    name: false
-  });
+  const [processing, setProcessing] = useState(false);
+  const { createPayment } = usePayment();
 
-  // Validate on input change when field is touched
-  useEffect(() => {
-    if (touched.cardNumber || touched.expiryDate || touched.cvv || touched.name) {
-      const validationErrors = validatePaymentForm(
-        cardNumber, 
-        expiryMonth, 
-        expiryYear, 
-        cvv, 
-        name
-      );
+  const handlePayment = async () => {
+    try {
+      setProcessing(true);
       
-      setErrors(prevErrors => ({
-        ...prevErrors,
-        cardNumber: touched.cardNumber ? validationErrors.cardNumber : prevErrors.cardNumber,
-        expiryDate: touched.expiryDate ? validationErrors.expiryDate : prevErrors.expiryDate,
-        cvv: touched.cvv ? validationErrors.cvv : prevErrors.cvv,
-        name: touched.name ? validationErrors.name : prevErrors.name
-      }));
+      if (amount <= 0) {
+        throw new Error("Invalid amount");
+      }
+      
+      const result = await createPayment(amount, "Appointment Payment");
+      
+      if (result?.url) {
+        // Open checkout in new tab (similar to your Flask setup)
+        window.open(result.url, '_blank');
+        
+        // Simulate success for demo - in real app, you'd wait for webhook or redirect
+        setTimeout(() => {
+          onSuccess();
+          toast.success("Payment initiated successfully!");
+        }, 2000);
+      }
+    } catch (error) {
+      console.error("Payment failed:", error);
+      toast.error("Payment failed. Please try again.");
+    } finally {
+      setProcessing(false);
     }
-  }, [cardNumber, expiryMonth, expiryYear, cvv, name, touched]);
-
-  const markAsTouched = (field: keyof typeof touched) => {
-    setTouched(prev => ({ ...prev, [field]: true }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Mark all fields as touched to trigger validation
-    setTouched({
-      cardNumber: true,
-      expiryDate: true,
-      cvv: true,
-      name: true
-    });
-    
-    // Validate all fields
-    const validationErrors = validatePaymentForm(
-      cardNumber, 
-      expiryMonth, 
-      expiryYear, 
-      cvv, 
-      name
-    );
-    
-    setErrors(validationErrors);
-    
-    // Check if there are any errors
-    if (hasErrors(validationErrors)) {
-      toast.error("Please fix the errors in the payment form");
-      return;
-    }
-
-    // In a real app, we would send the payment info to a payment processor
-    // For demo purposes, we'll just simulate a successful payment
-    setTimeout(() => {
-      onSuccess();
-      toast.success("Payment processed successfully!");
-    }, 1500);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <Card>
-        <CardContent className="p-6">
-          <div className="space-y-4">
-            <CardHolderField 
-              value={name} 
-              onChange={(value) => {
-                setName(value);
-                markAsTouched('name');
-              }}
-              error={errors.name}
-            />
-            
-            <CreditCardField 
-              value={cardNumber} 
-              onChange={(value) => {
-                setCardNumber(value);
-                markAsTouched('cardNumber');
-              }}
-              error={errors.cardNumber}
-            />
-            
-            <div className="grid grid-cols-2 gap-4">
-              <ExpiryDateField 
-                month={expiryMonth}
-                year={expiryYear}
-                setMonth={(value) => {
-                  setExpiryMonth(value);
-                  markAsTouched('expiryDate');
-                }}
-                setYear={(value) => {
-                  setExpiryYear(value);
-                  markAsTouched('expiryDate');
-                }}
-                error={errors.expiryDate}
-              />
-              
-              <CVVField 
-                value={cvv} 
-                onChange={(value) => {
-                  setCvv(value);
-                  markAsTouched('cvv');
-                }}
-                error={errors.cvv}
-              />
-            </div>
-            
-            <TotalAmount amount={amount} />
+    <Card>
+      <CardHeader>
+        <CardTitle>Complete Payment</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="bg-muted/50 p-4 rounded-lg">
+          <div className="flex justify-between items-center">
+            <span className="text-sm font-medium">Total Amount:</span>
+            <span className="text-lg font-bold">${(amount / 100).toFixed(2)}</span>
           </div>
-        </CardContent>
-      </Card>
-      
-      <div className="flex gap-3">
-        <Button 
-          type="button" 
-          variant="outline" 
-          className="w-full" 
-          onClick={onCancel}
-          disabled={isSubmitting}
-        >
-          Back
-        </Button>
-        <Button 
-          type="submit" 
-          className="w-full"
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? "Processing..." : "Pay Now"}
-        </Button>
-      </div>
-    </form>
+        </div>
+        
+        <div className="flex gap-3">
+          <Button 
+            type="button" 
+            variant="outline" 
+            className="w-full" 
+            onClick={onCancel}
+            disabled={processing || isSubmitting}
+          >
+            Back
+          </Button>
+          <Button 
+            onClick={handlePayment}
+            disabled={processing || isSubmitting || amount <= 0}
+            className="w-full"
+          >
+            {processing ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              <>
+                <CreditCard className="mr-2 h-4 w-4" />
+                Pay Now
+              </>
+            )}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
