@@ -56,7 +56,7 @@ const services = [
     description: "Quality hair extensions applied by certified professionals for added length and volume.",
     price: "GHS40+",
     duration: "180 mins",
-    image: "https://photos.fife.usercontent.google.com/pw/AP1GczOLx2Z4_uFEcJw0MiWXSvyesfmXJnUK45iZHGZjFaIIWGFF1xeNfjY=w659-h878-s-no-gm?authuser=0",
+    image: "/workspaces/hairbookery/public/images/5911382752316475197.jpg",
     category: "hair"
   },
   {
@@ -65,7 +65,7 @@ const services = [
     description: "Professional nail care treatments focused on shaping, polishing, and beautifying your nails.",
     price: "GHS30+",
     duration: "45 mins",
-    image: "https://photos.fife.usercontent.google.com/pw/AP1GczPvYh2j-kbuvUp9JqN-qE5NDeWGu9Y6HJiYdBAWXezGYjC3iV3k_Jo=w148-h197-no?authuser=0",
+    image: "",
     category: "nail"
   },
   {
@@ -83,7 +83,7 @@ const services = [
     description: "Durable gel extensions that add length and strength to your natural nails with custom designs.",
     price: "GHS100+",
     duration: "75 mins",
-    image: "",
+    image: "/workspaces/hairbookery/public/images/5911382752316475213.jpg",
     category: "nail"
   },
   {
