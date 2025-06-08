@@ -9,7 +9,7 @@ const services = [
     id: 1,
     title: "Haircut & Styling",
     description: "Precision cut and professional styling to create the perfect look for your face shape and preferences.",
-    price: "$45+",
+    price: "GHS40+",
     duration: "45 mins",
     image: "",
     category: "hair"
@@ -18,7 +18,7 @@ const services = [
     id: 2,
     title: "Hair Coloring",
     description: "Expert color services from subtle highlights to bold transformations using premium products.",
-    price: "$75+",
+    price: "GHS400+",
     duration: "90 mins",
     image: "",
     category: "hair"
@@ -27,7 +27,7 @@ const services = [
     id: 3,
     title: "Balayage",
     description: "Hand-painted highlights that create a natural, sun-kissed look with seamless blending.",
-    price: "$120+",
+    price: "GHS600+",
     duration: "120 mins",
     image: "",
     category: "hair"
@@ -36,7 +36,7 @@ const services = [
     id: 4,
     title: "Blowout & Styling",
     description: "Professional blow dry and styling to achieve smooth, voluminous, or textured finishes.",
-    price: "$35+",
+    price: "GHS60+",
     duration: "30 mins",
     image: "",
     category: "hair"
@@ -45,7 +45,7 @@ const services = [
     id: 5,
     title: "Deep Conditioning",
     description: "Intensive treatment to repair damaged hair, restore moisture, and enhance shine.",
-    price: "$30+",
+    price: "GHS60+",
     duration: "20 mins",
     image: "",
     category: "hair"
@@ -54,7 +54,7 @@ const services = [
     id: 6,
     title: "Hair Extensions",
     description: "Quality hair extensions applied by certified professionals for added length and volume.",
-    price: "$200+",
+    price: "GHS40+",
     duration: "180 mins",
     image: "https://photos.fife.usercontent.google.com/pw/AP1GczOLx2Z4_uFEcJw0MiWXSvyesfmXJnUK45iZHGZjFaIIWGFF1xeNfjY=w659-h878-s-no-gm?authuser=0",
     category: "hair"
@@ -63,7 +63,7 @@ const services = [
     id: 7,
     title: "Manicure",
     description: "Professional nail care treatments focused on shaping, polishing, and beautifying your nails.",
-    price: "$35+",
+    price: "GHS30+",
     duration: "45 mins",
     image: "https://photos.fife.usercontent.google.com/pw/AP1GczPvYh2j-kbuvUp9JqN-qE5NDeWGu9Y6HJiYdBAWXezGYjC3iV3k_Jo=w148-h197-no?authuser=0",
     category: "nail"
@@ -72,7 +72,7 @@ const services = [
     id: 8,
     title: "Pedicure",
     description: "Comprehensive foot care that includes soaking, exfoliation, nail trimming, and polish application.",
-    price: "$45+",
+    price: "GHS120+",
     duration: "60 mins",
     image: "",
     category: "nail"
@@ -81,7 +81,7 @@ const services = [
     id: 9,
     title: "Gel Nail Extensions",
     description: "Durable gel extensions that add length and strength to your natural nails with custom designs.",
-    price: "$65+",
+    price: "GHS100+",
     duration: "75 mins",
     image: "",
     category: "nail"
@@ -90,7 +90,7 @@ const services = [
     id: 10,
     title: "Dry Cleaning",
     description: "Professional cleaning service for delicate fabrics and garments that require special care.",
-    price: "$15+",
+    price: "GHS10+",
     duration: "24 hours",
     image: "",
     category: "laundry"
@@ -99,7 +99,7 @@ const services = [
     id: 11,
     title: "Wash & Fold",
     description: "Convenient laundry service where your clothes are washed, dried, and neatly folded for pickup.",
-    price: "$2.50/lb",
+    price: "GHS100/14kg",
     duration: "24 hours",
     image: "",
     category: "laundry"
@@ -108,7 +108,7 @@ const services = [
     id: 12,
     title: "Ironing Service",
     description: "Professional pressing service to keep your garments wrinkle-free and looking crisp.",
-    price: "$3+/item",
+    price: "GHS4-11/kg",
     duration: "48 hours",
     image: "",
     category: "laundry"
