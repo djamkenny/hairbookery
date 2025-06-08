@@ -56,7 +56,7 @@ const services = [
     description: "Quality hair extensions applied by certified professionals for added length and volume.",
     price: "GHS40+",
     duration: "180 mins",
-    image: "/workspaces/hairbookery/public/images/5911382752316475197.jpg",
+    image: "./images/5911382752316475197.jpg",
     category: "hair"
   },
   {
@@ -83,7 +83,7 @@ const services = [
     description: "Durable gel extensions that add length and strength to your natural nails with custom designs.",
     price: "GHS100+",
     duration: "75 mins",
-    image: "/workspaces/hairbookery/public/images/5911382752316475213.jpg",
+    image: "./images/5911382752316475213.jpg",
     category: "nail"
   },
   {
