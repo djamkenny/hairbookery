@@ -46,13 +46,22 @@ serve(async (req) => {
     // Get Paystack secret key
     const paystackSecretKey = Deno.env.get("PAYSTACK_SECRET_KEY");
     if (!paystackSecretKey) {
+      console.error("Paystack secret key not found in environment");
       throw new Error("Paystack secret key not configured");
     }
+
+    // Validate the secret key format
+    if (!paystackSecretKey.startsWith("sk_")) {
+      console.error("Invalid Paystack secret key format - should start with 'sk_'");
+      throw new Error("Invalid Paystack secret key format");
+    }
+
+    console.log("Using Paystack secret key:", paystackSecretKey.substring(0, 10) + "...");
 
     // Create Paystack transaction
     const paystackPayload = {
       email: user.email,
-      amount: amount, // Paystack expects amount in kobo (1 GHS = 100 pesewas)
+      amount: amount, // Amount in pesewas
       currency: currency,
       reference: `ref_${Date.now()}_${user.id.slice(0, 8)}`,
       callback_url: `${req.headers.get("origin") || "http://localhost:3000"}/return`,
@@ -80,6 +89,7 @@ serve(async (req) => {
     console.log("Paystack response:", paystackData);
 
     if (!paystackData.status) {
+      console.error("Paystack error:", paystackData);
       throw new Error(paystackData.message || "Failed to initialize Paystack transaction");
     }
 
@@ -90,7 +100,7 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    await supabaseService.from("payments").insert({
+    const { error: insertError } = await supabaseService.from("payments").insert({
       user_id: user.id,
       stripe_session_id: paystackData.data.reference, // Using reference as session ID
       amount: amount,
@@ -100,6 +110,11 @@ serve(async (req) => {
       service_id: serviceId,
       appointment_id: appointmentId,
     });
+
+    if (insertError) {
+      console.error("Failed to store payment record:", insertError);
+      throw new Error("Failed to store payment record");
+    }
 
     // Return session details
     return new Response(JSON.stringify({ 
