@@ -46,34 +46,50 @@ const EarningsTab = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Use raw SQL queries since the tables aren't in TypeScript definitions yet
+      // Fetch earnings data using the new RPC function
       const { data: earningsData, error: earningsError } = await supabase
         .rpc('get_stylist_earnings', { stylist_uuid: user.id });
 
       if (earningsError) {
         console.error("Earnings error:", earningsError);
-        // If the function doesn't exist, fall back to showing empty state
         setEarnings([]);
       } else {
-        setEarnings(earningsData || []);
+        // Type assertion since we know the structure from our RPC function
+        const typedEarnings = (earningsData as any[]) || [];
+        setEarnings(typedEarnings);
       }
 
+      // Fetch withdrawals data using the new RPC function
       const { data: withdrawalsData, error: withdrawalsError } = await supabase
         .rpc('get_stylist_withdrawals', { stylist_uuid: user.id });
 
       if (withdrawalsError) {
         console.error("Withdrawals error:", withdrawalsError);
-        // If the function doesn't exist, fall back to showing empty state
         setWithdrawalRequests([]);
       } else {
-        setWithdrawalRequests(withdrawalsData || []);
+        // Type assertion since we know the structure from our RPC function
+        const typedWithdrawals = (withdrawalsData as any[]) || [];
+        setWithdrawalRequests(typedWithdrawals);
       }
 
-      // Calculate totals
-      const available = earningsData?.filter((e: any) => e.status === 'available').reduce((sum: number, e: any) => sum + e.net_amount, 0) || 0;
-      const pending = earningsData?.filter((e: any) => e.status === 'pending').reduce((sum: number, e: any) => sum + e.net_amount, 0) || 0;
-      const total = earningsData?.reduce((sum: number, e: any) => sum + e.net_amount, 0) || 0;
-      const withdrawn = withdrawalsData?.filter((w: any) => w.status === 'completed').reduce((sum: number, w: any) => sum + w.amount, 0) || 0;
+      // Calculate totals safely
+      const typedEarningsData = (earningsData as any[]) || [];
+      const typedWithdrawalsData = (withdrawalsData as any[]) || [];
+
+      const available = typedEarningsData
+        .filter((e: any) => e.status === 'available')
+        .reduce((sum: number, e: any) => sum + (e.net_amount || 0), 0);
+      
+      const pending = typedEarningsData
+        .filter((e: any) => e.status === 'pending')
+        .reduce((sum: number, e: any) => sum + (e.net_amount || 0), 0);
+      
+      const total = typedEarningsData
+        .reduce((sum: number, e: any) => sum + (e.net_amount || 0), 0);
+      
+      const withdrawn = typedWithdrawalsData
+        .filter((w: any) => w.status === 'completed')
+        .reduce((sum: number, w: any) => sum + (w.amount || 0), 0);
 
       setAvailableBalance(available);
       setPendingEarnings(pending);
@@ -82,7 +98,7 @@ const EarningsTab = () => {
 
     } catch (error) {
       console.error("Error fetching earnings data:", error);
-      toast.error("The earnings system is being set up. Please try again later.");
+      toast.error("Failed to load earnings data. Please try again later.");
     } finally {
       setLoading(false);
     }

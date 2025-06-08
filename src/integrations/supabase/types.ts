@@ -299,6 +299,50 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      create_withdrawal_request: {
+        Args: {
+          p_stylist_id: string
+          p_amount: number
+          p_bank_name: string
+          p_account_number: string
+          p_account_name: string
+          p_notes?: string
+        }
+        Returns: string
+      }
+      get_stylist_earnings: {
+        Args: { stylist_uuid: string }
+        Returns: {
+          id: string
+          stylist_id: string
+          appointment_id: string
+          payment_id: string
+          gross_amount: number
+          platform_fee: number
+          net_amount: number
+          platform_fee_percentage: number
+          status: string
+          created_at: string
+          updated_at: string
+        }[]
+      }
+      get_stylist_withdrawals: {
+        Args: { stylist_uuid: string }
+        Returns: {
+          id: string
+          stylist_id: string
+          amount: number
+          status: string
+          bank_name: string
+          account_number: string
+          account_name: string
+          notes: string
+          processed_at: string
+          processed_by: string
+          created_at: string
+          updated_at: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

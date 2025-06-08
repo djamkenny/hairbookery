@@ -58,8 +58,8 @@ const WithdrawalForm: React.FC<WithdrawalFormProps> = ({ availableBalance, onSuc
         return;
       }
 
-      // Use RPC call to insert withdrawal request since table isn't in types yet
-      const { error } = await supabase.rpc('create_withdrawal_request', {
+      // Use RPC call to insert withdrawal request
+      const { data, error } = await supabase.rpc('create_withdrawal_request', {
         p_stylist_id: user.id,
         p_amount: withdrawalAmount,
         p_bank_name: bankName,
