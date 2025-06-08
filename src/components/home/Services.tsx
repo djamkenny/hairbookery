@@ -20,7 +20,7 @@ const services = [
     description: "Expert color services from subtle highlights to bold transformations using premium products.",
     price: "GHS400+",
     duration: "90 mins",
-    image: "",
+    image: "./images/5911382752316475213.jpg",
     category: "hair"
   },
   {
@@ -29,7 +29,7 @@ const services = [
     description: "Hand-painted highlights that create a natural, sun-kissed look with seamless blending.",
     price: "GHS600+",
     duration: "120 mins",
-    image: "",
+    image: "./images/5911382752316475213.jpg",
     category: "hair"
   },
   {
@@ -38,7 +38,7 @@ const services = [
     description: "Professional blow dry and styling to achieve smooth, voluminous, or textured finishes.",
     price: "GHS60+",
     duration: "30 mins",
-    image: "",
+    image: "./images/5911382752316475213.jpg",
     category: "hair"
   },
   {
@@ -47,7 +47,7 @@ const services = [
     description: "Intensive treatment to repair damaged hair, restore moisture, and enhance shine.",
     price: "GHS60+",
     duration: "20 mins",
-    image: "",
+    image: "./images/5911382752316475213.jpg",
     category: "hair"
   },
   {
@@ -65,7 +65,7 @@ const services = [
     description: "Professional nail care treatments focused on shaping, polishing, and beautifying your nails.",
     price: "GHS30+",
     duration: "45 mins",
-    image: "",
+    image: "./images/5911382752316475213.jpg",
     category: "nail"
   },
   {
@@ -74,7 +74,7 @@ const services = [
     description: "Comprehensive foot care that includes soaking, exfoliation, nail trimming, and polish application.",
     price: "GHS120+",
     duration: "60 mins",
-    image: "",
+    image: "./images/5911382752316475213.jpg",
     category: "nail"
   },
   {
