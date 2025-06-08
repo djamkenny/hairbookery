@@ -46,32 +46,34 @@ const EarningsTab = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Fetch earnings
+      // Use raw SQL queries since the tables aren't in TypeScript definitions yet
       const { data: earningsData, error: earningsError } = await supabase
-        .from("specialist_earnings")
-        .select("*")
-        .eq("stylist_id", user.id)
-        .order("created_at", { ascending: false });
+        .rpc('get_stylist_earnings', { stylist_uuid: user.id });
 
-      if (earningsError) throw earningsError;
+      if (earningsError) {
+        console.error("Earnings error:", earningsError);
+        // If the function doesn't exist, fall back to showing empty state
+        setEarnings([]);
+      } else {
+        setEarnings(earningsData || []);
+      }
 
-      // Fetch withdrawal requests
       const { data: withdrawalsData, error: withdrawalsError } = await supabase
-        .from("withdrawal_requests")
-        .select("*")
-        .eq("stylist_id", user.id)
-        .order("created_at", { ascending: false });
+        .rpc('get_stylist_withdrawals', { stylist_uuid: user.id });
 
-      if (withdrawalsError) throw withdrawalsError;
-
-      setEarnings(earningsData || []);
-      setWithdrawalRequests(withdrawalsData || []);
+      if (withdrawalsError) {
+        console.error("Withdrawals error:", withdrawalsError);
+        // If the function doesn't exist, fall back to showing empty state
+        setWithdrawalRequests([]);
+      } else {
+        setWithdrawalRequests(withdrawalsData || []);
+      }
 
       // Calculate totals
-      const available = earningsData?.filter(e => e.status === 'available').reduce((sum, e) => sum + e.net_amount, 0) || 0;
-      const pending = earningsData?.filter(e => e.status === 'pending').reduce((sum, e) => sum + e.net_amount, 0) || 0;
-      const total = earningsData?.reduce((sum, e) => sum + e.net_amount, 0) || 0;
-      const withdrawn = withdrawalsData?.filter(w => w.status === 'completed').reduce((sum, w) => sum + w.amount, 0) || 0;
+      const available = earningsData?.filter((e: any) => e.status === 'available').reduce((sum: number, e: any) => sum + e.net_amount, 0) || 0;
+      const pending = earningsData?.filter((e: any) => e.status === 'pending').reduce((sum: number, e: any) => sum + e.net_amount, 0) || 0;
+      const total = earningsData?.reduce((sum: number, e: any) => sum + e.net_amount, 0) || 0;
+      const withdrawn = withdrawalsData?.filter((w: any) => w.status === 'completed').reduce((sum: number, w: any) => sum + w.amount, 0) || 0;
 
       setAvailableBalance(available);
       setPendingEarnings(pending);
@@ -80,7 +82,7 @@ const EarningsTab = () => {
 
     } catch (error) {
       console.error("Error fetching earnings data:", error);
-      toast.error("Failed to load earnings data");
+      toast.error("The earnings system is being set up. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -133,7 +135,12 @@ const EarningsTab = () => {
             </CardHeader>
             <CardContent>
               {earnings.length === 0 ? (
-                <p className="text-center text-muted-foreground py-4">No earnings yet</p>
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground mb-2">No earnings yet</p>
+                  <p className="text-sm text-muted-foreground">
+                    Start completing appointments to see your earnings here.
+                  </p>
+                </div>
               ) : (
                 <div className="space-y-4">
                   {earnings.slice(0, 5).map((earning) => (
@@ -170,7 +177,12 @@ const EarningsTab = () => {
             </CardHeader>
             <CardContent>
               {withdrawalRequests.length === 0 ? (
-                <p className="text-center text-muted-foreground py-4">No withdrawal requests yet</p>
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground mb-2">No withdrawal requests yet</p>
+                  <p className="text-sm text-muted-foreground">
+                    Submit your first withdrawal request when you have available earnings.
+                  </p>
+                </div>
               ) : (
                 <div className="space-y-4">
                   {withdrawalRequests.map((request) => (

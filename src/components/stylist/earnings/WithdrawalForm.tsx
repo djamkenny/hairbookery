@@ -58,19 +58,21 @@ const WithdrawalForm: React.FC<WithdrawalFormProps> = ({ availableBalance, onSuc
         return;
       }
 
-      const { error } = await supabase
-        .from("withdrawal_requests")
-        .insert({
-          stylist_id: user.id,
-          amount: withdrawalAmount,
-          bank_name: bankName,
-          account_number: accountNumber,
-          account_name: accountName,
-          notes: notes || null,
-          status: 'pending'
-        });
+      // Use RPC call to insert withdrawal request since table isn't in types yet
+      const { error } = await supabase.rpc('create_withdrawal_request', {
+        p_stylist_id: user.id,
+        p_amount: withdrawalAmount,
+        p_bank_name: bankName,
+        p_account_number: accountNumber,
+        p_account_name: accountName,
+        p_notes: notes || null
+      });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Withdrawal request error:", error);
+        toast.error("Failed to submit withdrawal request. Please try again.");
+        return;
+      }
 
       toast.success("Withdrawal request submitted successfully");
       
@@ -122,84 +124,93 @@ const WithdrawalForm: React.FC<WithdrawalFormProps> = ({ availableBalance, onSuc
         </p>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="amount">Amount (GHS) *</Label>
-            <Input
-              id="amount"
-              type="number"
-              step="0.01"
-              min="5"
-              max={availableBalance / 100}
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="Enter amount to withdraw"
-              required
-            />
-            <p className="text-xs text-muted-foreground mt-1">
-              Minimum: GH₵5.00 | Maximum: {formatAmount(availableBalance)}
+        {availableBalance < 500 ? (
+          <div className="text-center py-8">
+            <p className="text-muted-foreground mb-2">Insufficient balance for withdrawal</p>
+            <p className="text-sm text-muted-foreground">
+              You need at least GH₵5.00 to make a withdrawal request.
             </p>
           </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="amount">Amount (GHS) *</Label>
+              <Input
+                id="amount"
+                type="number"
+                step="0.01"
+                min="5"
+                max={availableBalance / 100}
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="Enter amount to withdraw"
+                required
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Minimum: GH₵5.00 | Maximum: {formatAmount(availableBalance)}
+              </p>
+            </div>
 
-          <div>
-            <Label htmlFor="bankName">Bank Name *</Label>
-            <Select value={bankName} onValueChange={setBankName} required>
-              <SelectTrigger>
-                <SelectValue placeholder="Select your bank" />
-              </SelectTrigger>
-              <SelectContent>
-                {ghanaianBanks.map((bank) => (
-                  <SelectItem key={bank} value={bank}>
-                    {bank}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+            <div>
+              <Label htmlFor="bankName">Bank Name *</Label>
+              <Select value={bankName} onValueChange={setBankName} required>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select your bank" />
+                </SelectTrigger>
+                <SelectContent>
+                  {ghanaianBanks.map((bank) => (
+                    <SelectItem key={bank} value={bank}>
+                      {bank}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          <div>
-            <Label htmlFor="accountNumber">Account Number *</Label>
-            <Input
-              id="accountNumber"
-              type="text"
-              value={accountNumber}
-              onChange={(e) => setAccountNumber(e.target.value)}
-              placeholder="Enter your account number"
-              required
-            />
-          </div>
+            <div>
+              <Label htmlFor="accountNumber">Account Number *</Label>
+              <Input
+                id="accountNumber"
+                type="text"
+                value={accountNumber}
+                onChange={(e) => setAccountNumber(e.target.value)}
+                placeholder="Enter your account number"
+                required
+              />
+            </div>
 
-          <div>
-            <Label htmlFor="accountName">Account Name *</Label>
-            <Input
-              id="accountName"
-              type="text"
-              value={accountName}
-              onChange={(e) => setAccountName(e.target.value)}
-              placeholder="Enter account holder name"
-              required
-            />
-          </div>
+            <div>
+              <Label htmlFor="accountName">Account Name *</Label>
+              <Input
+                id="accountName"
+                type="text"
+                value={accountName}
+                onChange={(e) => setAccountName(e.target.value)}
+                placeholder="Enter account holder name"
+                required
+              />
+            </div>
 
-          <div>
-            <Label htmlFor="notes">Additional Notes</Label>
-            <Textarea
-              id="notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Any additional information (optional)"
-              rows={3}
-            />
-          </div>
+            <div>
+              <Label htmlFor="notes">Additional Notes</Label>
+              <Textarea
+                id="notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Any additional information (optional)"
+                rows={3}
+              />
+            </div>
 
-          <Button 
-            type="submit" 
-            className="w-full" 
-            disabled={isSubmitting || availableBalance < 500}
-          >
-            {isSubmitting ? "Submitting..." : "Submit Withdrawal Request"}
-          </Button>
-        </form>
+            <Button 
+              type="submit" 
+              className="w-full" 
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Submitting..." : "Submit Withdrawal Request"}
+            </Button>
+          </form>
+        )}
       </CardContent>
     </Card>
   );
