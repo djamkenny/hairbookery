@@ -21,7 +21,7 @@ const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
   handleGoBack,
   isSubmitting,
 }) => {
-  // Ensure price is treated as dollars, not cents
+  // Ensure price is treated as dollars (GHS), not cents
   const servicePrice = selectedService ? parseFloat(selectedService.price) : 0;
   console.log("Service price for payment:", { raw: selectedService?.price, parsed: servicePrice });
 
@@ -40,7 +40,7 @@ const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
           <div>
             <p className="text-muted-foreground">Price</p>
             <p className="font-medium">
-              {selectedService ? formatPrice(selectedService.price) : "-"}
+              {selectedService ? `GH₵${selectedService.price}` : "-"}
             </p>
           </div>
           

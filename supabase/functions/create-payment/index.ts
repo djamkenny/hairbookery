@@ -1,6 +1,5 @@
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
@@ -35,76 +34,54 @@ serve(async (req) => {
     }
 
     // Parse request body for payment details
-    const { amount, currency = 'usd', description, serviceId, appointmentId, priceId } = await req.json();
+    const { amount, currency = 'GHS', description, serviceId, appointmentId } = await req.json();
     
     // Validate required fields
     if (!amount || amount <= 0) {
       throw new Error("Valid amount is required");
     }
 
-    console.log("Creating payment with amount:", amount, "currency:", currency);
+    console.log("Creating Paystack payment with amount:", amount, "currency:", currency);
 
-    // Initialize Stripe
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
-      apiVersion: "2023-10-16",
-    });
-
-    // Check for existing Stripe customer
-    const customers = await stripe.customers.list({ 
-      email: user.email, 
-      limit: 1 
-    });
-    
-    let customerId;
-    if (customers.data.length > 0) {
-      customerId = customers.data[0].id;
+    // Get Paystack secret key
+    const paystackSecretKey = Deno.env.get("PAYSTACK_SECRET_KEY");
+    if (!paystackSecretKey) {
+      throw new Error("Paystack secret key not configured");
     }
 
-    // Create checkout session for hosted checkout (not embedded)
-    const sessionConfig: any = {
-      mode: 'payment',
-      success_url: `${req.headers.get("origin") || "http://localhost:3000"}/return?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${req.headers.get("origin") || "http://localhost:3000"}/booking`,
+    // Create Paystack transaction
+    const paystackPayload = {
+      email: user.email,
+      amount: amount, // Paystack expects amount in kobo (1 GHS = 100 pesewas)
+      currency: currency,
+      reference: `ref_${Date.now()}_${user.id.slice(0, 8)}`,
+      callback_url: `${req.headers.get("origin") || "http://localhost:3000"}/return`,
+      metadata: {
+        user_id: user.id,
+        service_id: serviceId || '',
+        appointment_id: appointmentId || '',
+        description: description || 'Appointment Payment'
+      }
     };
 
-    // Set customer info
-    if (customerId) {
-      sessionConfig.customer = customerId;
-    } else {
-      sessionConfig.customer_email = user.email;
+    console.log("Paystack payload:", paystackPayload);
+
+    // Initialize Paystack transaction
+    const paystackResponse = await fetch("https://api.paystack.co/transaction/initialize", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${paystackSecretKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(paystackPayload),
+    });
+
+    const paystackData = await paystackResponse.json();
+    console.log("Paystack response:", paystackData);
+
+    if (!paystackData.status) {
+      throw new Error(paystackData.message || "Failed to initialize Paystack transaction");
     }
-
-    // Configure line items
-    if (priceId) {
-      // Use existing Stripe price
-      sessionConfig.line_items = [{
-        price: priceId,
-        quantity: 1,
-      }];
-    } else {
-      // Create price data on the fly
-      sessionConfig.line_items = [{
-        price_data: {
-          currency: currency,
-          product_data: {
-            name: description || "Appointment Payment",
-          },
-          unit_amount: amount,
-        },
-        quantity: 1,
-      }];
-    }
-
-    // Add metadata for tracking
-    sessionConfig.metadata = {
-      user_id: user.id,
-      service_id: serviceId || '',
-      appointment_id: appointmentId || '',
-    };
-
-    console.log("Creating Stripe session with config:", sessionConfig);
-    const session = await stripe.checkout.sessions.create(sessionConfig);
-    console.log("Stripe session created:", { id: session.id, url: session.url });
 
     // Store payment record in Supabase
     const supabaseService = createClient(
@@ -115,7 +92,7 @@ serve(async (req) => {
 
     await supabaseService.from("payments").insert({
       user_id: user.id,
-      stripe_session_id: session.id,
+      stripe_session_id: paystackData.data.reference, // Using reference as session ID
       amount: amount,
       currency: currency,
       status: 'pending',
@@ -126,9 +103,9 @@ serve(async (req) => {
 
     // Return session details
     return new Response(JSON.stringify({ 
-      clientSecret: session.client_secret,
-      sessionId: session.id,
-      url: session.url 
+      url: paystackData.data.authorization_url,
+      reference: paystackData.data.reference,
+      sessionId: paystackData.data.reference
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,

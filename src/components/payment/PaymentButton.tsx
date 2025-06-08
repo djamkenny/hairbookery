@@ -1,13 +1,13 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { CreditCard, Loader2 } from "lucide-react";
+import { CreditCard, Loader2, Smartphone } from "lucide-react";
 import { usePayment } from "./PaymentProvider";
 
 interface PaymentButtonProps {
   amount: number;
   description: string;
-  priceId?: string; // Optional Stripe price ID
+  priceId?: string; // Not used with Paystack
   serviceId?: string;
   appointmentId?: string;
   className?: string;
@@ -34,10 +34,12 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
         throw new Error("Invalid amount");
       }
       
-      const result = await createPayment(amount, description, priceId);
+      // Convert to pesewas for Paystack
+      const amountInPesewas = Math.round(amount * 100);
+      const result = await createPayment(amountInPesewas, description);
       
       if (result?.url) {
-        // Open checkout in new tab (similar to your Flask setup)
+        // Open Paystack checkout in new tab
         window.open(result.url, '_blank');
       }
     } catch (error) {
@@ -60,8 +62,8 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
         </>
       ) : (
         <>
-          <CreditCard className="mr-2 h-4 w-4" />
-          {children || `Pay $${(amount / 100).toFixed(2)}`}
+          <Smartphone className="mr-2 h-4 w-4" />
+          {children || `Pay GH₵${amount.toFixed(2)}`}
         </>
       )}
     </Button>

@@ -9,7 +9,7 @@ interface PaymentContextType {
   subscriptionEnd: string | null;
   loading: boolean;
   checkSubscription: () => Promise<void>;
-  createPayment: (amount: number, description: string, priceId?: string) => Promise<{ clientSecret: string; sessionId: string; url: string } | null>;
+  createPayment: (amount: number, description: string, priceId?: string) => Promise<{ url: string; sessionId: string; reference: string } | null>;
   createSubscription: (priceId: string, planType: string) => Promise<string | null>;
   openCustomerPortal: () => Promise<void>;
   checkSessionStatus: (sessionId: string) => Promise<{ status: string; customer_email: string } | null>;
@@ -54,27 +54,34 @@ export const PaymentProvider: React.FC<PaymentProviderProps> = ({ children }) =>
     }
   };
 
-  // Create one-time payment (based on your Flask /create-checkout-session)
+  // Create one-time payment using Paystack
   const createPayment = async (
     amount: number, 
     description: string, 
     priceId?: string
-  ): Promise<{ clientSecret: string; sessionId: string; url: string } | null> => {
+  ): Promise<{ url: string; sessionId: string; reference: string } | null> => {
     try {
       if (amount <= 0) {
         throw new Error("Amount must be positive");
       }
 
+      // Convert amount to pesewas (Paystack expects smallest currency unit)
+      const amountInPesewas = Math.round(amount);
+
       const { data, error } = await supabase.functions.invoke('create-payment', {
-        body: { amount, description, priceId }
+        body: { 
+          amount: amountInPesewas, 
+          description, 
+          currency: 'GHS' // Ghana Cedis
+        }
       });
       
       if (error) throw error;
       
       return {
-        clientSecret: data.clientSecret,
+        url: data.url,
         sessionId: data.sessionId,
-        url: data.url
+        reference: data.reference
       };
     } catch (error) {
       console.error("Payment creation failed:", error);
@@ -83,7 +90,7 @@ export const PaymentProvider: React.FC<PaymentProviderProps> = ({ children }) =>
     }
   };
 
-  // Check session status (based on your Flask /session-status)
+  // Check session status using Paystack verification
   const checkSessionStatus = async (sessionId: string): Promise<{ status: string; customer_email: string } | null> => {
     try {
       const { data, error } = await supabase.functions.invoke('session-status', {
@@ -103,16 +110,12 @@ export const PaymentProvider: React.FC<PaymentProviderProps> = ({ children }) =>
     }
   };
 
-  // Create subscription
+  // Create subscription (placeholder - Paystack subscriptions work differently)
   const createSubscription = async (priceId: string, planType: string): Promise<string | null> => {
     try {
-      const { data, error } = await supabase.functions.invoke('create-subscription', {
-        body: { priceId, planType }
-      });
-      
-      if (error) throw error;
-      
-      return data.url;
+      // Note: Paystack subscriptions require different setup
+      toast.info("Subscription feature coming soon with Paystack");
+      return null;
     } catch (error) {
       console.error("Subscription creation failed:", error);
       toast.error("Failed to create subscription");
@@ -120,14 +123,10 @@ export const PaymentProvider: React.FC<PaymentProviderProps> = ({ children }) =>
     }
   };
 
-  // Open customer portal
+  // Open customer portal (Paystack doesn't have equivalent, redirect to dashboard)
   const openCustomerPortal = async () => {
     try {
-      const { data, error } = await supabase.functions.invoke('customer-portal');
-      
-      if (error) throw error;
-      
-      window.open(data.url, '_blank');
+      toast.info("Please contact support for subscription management");
     } catch (error) {
       console.error("Portal creation failed:", error);
       toast.error("Failed to open customer portal");
