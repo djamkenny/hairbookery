@@ -1,87 +1,71 @@
 
 import React from "react";
-import { Card } from "@/components/ui/card";
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { User, Calendar, Users, Scissors, Settings, DollarSign } from "lucide-react";
 
 interface DashboardTabsProps {
   breakpoint: string;
 }
 
 const DashboardTabs: React.FC<DashboardTabsProps> = ({ breakpoint }) => {
+  const isMobile = breakpoint === "xs" || breakpoint === "sm";
+  
   return (
-    <Card className="border border-border/40 w-full overflow-x-auto">
-      <TabsList className="w-full justify-start p-0 h-auto bg-transparent border-b border-border/40 rounded-none overflow-x-auto">
-        {['xxs', 'xs'].includes(breakpoint) ? (
-          // For very small screens, make tabs scrollable
-          <div className="flex overflow-x-auto hide-scrollbar min-w-full">
-            <TabsTrigger 
-              value="profile" 
-              className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3 px-4 whitespace-nowrap"
-            >
-              Profile
-            </TabsTrigger>
-            <TabsTrigger 
-              value="appointments" 
-              className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3 px-4 whitespace-nowrap"
-            >
-              Appointments
-            </TabsTrigger>
-            <TabsTrigger 
-              value="clients" 
-              className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3 px-4 whitespace-nowrap"
-            >
-              Clients
-            </TabsTrigger>
-            <TabsTrigger 
-              value="services" 
-              className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3 px-4 whitespace-nowrap"
-            >
-              Services
-            </TabsTrigger>
-            <TabsTrigger 
-              value="settings" 
-              className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3 px-4 whitespace-nowrap"
-            >
-              Settings
-            </TabsTrigger>
-          </div>
-        ) : (
-          // For larger screens, flex display
-          <>
-            <TabsTrigger 
-              value="profile" 
-              className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3 px-6"
-            >
-              Profile
-            </TabsTrigger>
-            <TabsTrigger 
-              value="appointments" 
-              className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3 px-6"
-            >
-              Appointments
-            </TabsTrigger>
-            <TabsTrigger 
-              value="clients" 
-              className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3 px-6"
-            >
-              Clients
-            </TabsTrigger>
-            <TabsTrigger 
-              value="services" 
-              className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3 px-6"
-            >
-              Services
-            </TabsTrigger>
-            <TabsTrigger 
-              value="settings" 
-              className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary py-3 px-6"
-            >
-              Settings
-            </TabsTrigger>
-          </>
-        )}
-      </TabsList>
-    </Card>
+    <TabsList className={`grid w-full ${isMobile ? 'grid-cols-3' : 'grid-cols-6'} h-auto p-1`}>
+      <TabsTrigger 
+        value="profile" 
+        className={`flex ${isMobile ? 'flex-col' : 'flex-row'} items-center gap-1 px-2 py-2 text-xs`}
+      >
+        <User className="h-4 w-4" />
+        {!isMobile && <span>Profile</span>}
+        {isMobile && <span className="text-xs">Profile</span>}
+      </TabsTrigger>
+      
+      <TabsTrigger 
+        value="appointments" 
+        className={`flex ${isMobile ? 'flex-col' : 'flex-row'} items-center gap-1 px-2 py-2 text-xs`}
+      >
+        <Calendar className="h-4 w-4" />
+        {!isMobile && <span>Appointments</span>}
+        {isMobile && <span className="text-xs">Bookings</span>}
+      </TabsTrigger>
+      
+      <TabsTrigger 
+        value="clients" 
+        className={`flex ${isMobile ? 'flex-col' : 'flex-row'} items-center gap-1 px-2 py-2 text-xs`}
+      >
+        <Users className="h-4 w-4" />
+        {!isMobile && <span>Clients</span>}
+        {isMobile && <span className="text-xs">Clients</span>}
+      </TabsTrigger>
+      
+      <TabsTrigger 
+        value="services" 
+        className={`flex ${isMobile ? 'flex-col' : 'flex-row'} items-center gap-1 px-2 py-2 text-xs`}
+      >
+        <Scissors className="h-4 w-4" />
+        {!isMobile && <span>Services</span>}
+        {isMobile && <span className="text-xs">Services</span>}
+      </TabsTrigger>
+      
+      <TabsTrigger 
+        value="earnings" 
+        className={`flex ${isMobile ? 'flex-col' : 'flex-row'} items-center gap-1 px-2 py-2 text-xs`}
+      >
+        <DollarSign className="h-4 w-4" />
+        {!isMobile && <span>Earnings</span>}
+        {isMobile && <span className="text-xs">Earnings</span>}
+      </TabsTrigger>
+      
+      <TabsTrigger 
+        value="settings" 
+        className={`flex ${isMobile ? 'flex-col' : 'flex-row'} items-center gap-1 px-2 py-2 text-xs`}
+      >
+        <Settings className="h-4 w-4" />
+        {!isMobile && <span>Settings</span>}
+        {isMobile && <span className="text-xs">Settings</span>}
+      </TabsTrigger>
+    </TabsList>
   );
 };
 

@@ -21,9 +21,12 @@ serve(async (req) => {
       throw new Error("session_id (reference) is required");
     }
 
+    console.log("Checking payment status for session:", session_id);
+
     // Get Paystack secret key
     const paystackSecretKey = Deno.env.get("PAYSTACK_SECRET_KEY");
     if (!paystackSecretKey) {
+      console.error("Paystack secret key not configured");
       throw new Error("Paystack secret key not configured");
     }
 
@@ -37,41 +40,70 @@ serve(async (req) => {
     });
 
     const verifyData = await verifyResponse.json();
+    console.log("Paystack verification response:", verifyData);
 
     if (!verifyData.status) {
+      console.error("Paystack verification failed:", verifyData.message);
       throw new Error(verifyData.message || "Failed to verify transaction");
     }
 
     const transaction = verifyData.data;
+    console.log("Transaction status:", transaction.status);
+
+    // Initialize Supabase service client
+    const supabaseService = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      { auth: { persistSession: false } }
+    );
 
     // Update payment status in database if completed
     if (transaction.status === 'success') {
-      const supabaseService = createClient(
-        Deno.env.get("SUPABASE_URL") ?? "",
-        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-        { auth: { persistSession: false } }
-      );
-
-      await supabaseService
+      console.log("Updating payment status to completed for session:", session_id);
+      
+      const { error: updateError } = await supabaseService
         .from("payments")
         .update({ 
           status: 'completed',
-          stripe_payment_intent_id: transaction.id
+          stripe_payment_intent_id: transaction.id,
+          updated_at: new Date().toISOString()
         })
         .eq('stripe_session_id', session_id);
+
+      if (updateError) {
+        console.error("Failed to update payment status:", updateError);
+      } else {
+        console.log("Payment status updated successfully");
+      }
+    }
+
+    // Map Paystack status to our status
+    let paymentStatus = 'pending';
+    if (transaction.status === 'success') {
+      paymentStatus = 'complete';
+    } else if (transaction.status === 'failed') {
+      paymentStatus = 'failed';
+    } else if (transaction.status === 'abandoned') {
+      paymentStatus = 'canceled';
     }
 
     // Return status and customer email
     return new Response(JSON.stringify({ 
-      status: transaction.status === 'success' ? 'complete' : transaction.status,
-      customer_email: transaction.customer?.email || ''
+      status: paymentStatus,
+      customer_email: transaction.customer?.email || '',
+      transaction_reference: transaction.reference,
+      amount: transaction.amount,
+      currency: transaction.currency
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
   } catch (error) {
     console.error("Session status check failed:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ 
+      error: error.message,
+      status: 'failed' 
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });
