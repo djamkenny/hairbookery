@@ -11,7 +11,7 @@ const services = [
     description: "Precision cut and professional styling to create the perfect look for your face shape and preferences.",
     price: "GHS40+",
     duration: "45 mins",
-    image: "",
+    image: "./images/5911382752316475202.jpg",
     category: "hair"
   },
   {
