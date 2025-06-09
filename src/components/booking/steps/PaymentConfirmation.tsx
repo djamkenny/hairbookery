@@ -21,8 +21,7 @@ const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
   time,
   handlePaymentSuccess,
   handleGoBack,
-  isSubmitting,
-  appointmentId
+  isSubmitting
 }) => {
   return (
     <div className="space-y-6">
@@ -69,7 +68,7 @@ const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            Click the button below to proceed with payment for your appointment.
+            Click the button below to proceed with payment for your appointment. Your appointment will only be created after successful payment.
           </p>
           
           <div className="flex gap-3">
@@ -87,7 +86,6 @@ const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
                 amount={selectedService?.price || 0}
                 description={`Appointment: ${selectedService?.name}`}
                 serviceId={selectedService?.id}
-                appointmentId={appointmentId}
                 className="w-full"
                 onPaymentSuccess={handlePaymentSuccess}
               />

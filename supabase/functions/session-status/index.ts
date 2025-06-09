@@ -44,7 +44,13 @@ serve(async (req) => {
 
     if (!verifyData.status) {
       console.error("Paystack verification failed:", verifyData.message);
-      throw new Error(verifyData.message || "Failed to verify transaction");
+      return new Response(JSON.stringify({ 
+        status: 'failed',
+        error: verifyData.message || "Failed to verify transaction" 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
     }
 
     const transaction = verifyData.data;
@@ -69,7 +75,7 @@ serve(async (req) => {
           updated_at: new Date().toISOString()
         })
         .eq('stripe_session_id', session_id)
-        .select('id, appointment_id, user_id, amount')
+        .select('id, appointment_id, user_id, amount, service_id')
         .single();
 
       if (updateError) {
@@ -78,21 +84,21 @@ serve(async (req) => {
         console.log("Payment status updated successfully", paymentData);
         
         // Process earnings immediately after payment completion
-        if (paymentData?.id && paymentData?.appointment_id) {
+        if (paymentData?.id && paymentData?.service_id) {
           try {
             console.log("Processing earnings for payment:", paymentData.id);
             
-            // Get appointment details to find the stylist
-            const { data: appointmentData, error: appointmentError } = await supabaseService
-              .from("appointments")
-              .select("stylist_id, service_id")
-              .eq("id", paymentData.appointment_id)
+            // Get service details to find the stylist
+            const { data: serviceData, error: serviceError } = await supabaseService
+              .from("services")
+              .select("stylist_id")
+              .eq("id", paymentData.service_id)
               .single();
 
-            if (appointmentError || !appointmentData?.stylist_id) {
-              console.error("Failed to get appointment details:", appointmentError);
+            if (serviceError || !serviceData?.stylist_id) {
+              console.error("Failed to get service details:", serviceError);
             } else {
-              console.log("Found stylist for appointment:", appointmentData.stylist_id);
+              console.log("Found stylist for service:", serviceData.stylist_id);
               
               // Check if earnings record already exists
               const { data: existingEarning } = await supabaseService
@@ -114,14 +120,14 @@ serve(async (req) => {
                   grossAmount,
                   platformFee,
                   netAmount,
-                  stylist_id: appointmentData.stylist_id
+                  stylist_id: serviceData.stylist_id
                 });
 
                 // Create earnings record
                 const { error: earningsError } = await supabaseService
                   .from("specialist_earnings")
                   .insert({
-                    stylist_id: appointmentData.stylist_id,
+                    stylist_id: serviceData.stylist_id,
                     appointment_id: paymentData.appointment_id,
                     payment_id: paymentData.id,
                     gross_amount: grossAmount,
@@ -161,7 +167,8 @@ serve(async (req) => {
       customer_email: transaction.customer?.email || '',
       transaction_reference: transaction.reference,
       amount: transaction.amount,
-      currency: transaction.currency
+      currency: transaction.currency,
+      success: transaction.status === 'success'
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,

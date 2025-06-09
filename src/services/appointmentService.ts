@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { Appointment } from "@/types/appointment";
 import { format } from "date-fns";
@@ -73,7 +74,7 @@ export const fetchStylistAppointments = async (): Promise<Appointment[]> => {
         clientPhone: clientProfile.phone,
         client_id: appointment.client_id,
         order_id: appointment.order_id || undefined,
-        updated_at: appointment.updated_at
+        created_at: appointment.created_at
       };
     });
     

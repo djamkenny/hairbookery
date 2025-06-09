@@ -23,7 +23,6 @@ export const useBookingForm = () => {
   
   // Step state
   const [step, setStep] = useState(1);
-  const [appointmentId, setAppointmentId] = useState<string | null>(null);
 
   // Derived state
   const selectedService = services.find(s => s.id === service);
@@ -99,33 +98,22 @@ export const useBookingForm = () => {
     setIsSubmitting(true);
     
     try {
-      // Create appointment record
-      const { data: appointmentData, error: appointmentError } = await supabase
-        .from('appointments')
-        .insert({
-          client_id: currentUser.id,
-          service_id: service,
-          stylist_id: stylist,
-          appointment_date: date.toISOString().split('T')[0],
-          appointment_time: time,
-          notes: notes || null,
-          status: 'pending'
-        })
-        .select()
-        .single();
-        
-      if (appointmentError) throw appointmentError;
+      // Store booking details in localStorage for after payment
+      localStorage.setItem('serviceId', service);
+      localStorage.setItem('stylistId', stylist);
+      localStorage.setItem('appointmentDate', date.toISOString().split('T')[0]);
+      localStorage.setItem('appointmentTime', time);
+      localStorage.setItem('appointmentNotes', notes || '');
       
-      console.log('Appointment created:', appointmentData);
-      setAppointmentId(appointmentData.id);
+      console.log('Booking details stored for payment completion');
       
       // Move to payment step
       setStep(2);
       toast.success('Appointment details saved! Please complete payment.');
       
     } catch (error: any) {
-      console.error('Error creating appointment:', error);
-      toast.error('Failed to create appointment: ' + error.message);
+      console.error('Error preparing booking:', error);
+      toast.error('Failed to prepare booking: ' + error.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -133,20 +121,7 @@ export const useBookingForm = () => {
 
   const handlePaymentSuccess = async () => {
     try {
-      if (!appointmentId) {
-        toast.error('No appointment found');
-        return;
-      }
-      
-      // Update appointment status to confirmed after payment
-      const { error } = await supabase
-        .from('appointments')
-        .update({ status: 'confirmed' })
-        .eq('id', appointmentId);
-        
-      if (error) throw error;
-      
-      toast.success('Appointment booked successfully!');
+      toast.success('Payment completed! Your appointment has been booked.');
       
       // Reset form
       setDate(undefined);
@@ -155,11 +130,10 @@ export const useBookingForm = () => {
       setTime('');
       setNotes('');
       setStep(1);
-      setAppointmentId(null);
       
     } catch (error: any) {
-      console.error('Error updating appointment:', error);
-      toast.error('Payment successful but failed to confirm appointment');
+      console.error('Error completing booking:', error);
+      toast.error('Payment successful but there was an issue finalizing the appointment');
     }
   };
 
@@ -199,7 +173,7 @@ export const useBookingForm = () => {
     
     // Step state
     step,
-    appointmentId,
+    appointmentId: null, // Will be created after payment
     
     // Handlers
     handleSubmit,

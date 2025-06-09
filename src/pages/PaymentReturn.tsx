@@ -25,41 +25,67 @@ const PaymentReturn = () => {
           return;
         }
 
+        console.log('Checking payment status for reference:', reference);
+
         // Call our session status function to verify payment
         const { data, error } = await supabase.functions.invoke('session-status', {
           body: { session_id: reference }
         });
 
+        console.log('Payment verification response:', data, error);
+
         if (error) {
           console.error('Payment verification error:', error);
           setError('Failed to verify payment status');
-        } else if (data?.success) {
+        } else if (data?.status === 'complete') {
           setSuccess(true);
           toast.success('Payment successful!');
           
           // Check if there's a pending appointment confirmation
           const hasCallback = localStorage.getItem('paymentSuccessCallback');
           const appointmentId = localStorage.getItem('appointmentId');
+          const serviceId = localStorage.getItem('serviceId');
           
-          if (hasCallback && appointmentId) {
-            // Update appointment status to confirmed
-            const { error: updateError } = await supabase
-              .from('appointments')
-              .update({ status: 'confirmed' })
-              .eq('id', appointmentId);
-              
-            if (updateError) {
-              console.error('Error confirming appointment:', updateError);
-            } else {
-              toast.success('Appointment confirmed!');
+          if (hasCallback && serviceId) {
+            // Get current user
+            const { data: { user } } = await supabase.auth.getUser();
+            
+            if (user) {
+              // Create appointment after successful payment
+              const { data: appointmentData, error: appointmentError } = await supabase
+                .from('appointments')
+                .insert({
+                  client_id: user.id,
+                  service_id: serviceId,
+                  stylist_id: localStorage.getItem('stylistId') || '',
+                  appointment_date: localStorage.getItem('appointmentDate') || '',
+                  appointment_time: localStorage.getItem('appointmentTime') || '',
+                  notes: localStorage.getItem('appointmentNotes') || '',
+                  status: 'confirmed'
+                })
+                .select()
+                .single();
+                
+              if (appointmentError) {
+                console.error('Error creating appointment:', appointmentError);
+                toast.error('Payment successful but failed to create appointment');
+              } else {
+                console.log('Appointment created successfully:', appointmentData);
+                toast.success('Appointment booked successfully!');
+              }
             }
             
             // Clean up localStorage
             localStorage.removeItem('paymentSuccessCallback');
             localStorage.removeItem('appointmentId');
+            localStorage.removeItem('serviceId');
+            localStorage.removeItem('stylistId');
+            localStorage.removeItem('appointmentDate');
+            localStorage.removeItem('appointmentTime');
+            localStorage.removeItem('appointmentNotes');
           }
         } else {
-          setError('Payment was not successful');
+          setError(data?.status === 'failed' ? 'Payment was declined' : 'Payment was not successful');
         }
       } catch (err) {
         console.error('Error checking payment status:', err);
@@ -72,29 +98,31 @@ const PaymentReturn = () => {
     checkPaymentStatus();
   }, [searchParams]);
 
-  const handleContinue = () => {
-    const { data: { user } } = supabase.auth.getUser();
-    
-    // Navigate based on user type
-    user.then(({ user }) => {
+  const handleContinue = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      // Navigate based on user type
       if (user) {
         // Check if user is stylist
-        supabase
+        const { data } = await supabase
           .from('profiles')
           .select('is_stylist')
           .eq('id', user.id)
-          .single()
-          .then(({ data }) => {
-            if (data?.is_stylist) {
-              navigate('/stylist-dashboard');
-            } else {
-              navigate('/profile');
-            }
-          });
+          .single();
+          
+        if (data?.is_stylist) {
+          navigate('/stylist-dashboard');
+        } else {
+          navigate('/profile');
+        }
       } else {
         navigate('/');
       }
-    });
+    } catch (error) {
+      console.error('Navigation error:', error);
+      navigate('/');
+    }
   };
 
   if (loading) {

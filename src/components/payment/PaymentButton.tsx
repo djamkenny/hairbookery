@@ -40,16 +40,14 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
       
       // Convert to pesewas for Paystack
       const amountInPesewas = Math.round(amount * 100);
-      const result = await createPayment(amountInPesewas, description, {
-        service_id: serviceId,
-        appointment_id: appointmentId
-      });
+      const result = await createPayment(amountInPesewas, description);
       
       if (result?.url) {
         // Store payment success callback in localStorage for PaymentReturn page
         if (onPaymentSuccess) {
           localStorage.setItem('paymentSuccessCallback', 'true');
           localStorage.setItem('appointmentId', appointmentId || '');
+          localStorage.setItem('serviceId', serviceId || '');
         }
         
         // Mobile-friendly payment handling
