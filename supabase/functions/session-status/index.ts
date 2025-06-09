@@ -69,31 +69,74 @@ serve(async (req) => {
           updated_at: new Date().toISOString()
         })
         .eq('stripe_session_id', session_id)
-        .select('appointment_id, user_id, amount')
+        .select('id, appointment_id, user_id, amount')
         .single();
 
       if (updateError) {
         console.error("Failed to update payment status:", updateError);
       } else {
-        console.log("Payment status updated successfully");
+        console.log("Payment status updated successfully", paymentData);
         
         // Process earnings immediately after payment completion
-        if (paymentData?.appointment_id) {
+        if (paymentData?.id && paymentData?.appointment_id) {
           try {
-            console.log("Processing earnings for appointment:", paymentData.appointment_id);
+            console.log("Processing earnings for payment:", paymentData.id);
             
-            const { error: earningsError } = await supabaseService.functions.invoke('process-earnings', {
-              body: { 
-                payment_id: paymentData.appointment_id,
-                appointment_id: paymentData.appointment_id,
-                platform_fee_percentage: 15 
-              }
-            });
-            
-            if (earningsError) {
-              console.error("Failed to process earnings:", earningsError);
+            // Get appointment details to find the stylist
+            const { data: appointmentData, error: appointmentError } = await supabaseService
+              .from("appointments")
+              .select("stylist_id, service_id")
+              .eq("id", paymentData.appointment_id)
+              .single();
+
+            if (appointmentError || !appointmentData?.stylist_id) {
+              console.error("Failed to get appointment details:", appointmentError);
             } else {
-              console.log("Earnings processed successfully");
+              console.log("Found stylist for appointment:", appointmentData.stylist_id);
+              
+              // Check if earnings record already exists
+              const { data: existingEarning } = await supabaseService
+                .from("specialist_earnings")
+                .select("id")
+                .eq("payment_id", paymentData.id)
+                .single();
+
+              if (existingEarning) {
+                console.log("Earnings record already exists for payment:", paymentData.id);
+              } else {
+                // Calculate earnings (15% platform fee)
+                const grossAmount = paymentData.amount;
+                const platformFeePercentage = 15;
+                const platformFee = Math.round(grossAmount * (platformFeePercentage / 100));
+                const netAmount = grossAmount - platformFee;
+
+                console.log("Creating earnings record:", {
+                  grossAmount,
+                  platformFee,
+                  netAmount,
+                  stylist_id: appointmentData.stylist_id
+                });
+
+                // Create earnings record
+                const { error: earningsError } = await supabaseService
+                  .from("specialist_earnings")
+                  .insert({
+                    stylist_id: appointmentData.stylist_id,
+                    appointment_id: paymentData.appointment_id,
+                    payment_id: paymentData.id,
+                    gross_amount: grossAmount,
+                    platform_fee: platformFee,
+                    net_amount: netAmount,
+                    platform_fee_percentage: platformFeePercentage,
+                    status: 'available' // Make immediately available for withdrawal
+                  });
+
+                if (earningsError) {
+                  console.error("Failed to create earnings record:", earningsError);
+                } else {
+                  console.log("Earnings record created successfully");
+                }
+              }
             }
           } catch (earningsProcessingError) {
             console.error("Error processing earnings:", earningsProcessingError);

@@ -37,16 +37,19 @@ serve(async (req) => {
       .single();
 
     if (paymentError || !payment) {
+      console.error("Payment not found or not completed:", paymentError);
       throw new Error("Payment not found or not completed");
     }
 
     // Get appointment details to find the stylist
     let stylist_id = null;
-    if (appointment_id) {
+    let actual_appointment_id = appointment_id || payment.appointment_id;
+    
+    if (actual_appointment_id) {
       const { data: appointment, error: appointmentError } = await supabaseService
         .from("appointments")
         .select("stylist_id")
-        .eq("id", appointment_id)
+        .eq("id", actual_appointment_id)
         .single();
 
       if (!appointmentError && appointment) {
@@ -82,12 +85,19 @@ serve(async (req) => {
     const platformFee = Math.round(grossAmount * (platform_fee_percentage / 100));
     const netAmount = grossAmount - platformFee;
 
+    console.log("Creating earnings record:", {
+      stylist_id,
+      grossAmount,
+      platformFee,
+      netAmount
+    });
+
     // Create earnings record
     const { error: earningsError } = await supabaseService
       .from("specialist_earnings")
       .insert({
         stylist_id: stylist_id,
-        appointment_id: appointment_id,
+        appointment_id: actual_appointment_id,
         payment_id: payment_id,
         gross_amount: grossAmount,
         platform_fee: platformFee,
