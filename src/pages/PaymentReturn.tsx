@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, XCircle, Loader2, AlertCircle } from "lucide-react";
 import { usePayment } from "@/components/payment/PaymentProvider";
+import { useIsMobile } from "@/hooks/use-mobile";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { toast } from "sonner";
@@ -17,6 +18,7 @@ const PaymentReturn = () => {
   const [customerEmail, setCustomerEmail] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
+  const isMobile = useIsMobile();
 
   const checkPaymentStatus = async (sessionId: string, attempt = 1) => {
     console.log(`Checking payment status, attempt ${attempt}`);
@@ -30,6 +32,11 @@ const PaymentReturn = () => {
         
         if (result.status === 'complete') {
           toast.success("Payment completed successfully!");
+          
+          // On mobile, provide clear feedback about the completion
+          if (isMobile) {
+            toast.success("🎉 Payment successful! Your appointment is confirmed.");
+          }
         } else if (result.status === 'failed') {
           toast.error("Payment failed. Please try again.");
         }
@@ -95,14 +102,16 @@ const PaymentReturn = () => {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       
-      <main className="flex-grow py-16 md:py-20">
+      <main className="flex-grow py-8 md:py-16">
         <div className="container mx-auto max-w-md px-4">
           <Card>
             <CardHeader className="text-center">
               <div className="flex justify-center mb-4">
                 {getStatusIcon()}
               </div>
-              <CardTitle className="text-xl">{getStatusMessage()}</CardTitle>
+              <CardTitle className={`text-lg md:text-xl ${isMobile ? 'text-base' : ''}`}>
+                {getStatusMessage()}
+              </CardTitle>
             </CardHeader>
             
             <CardContent className="text-center space-y-4">
@@ -122,17 +131,17 @@ const PaymentReturn = () => {
                 </p>
               )}
               
-              <div className="flex gap-3 mt-6">
+              <div className={`flex gap-3 mt-6 ${isMobile ? 'flex-col' : ''}`}>
                 <Button 
                   variant="outline" 
                   onClick={() => navigate('/booking')}
-                  className="flex-1"
+                  className={isMobile ? 'w-full' : 'flex-1'}
                 >
                   Book Again
                 </Button>
                 <Button 
                   onClick={() => navigate('/profile')}
-                  className="flex-1"
+                  className={isMobile ? 'w-full' : 'flex-1'}
                 >
                   View Appointments
                 </Button>

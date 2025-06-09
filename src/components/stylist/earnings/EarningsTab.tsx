@@ -46,7 +46,7 @@ const EarningsTab = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Fetch earnings data using the new RPC function
+      // Fetch earnings data using the RPC function
       const { data: earningsData, error: earningsError } = await supabase
         .rpc('get_stylist_earnings', { stylist_uuid: user.id });
 
@@ -54,12 +54,11 @@ const EarningsTab = () => {
         console.error("Earnings error:", earningsError);
         setEarnings([]);
       } else {
-        // Type assertion since we know the structure from our RPC function
         const typedEarnings = (earningsData as any[]) || [];
         setEarnings(typedEarnings);
       }
 
-      // Fetch withdrawals data using the new RPC function
+      // Fetch withdrawals data using the RPC function
       const { data: withdrawalsData, error: withdrawalsError } = await supabase
         .rpc('get_stylist_withdrawals', { stylist_uuid: user.id });
 
@@ -67,7 +66,6 @@ const EarningsTab = () => {
         console.error("Withdrawals error:", withdrawalsError);
         setWithdrawalRequests([]);
       } else {
-        // Type assertion since we know the structure from our RPC function
         const typedWithdrawals = (withdrawalsData as any[]) || [];
         setWithdrawalRequests(typedWithdrawals);
       }
@@ -104,8 +102,59 @@ const EarningsTab = () => {
     }
   };
 
+  // Real-time updates for earnings
   useEffect(() => {
     fetchEarningsData();
+
+    // Set up real-time subscriptions for earnings updates
+    const earningsChannel = supabase
+      .channel('earnings-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'specialist_earnings'
+        },
+        () => {
+          console.log('Earnings updated, refreshing data...');
+          fetchEarningsData();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'withdrawal_requests'
+        },
+        () => {
+          console.log('Withdrawal requests updated, refreshing data...');
+          fetchEarningsData();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'payments'
+        },
+        () => {
+          console.log('Payments updated, refreshing earnings...');
+          // Small delay to ensure related earnings records are created
+          setTimeout(fetchEarningsData, 1000);
+        }
+      )
+      .subscribe();
+
+    // Auto-refresh every 30 seconds as backup
+    const refreshInterval = setInterval(fetchEarningsData, 30000);
+
+    return () => {
+      supabase.removeChannel(earningsChannel);
+      clearInterval(refreshInterval);
+    };
   }, []);
 
   const formatAmount = (amount: number) => `GH₵${(amount / 100).toFixed(2)}`;
@@ -146,8 +195,16 @@ const EarningsTab = () => {
 
         <TabsContent value="overview" className="space-y-4">
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Recent Earnings</CardTitle>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={fetchEarningsData}
+                disabled={loading}
+              >
+                Refresh
+              </Button>
             </CardHeader>
             <CardContent>
               {earnings.length === 0 ? (

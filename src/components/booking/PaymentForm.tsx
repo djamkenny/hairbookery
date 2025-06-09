@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CreditCard, Loader2, Smartphone } from "lucide-react";
 import { usePayment } from "@/components/payment/PaymentProvider";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "sonner";
 
 interface PaymentFormProps {
@@ -21,6 +22,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
 }) => {
   const [processing, setProcessing] = useState(false);
   const { createPayment } = usePayment();
+  const isMobile = useIsMobile();
 
   const handlePayment = async () => {
     try {
@@ -37,14 +39,23 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
       const result = await createPayment(amountInPesewas, "Appointment Payment");
       
       if (result?.url) {
-        // Open Paystack checkout in new tab
-        window.open(result.url, '_blank');
-        
-        // Simulate success for demo - in real app, you'd wait for webhook or redirect
-        setTimeout(() => {
-          onSuccess();
-          toast.success("Payment initiated successfully! Complete payment in the new tab.");
-        }, 2000);
+        // Mobile-friendly payment handling
+        if (isMobile) {
+          // On mobile, redirect in the same tab for better UX
+          toast.success("Redirecting to payment page...");
+          setTimeout(() => {
+            window.location.href = result.url;
+          }, 1000);
+        } else {
+          // On desktop, open in new tab
+          window.open(result.url, '_blank');
+          
+          // Simulate success for demo - in real app, you'd wait for webhook or redirect
+          setTimeout(() => {
+            onSuccess();
+            toast.success("Payment initiated successfully! Complete payment in the new tab.");
+          }, 2000);
+        }
       }
     } catch (error) {
       console.error("Payment failed:", error);
@@ -81,6 +92,14 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
             <li>• Bank Transfer & USSD</li>
           </ul>
         </div>
+
+        {isMobile && (
+          <div className="bg-green-50 p-3 rounded-lg text-sm">
+            <p className="text-green-800">
+              📱 You'll be redirected to Paystack's secure mobile payment page
+            </p>
+          </div>
+        )}
         
         <div className="flex gap-3">
           <Button 
@@ -100,7 +119,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
             {processing ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Processing...
+                {isMobile ? "Redirecting..." : "Processing..."}
               </>
             ) : (
               <>

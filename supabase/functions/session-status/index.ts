@@ -61,19 +61,44 @@ serve(async (req) => {
     if (transaction.status === 'success') {
       console.log("Updating payment status to completed for session:", session_id);
       
-      const { error: updateError } = await supabaseService
+      const { data: paymentData, error: updateError } = await supabaseService
         .from("payments")
         .update({ 
           status: 'completed',
           stripe_payment_intent_id: transaction.id,
           updated_at: new Date().toISOString()
         })
-        .eq('stripe_session_id', session_id);
+        .eq('stripe_session_id', session_id)
+        .select('appointment_id, user_id, amount')
+        .single();
 
       if (updateError) {
         console.error("Failed to update payment status:", updateError);
       } else {
         console.log("Payment status updated successfully");
+        
+        // Process earnings immediately after payment completion
+        if (paymentData?.appointment_id) {
+          try {
+            console.log("Processing earnings for appointment:", paymentData.appointment_id);
+            
+            const { error: earningsError } = await supabaseService.functions.invoke('process-earnings', {
+              body: { 
+                payment_id: paymentData.appointment_id,
+                appointment_id: paymentData.appointment_id,
+                platform_fee_percentage: 15 
+              }
+            });
+            
+            if (earningsError) {
+              console.error("Failed to process earnings:", earningsError);
+            } else {
+              console.log("Earnings processed successfully");
+            }
+          } catch (earningsProcessingError) {
+            console.error("Error processing earnings:", earningsProcessingError);
+          }
+        }
       }
     }
 
