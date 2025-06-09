@@ -6,15 +6,15 @@ import ReviewCard from "@/components/ui/ReviewCard";
 const reviews = [
   {
     id: 1,
-    name: "Jasmine Williams",
+    name: "Larichica",
     date: "2 weeks ago",
     rating: 5,
-    comment: "Amara did an amazing job with my braids! She took her time to ensure they were neat and not too tight. Will definitely be back!",
+    comment: "I really enjoy this site, it's easy to navigate, very professional and excessible for timely appointment and pay",
     image: "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80"
   },
   {
     id: 2,
-    name: "Marcus Johnson",
+    name: "",
     date: "1 month ago",
     rating: 5,
     comment: "Malik is the best barber I've ever had. Perfect fade every time and his beard work is exceptional. Highly recommend!",

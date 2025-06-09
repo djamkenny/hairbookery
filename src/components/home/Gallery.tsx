@@ -7,32 +7,32 @@ import { useIsMobile } from "@/hooks/use-mobile";
 const galleryImages = [
   {
     id: 1,
-    image: "https://images.unsplash.com/photo-1605497788044-5a32c7078486?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80",
+    image: "./images/boxbraid.jpg",
     caption: "Protective Box Braids"
   },
   {
     id: 2,
-    image: "https://images.unsplash.com/photo-1607748851687-ba2a3211cd6c?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80",
+    image: "./images/Afro.jpg",
     caption: "Natural Afro Style"
   },
   {
     id: 3,
-    image: "https://images.unsplash.com/photo-1594359850847-9bd25822c96c?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80",
+    image: "./images/Precision_Fade.jpg",
     caption: "Precision Fade"
   },
-  {
+  {  
     id: 4,
-    image: "https://images.unsplash.com/photo-1642413260555-fc4203d123da?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80",
-    caption: "Twist Out Curls"
+    image: "./images/twists.jpg",
+    caption: "Twist"
   },
   {
     id: 5,
-    image: "https://images.unsplash.com/photo-1585123334904-845d60e97b29?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80",
+    image: "./images/cornroll.jpg",
     caption: "Classic Cornrows"
   },
   {
     id: 6,
-    image: "https://images.unsplash.com/photo-1579427421635-a0015b804b2e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80",
+    image: "./images/locs.png",
     caption: "Loc Maintenance"
   }
 ];
