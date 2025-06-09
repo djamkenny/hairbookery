@@ -20,7 +20,7 @@ const services = [
     description: "Expert color services from subtle highlights to bold transformations using premium products.",
     price: "GHS400+",
     duration: "90 mins",
-    image: "",
+    image: "./images/Hair_Coloring.png",
     category: "hair"
   },
   {
@@ -29,7 +29,7 @@ const services = [
     description: "Hand-painted highlights that create a natural, sun-kissed look with seamless blending.",
     price: "GHS600+",
     duration: "120 mins",
-    image: "",
+    image: "./images/Balayage.png",
     category: "hair"
   },
   {
@@ -38,7 +38,7 @@ const services = [
     description: "Professional blow dry and styling to achieve smooth, voluminous, or textured finishes.",
     price: "GHS60+",
     duration: "30 mins",
-    image: "",
+    image: "./images/Blowout_Styling.png",
     category: "hair"
   },
   {
@@ -47,7 +47,7 @@ const services = [
     description: "Intensive treatment to repair damaged hair, restore moisture, and enhance shine.",
     price: "GHS60+",
     duration: "20 mins",
-    image: "",
+    image: "./images/Deep_Conditioning.png",
     category: "hair"
   },
   {
@@ -92,7 +92,7 @@ const services = [
     description: "Professional cleaning service for delicate fabrics and garments that require special care.",
     price: "GHS10+",
     duration: "24 hours",
-    image: "",
+    image: "./images/Dry_Cleaning.png",
     category: "laundry"
   },
   {
