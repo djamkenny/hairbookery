@@ -1,78 +1,69 @@
 
 import { useState, useEffect } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
-import { format } from "date-fns";
-import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export const useBookingForm = () => {
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const preselectedStylistId = searchParams.get("stylist");
-  
   // Form state
   const [date, setDate] = useState<Date | undefined>(undefined);
-  const [service, setService] = useState<string>("");
-  const [stylist, setStylist] = useState<string>(preselectedStylistId || "");
-  const [time, setTime] = useState<string>("");
-  const [name, setName] = useState<string>("");
-  const [email, setEmail] = useState<string>("");
-  const [phone, setPhone] = useState<string>("");
-  const [notes, setNotes] = useState<string>("");
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  
-  // Multi-step form state
-  const [step, setStep] = useState(1);
+  const [service, setService] = useState("");
+  const [stylist, setStylist] = useState("");
+  const [time, setTime] = useState("");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [notes, setNotes] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Data state
+  const [loading, setLoading] = useState(true);
   const [services, setServices] = useState<any[]>([]);
   const [stylists, setStylists] = useState<any[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
   const [currentUser, setCurrentUser] = useState<any>(null);
   
-  // Find selected service and stylist
-  const selectedService = service 
-    ? services.find(s => s.id === service) 
-    : null;
-    
-  const selectedStylist = stylist 
-    ? stylists.find(s => s.id === stylist) 
-    : null;
+  // Step state
+  const [step, setStep] = useState(1);
+  const [appointmentId, setAppointmentId] = useState<string | null>(null);
+
+  // Derived state
+  const selectedService = services.find(s => s.id === service);
+  const selectedStylist = stylists.find(s => s.id === stylist);
 
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true);
       try {
+        setLoading(true);
+        
         // Get current user
         const { data: { user } } = await supabase.auth.getUser();
         setCurrentUser(user);
         
         if (user) {
-          setEmail(user.email || "");
-          
-          // Try to get user's profile info
-          const { data: profileData } = await supabase
+          // Get user profile to prefill form
+          const { data: profile } = await supabase
             .from('profiles')
-            .select('*')
+            .select('full_name, email, phone')
             .eq('id', user.id)
             .single();
             
-          if (profileData) {
-            setName(profileData.full_name || "");
-            setPhone(profileData.phone || "");
+          if (profile) {
+            setName(profile.full_name || '');
+            setEmail(profile.email || user.email || '');
+            setPhone(profile.phone || '');
+          } else {
+            setEmail(user.email || '');
           }
         }
         
         // Fetch services
         const { data: servicesData, error: servicesError } = await supabase
           .from('services')
-          .select('*')
-          .order('price');
+          .select('*');
           
         if (servicesError) throw servicesError;
         setServices(servicesData || []);
         
-        // Fetch stylists (users with is_stylist = true)
+        // Fetch stylists (users who are stylists)
         const { data: stylistsData, error: stylistsError } = await supabase
           .from('profiles')
           .select('*')
@@ -81,83 +72,94 @@ export const useBookingForm = () => {
         if (stylistsError) throw stylistsError;
         setStylists(stylistsData || []);
         
-        // If a stylist was preselected but not found in the database, reset it
-        if (preselectedStylistId && 
-            stylistsData && 
-            !stylistsData.some(s => s.id === preselectedStylistId)) {
-          setStylist("");
-        }
       } catch (error) {
-        console.error("Error fetching data:", error);
-        toast.error("Failed to load appointment data");
+        console.error('Error fetching data:', error);
+        toast.error('Failed to load booking data');
       } finally {
         setLoading(false);
       }
     };
     
     fetchData();
-  }, [preselectedStylistId]);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!currentUser) {
-      toast.error("You must be logged in to book an appointment");
-      navigate("/login");
+      toast.error('Please sign in to book an appointment');
       return;
     }
     
-    if (!date || !service || !stylist || !time || !name || !email || !phone) {
-      toast.error("Please fill in all required fields");
+    if (!date || !service || !stylist || !time) {
+      toast.error('Please fill in all required fields');
       return;
     }
     
-    // If on step 1, move to payment step
-    if (step === 1) {
+    setIsSubmitting(true);
+    
+    try {
+      // Create appointment record
+      const { data: appointmentData, error: appointmentError } = await supabase
+        .from('appointments')
+        .insert({
+          client_id: currentUser.id,
+          service_id: service,
+          stylist_id: stylist,
+          appointment_date: date.toISOString().split('T')[0],
+          appointment_time: time,
+          notes: notes || null,
+          status: 'pending'
+        })
+        .select()
+        .single();
+        
+      if (appointmentError) throw appointmentError;
+      
+      console.log('Appointment created:', appointmentData);
+      setAppointmentId(appointmentData.id);
+      
+      // Move to payment step
       setStep(2);
-      return;
+      toast.success('Appointment details saved! Please complete payment.');
+      
+    } catch (error: any) {
+      console.error('Error creating appointment:', error);
+      toast.error('Failed to create appointment: ' + error.message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handlePaymentSuccess = async () => {
-    setIsSubmitting(true);
-    
     try {
-      // Format the date for database
-      const formattedDate = format(date!, "yyyy-MM-dd");
+      if (!appointmentId) {
+        toast.error('No appointment found');
+        return;
+      }
       
-      // Insert the appointment into the database
-      const { data, error } = await supabase
+      // Update appointment status to confirmed after payment
+      const { error } = await supabase
         .from('appointments')
-        .insert([{
-          client_id: currentUser.id,
-          stylist_id: stylist,
-          service_id: service,
-          appointment_date: formattedDate,
-          appointment_time: time,
-          notes: notes || null
-        }])
-        .select();
-      
+        .update({ status: 'confirmed' })
+        .eq('id', appointmentId);
+        
       if (error) throw error;
       
-      toast.success("Appointment booked successfully! We'll send you a confirmation email shortly.");
+      toast.success('Appointment booked successfully!');
       
       // Reset form
       setDate(undefined);
-      setService("");
-      setStylist("");
-      setTime("");
-      setNotes("");
+      setService('');
+      setStylist('');
+      setTime('');
+      setNotes('');
       setStep(1);
+      setAppointmentId(null);
       
-      // Redirect to dashboard after successful booking
-      navigate("/profile");
     } catch (error: any) {
-      console.error("Error booking appointment:", error);
-      toast.error(error.message || "Failed to book appointment. Please try again.");
-    } finally {
-      setIsSubmitting(false);
+      console.error('Error updating appointment:', error);
+      toast.error('Payment successful but failed to confirm appointment');
     }
   };
 
@@ -197,6 +199,7 @@ export const useBookingForm = () => {
     
     // Step state
     step,
+    appointmentId,
     
     // Handlers
     handleSubmit,

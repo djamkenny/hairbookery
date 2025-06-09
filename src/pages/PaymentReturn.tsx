@@ -1,157 +1,150 @@
 
 import React, { useEffect, useState } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, XCircle, Loader2, AlertCircle } from "lucide-react";
-import { usePayment } from "@/components/payment/PaymentProvider";
-import { useIsMobile } from "@/hooks/use-mobile";
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const PaymentReturn = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { checkSessionStatus } = usePayment();
-  const [status, setStatus] = useState<string | null>(null);
-  const [customerEmail, setCustomerEmail] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [retryCount, setRetryCount] = useState(0);
-  const isMobile = useIsMobile();
-
-  const checkPaymentStatus = async (sessionId: string, attempt = 1) => {
-    console.log(`Checking payment status, attempt ${attempt}`);
-    
-    try {
-      const result = await checkSessionStatus(sessionId);
-      if (result) {
-        console.log("Payment status result:", result);
-        setStatus(result.status);
-        setCustomerEmail(result.customer_email);
-        
-        if (result.status === 'complete') {
-          toast.success("Payment completed successfully!");
-          
-          // On mobile, provide clear feedback about the completion
-          if (isMobile) {
-            toast.success("🎉 Payment successful! Your appointment is confirmed.");
-          }
-        } else if (result.status === 'failed') {
-          toast.error("Payment failed. Please try again.");
-        }
-      }
-    } catch (error) {
-      console.error(`Payment status check failed (attempt ${attempt}):`, error);
-      
-      // Retry up to 3 times with delay for pending payments
-      if (attempt < 3) {
-        setTimeout(() => {
-          setRetryCount(attempt);
-          checkPaymentStatus(sessionId, attempt + 1);
-        }, 2000 * attempt); // Exponential backoff
-      } else {
-        setStatus('failed');
-        toast.error("Unable to verify payment status. Please contact support.");
-      }
-    }
-  };
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const reference = searchParams.get('reference');
-    const trxref = searchParams.get('trxref');
-    const sessionId = reference || trxref;
-    
-    console.log("Payment return parameters:", { reference, trxref, sessionId });
-    
-    if (sessionId) {
-      checkPaymentStatus(sessionId);
-    } else {
-      console.error("No payment reference found in URL");
-      setStatus('failed');
-      toast.error("No payment reference found");
-    }
-    
-    setLoading(false);
-  }, [searchParams, checkSessionStatus]);
+    const checkPaymentStatus = async () => {
+      try {
+        const reference = searchParams.get('reference');
+        
+        if (!reference) {
+          setError('No payment reference found');
+          setLoading(false);
+          return;
+        }
 
-  const getStatusIcon = () => {
-    if (loading) return <Loader2 className="h-8 w-8 animate-spin text-blue-500" />;
-    if (status === 'complete') return <CheckCircle className="h-8 w-8 text-green-500" />;
-    if (status === 'pending') return <AlertCircle className="h-8 w-8 text-yellow-500" />;
-    return <XCircle className="h-8 w-8 text-red-500" />;
+        // Call our session status function to verify payment
+        const { data, error } = await supabase.functions.invoke('session-status', {
+          body: { session_id: reference }
+        });
+
+        if (error) {
+          console.error('Payment verification error:', error);
+          setError('Failed to verify payment status');
+        } else if (data?.success) {
+          setSuccess(true);
+          toast.success('Payment successful!');
+          
+          // Check if there's a pending appointment confirmation
+          const hasCallback = localStorage.getItem('paymentSuccessCallback');
+          const appointmentId = localStorage.getItem('appointmentId');
+          
+          if (hasCallback && appointmentId) {
+            // Update appointment status to confirmed
+            const { error: updateError } = await supabase
+              .from('appointments')
+              .update({ status: 'confirmed' })
+              .eq('id', appointmentId);
+              
+            if (updateError) {
+              console.error('Error confirming appointment:', updateError);
+            } else {
+              toast.success('Appointment confirmed!');
+            }
+            
+            // Clean up localStorage
+            localStorage.removeItem('paymentSuccessCallback');
+            localStorage.removeItem('appointmentId');
+          }
+        } else {
+          setError('Payment was not successful');
+        }
+      } catch (err) {
+        console.error('Error checking payment status:', err);
+        setError('Failed to verify payment');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkPaymentStatus();
+  }, [searchParams]);
+
+  const handleContinue = () => {
+    const { data: { user } } = supabase.auth.getUser();
+    
+    // Navigate based on user type
+    user.then(({ user }) => {
+      if (user) {
+        // Check if user is stylist
+        supabase
+          .from('profiles')
+          .select('is_stylist')
+          .eq('id', user.id)
+          .single()
+          .then(({ data }) => {
+            if (data?.is_stylist) {
+              navigate('/stylist-dashboard');
+            } else {
+              navigate('/profile');
+            }
+          });
+      } else {
+        navigate('/');
+      }
+    });
   };
 
-  const getStatusMessage = () => {
-    if (loading) return "Verifying payment status...";
-    if (status === 'complete') return "Payment successful!";
-    if (status === 'pending') return "Payment is being processed";
-    if (status === 'failed') return "Payment failed";
-    return "Payment canceled";
-  };
-
-  const getStatusDescription = () => {
-    if (loading) return "Please wait while we confirm your payment.";
-    if (status === 'complete') return "Your payment has been processed successfully. You will receive a confirmation email shortly.";
-    if (status === 'pending') return "Your payment is being processed. This may take a few minutes.";
-    if (status === 'failed') return "There was an issue processing your payment. Please try again.";
-    return "Your payment was canceled. No charges have been made.";
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="flex flex-col items-center justify-center p-6">
+            <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+            <h2 className="text-lg font-semibold mb-2">Verifying Payment</h2>
+            <p className="text-muted-foreground text-center">
+              Please wait while we confirm your payment...
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
-      
-      <main className="flex-grow py-8 md:py-16">
-        <div className="container mx-auto max-w-md px-4">
-          <Card>
-            <CardHeader className="text-center">
-              <div className="flex justify-center mb-4">
-                {getStatusIcon()}
-              </div>
-              <CardTitle className={`text-lg md:text-xl ${isMobile ? 'text-base' : ''}`}>
-                {getStatusMessage()}
-              </CardTitle>
-            </CardHeader>
-            
-            <CardContent className="text-center space-y-4">
-              <p className="text-sm text-muted-foreground">
-                {getStatusDescription()}
-              </p>
-              
-              {customerEmail && (
-                <p className="text-sm text-muted-foreground">
-                  Confirmation sent to: {customerEmail}
-                </p>
-              )}
-              
-              {retryCount > 0 && (
-                <p className="text-xs text-yellow-600">
-                  Retrying payment verification... (Attempt {retryCount}/3)
-                </p>
-              )}
-              
-              <div className={`flex gap-3 mt-6 ${isMobile ? 'flex-col' : ''}`}>
-                <Button 
-                  variant="outline" 
-                  onClick={() => navigate('/booking')}
-                  className={isMobile ? 'w-full' : 'flex-1'}
-                >
-                  Book Again
-                </Button>
-                <Button 
-                  onClick={() => navigate('/profile')}
-                  className={isMobile ? 'w-full' : 'flex-1'}
-                >
-                  View Appointments
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </main>
-      
-      <Footer />
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <div className="flex justify-center mb-4">
+            {success ? (
+              <CheckCircle className="h-16 w-16 text-green-500" />
+            ) : (
+              <XCircle className="h-16 w-16 text-red-500" />
+            )}
+          </div>
+          <CardTitle className="text-xl">
+            {success ? 'Payment Successful!' : 'Payment Failed'}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="text-center space-y-4">
+          <p className="text-muted-foreground">
+            {success
+              ? 'Your payment has been processed successfully. Your appointment has been confirmed.'
+              : error || 'There was an issue processing your payment. Please try again.'}
+          </p>
+          
+          <div className="flex gap-2">
+            <Button onClick={handleContinue} className="flex-1">
+              {success ? 'Continue' : 'Try Again'}
+            </Button>
+            <Button variant="outline" onClick={() => navigate('/')} className="flex-1">
+              Go Home
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

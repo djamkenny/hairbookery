@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Appointment } from "@/types/appointment";
 import { format } from "date-fns";
@@ -9,8 +8,11 @@ export const fetchStylistAppointments = async (): Promise<Appointment[]> => {
     const { data: { user } } = await supabase.auth.getUser();
     
     if (!user) {
+      console.log("No authenticated user found");
       return [];
     }
+    
+    console.log("Fetching appointments for stylist:", user.id);
     
     // Fetch appointments where this stylist is assigned, along with service info
     const { data, error } = await supabase
@@ -23,15 +25,20 @@ export const fetchStylistAppointments = async (): Promise<Appointment[]> => {
       .is('canceled_at', null);
     
     if (error) {
+      console.error("Error fetching appointments:", error);
       throw error;
     }
     
+    console.log("Raw appointments data:", data);
+    
     if (!data || data.length === 0) {
+      console.log("No appointments found for stylist");
       return [];
     }
     
     // Get all unique client IDs from the appointments
     const clientIds = [...new Set(data.map(appointment => appointment.client_id))];
+    console.log("Client IDs to fetch:", clientIds);
     
     // Fetch client profiles in a separate query
     const { data: clientProfiles, error: clientError } = await supabase
@@ -43,6 +50,8 @@ export const fetchStylistAppointments = async (): Promise<Appointment[]> => {
       console.error("Error fetching client profiles:", clientError);
     }
     
+    console.log("Client profiles:", clientProfiles);
+    
     // Create a map of client profiles by ID for easy lookup
     const clientProfileMap = (clientProfiles || []).reduce((map, profile) => {
       map[profile.id] = profile;
@@ -50,7 +59,7 @@ export const fetchStylistAppointments = async (): Promise<Appointment[]> => {
     }, {} as Record<string, any>);
     
     // Format the appointments data with client info from the map
-    return data.map(appointment => {
+    const formattedAppointments = data.map(appointment => {
       const clientProfile = clientProfileMap[appointment.client_id] || {};
       
       return {
@@ -63,11 +72,15 @@ export const fetchStylistAppointments = async (): Promise<Appointment[]> => {
         clientEmail: clientProfile.email,
         clientPhone: clientProfile.phone,
         client_id: appointment.client_id,
-        order_id: appointment.order_id || undefined
+        order_id: appointment.order_id || undefined,
+        updated_at: appointment.updated_at
       };
     });
+    
+    console.log("Formatted appointments:", formattedAppointments);
+    return formattedAppointments;
   } catch (error) {
-    console.error("Error fetching appointments:", error);
+    console.error("Error in fetchStylistAppointments:", error);
     throw error;
   }
 };

@@ -16,6 +16,7 @@ export const useAppointments = (userId: string | undefined) => {
 
     try {
       setLoading(true);
+      console.log("Fetching appointments for client:", userId);
       
       // First fetch the appointments data
       const { data: appointmentsData, error: appointmentsError } = await supabase
@@ -27,16 +28,23 @@ export const useAppointments = (userId: string | undefined) => {
           status,
           services:service_id(name),
           stylist_id,
-          order_id
+          order_id,
+          notes
         `)
-        .eq('client_id', userId);
+        .eq('client_id', userId)
+        .is('canceled_at', null);
       
       if (appointmentsError) {
         console.error("Error fetching appointments:", appointmentsError);
         return;
       }
       
+      console.log("Raw client appointments data:", appointmentsData);
+      
       if (!appointmentsData || appointmentsData.length === 0) {
+        console.log("No appointments found for client");
+        setUpcomingAppointments([]);
+        setPastAppointments([]);
         setLoading(false);
         return;
       }
@@ -58,6 +66,7 @@ export const useAppointments = (userId: string | undefined) => {
         if (stylistsError) {
           console.error("Error fetching specialists:", stylistsError);
         } else if (stylistsData) {
+          console.log("Stylist profiles:", stylistsData);
           // Create a map of specialist IDs to names
           stylistProfiles = stylistsData.reduce((acc, profile) => {
             acc[profile.id] = profile.full_name || 'Specialist';
@@ -81,14 +90,21 @@ export const useAppointments = (userId: string | undefined) => {
         order_id: apt.order_id || undefined
       }));
       
-      // Split into upcoming and past appointments
-      const upcoming = formattedAppointments.filter(apt => 
-        new Date(apt.date) >= today && apt.status !== 'completed' && apt.status !== 'canceled'
-      );
+      console.log("Formatted client appointments:", formattedAppointments);
       
-      const past = formattedAppointments.filter(apt => 
-        new Date(apt.date) < today || apt.status === 'completed' || apt.status === 'canceled'
-      );
+      // Split into upcoming and past appointments
+      const upcoming = formattedAppointments.filter(apt => {
+        const appointmentDate = new Date(apt.date);
+        return appointmentDate >= today && apt.status !== 'completed' && apt.status !== 'canceled';
+      });
+      
+      const past = formattedAppointments.filter(apt => {
+        const appointmentDate = new Date(apt.date);
+        return appointmentDate < today || apt.status === 'completed' || apt.status === 'canceled';
+      });
+      
+      console.log("Upcoming appointments:", upcoming);
+      console.log("Past appointments:", past);
       
       setUpcomingAppointments(upcoming);
       setPastAppointments(past);
@@ -105,7 +121,7 @@ export const useAppointments = (userId: string | undefined) => {
       
       // Set up real-time subscription for appointment updates
       const channel = supabase
-        .channel('public:appointments')
+        .channel('client_appointments')
         .on('postgres_changes', 
           { 
             event: '*', 
@@ -114,7 +130,7 @@ export const useAppointments = (userId: string | undefined) => {
             filter: `client_id=eq.${userId}`
           }, 
           (payload) => {
-            console.log("Appointment changed:", payload);
+            console.log("Client appointment changed:", payload);
             // Refetch appointments when there's a change
             fetchAppointments(userId);
             
@@ -134,6 +150,8 @@ export const useAppointments = (userId: string | undefined) => {
               } else if (newStatus === 'canceled') {
                 toast.error('Your appointment has been canceled');
               }
+            } else if (payload.eventType === 'INSERT') {
+              toast.success('New appointment created');
             }
           }
         )

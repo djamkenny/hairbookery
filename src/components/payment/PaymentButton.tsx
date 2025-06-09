@@ -13,6 +13,7 @@ interface PaymentButtonProps {
   appointmentId?: string;
   className?: string;
   children?: React.ReactNode;
+  onPaymentSuccess?: () => void;
 }
 
 export const PaymentButton: React.FC<PaymentButtonProps> = ({
@@ -23,6 +24,7 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
   appointmentId,
   className,
   children,
+  onPaymentSuccess,
 }) => {
   const [loading, setLoading] = useState(false);
   const { createPayment } = usePayment();
@@ -38,9 +40,18 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
       
       // Convert to pesewas for Paystack
       const amountInPesewas = Math.round(amount * 100);
-      const result = await createPayment(amountInPesewas, description);
+      const result = await createPayment(amountInPesewas, description, {
+        service_id: serviceId,
+        appointment_id: appointmentId
+      });
       
       if (result?.url) {
+        // Store payment success callback in localStorage for PaymentReturn page
+        if (onPaymentSuccess) {
+          localStorage.setItem('paymentSuccessCallback', 'true');
+          localStorage.setItem('appointmentId', appointmentId || '');
+        }
+        
         // Mobile-friendly payment handling
         if (isMobile) {
           // On mobile, use location.href for better compatibility
