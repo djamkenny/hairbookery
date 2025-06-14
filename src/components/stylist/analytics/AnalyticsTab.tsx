@@ -22,12 +22,18 @@ const AnalyticsTab = () => {
       ? serviceStats[0]
       : null;
 
+  // Revenue formatting helper (cedis)
+  const formatRevenue = (amount: number) =>
+    new Intl.NumberFormat('en-GH', {
+      style: 'currency',
+      currency: 'GHS'
+    }).format(amount);
+
   return (
     <div className="space-y-6">
-      {/* totalRevenue is in pesewas */}
       <AnalyticsOverview
         totalBookings={totalBookings}
-        totalRevenue={Math.round(totalRevenue * 100)}
+        totalRevenue={totalRevenue}  // Already in cedis from analytics
         topService={topServiceEntry?.serviceName}
         topServiceCount={topServiceEntry?.bookingCount}
       />
@@ -62,7 +68,43 @@ const AnalyticsTab = () => {
                       <td className="px-4 py-2">{service.serviceName}</td>
                       <td className="px-4 py-2">{service.bookingCount}</td>
                       <td className="px-4 py-2">
-                        GH₵{service.totalRevenue.toFixed(2)}
+                        {formatRevenue(service.totalRevenue)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Monthly Revenue & Bookings</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {monthlyStats.length === 0 ? (
+            <div className="text-center text-muted-foreground py-6">
+              No monthly data yet.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200 text-sm">
+                <thead>
+                  <tr className="text-left">
+                    <th className="px-4 py-2 font-semibold">Month</th>
+                    <th className="px-4 py-2 font-semibold">Bookings</th>
+                    <th className="px-4 py-2 font-semibold">Revenue</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {monthlyStats.map((month) => (
+                    <tr key={month.month} className="border-b last:border-0">
+                      <td className="px-4 py-2">{month.month}</td>
+                      <td className="px-4 py-2">{month.bookings}</td>
+                      <td className="px-4 py-2">
+                        {formatRevenue(month.revenue)}
                       </td>
                     </tr>
                   ))}

@@ -17,6 +17,7 @@ const AnalyticsOverview = ({
   topServiceCount 
 }: AnalyticsOverviewProps) => {
   const formatRevenue = (amount: number) => {
+    // Always treat amount as cedis (not pesewas)
     return new Intl.NumberFormat('en-GH', {
       style: 'currency',
       currency: 'GHS'
