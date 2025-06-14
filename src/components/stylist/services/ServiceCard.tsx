@@ -1,11 +1,10 @@
-
 import React from "react";
 import { Clock, DollarSign, Edit, Trash2, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Service } from "./types";
-import { formatUSD } from "./formatUSD";
+import { formatGHS } from "./formatGHS";
 
 interface ServiceCardProps {
   service: Service;
@@ -79,7 +78,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
         <div className="flex items-center justify-between text-sm">
           <div className="flex items-center">
             <DollarSign className="h-4 w-4 mr-1 text-green-600" />
-            <span className="font-medium">{formatUSD(service.price)}</span>
+            <span className="font-medium">{formatGHS(service.price)}</span>
           </div>
           <div className="flex items-center text-muted-foreground">
             <Clock className="h-4 w-4 mr-1" />
