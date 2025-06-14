@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,6 +39,7 @@ const EarningsTab = () => {
   const [totalEarnings, setTotalEarnings] = useState(0);
   const [pendingEarnings, setPendingEarnings] = useState(0);
   const [withdrawnAmount, setWithdrawnAmount] = useState(0);
+  const [totalRevenue, setTotalRevenue] = useState(0);
 
   const fetchEarningsData = async () => {
     try {
@@ -93,6 +93,42 @@ const EarningsTab = () => {
       setPendingEarnings(pending);
       setTotalEarnings(total);
       setWithdrawnAmount(withdrawn);
+
+      // New: Fetch total gross revenue from payments table for this stylist's completed appointments
+      // Fetch all stylist's appointment ids
+      const { data: appointmentsData, error: aptsError } = await supabase
+        .from("appointments")
+        .select("id")
+        .eq("stylist_id", user.id)
+        .is('canceled_at', null);
+
+      if (aptsError || !appointmentsData) {
+        setTotalRevenue(0);
+        console.warn("Failed to fetch stylist appointments for revenue calc");
+        return;
+      }
+      const appointmentIds = appointmentsData.map((apt: any) => apt.id);
+
+      if (appointmentIds.length === 0) {
+        setTotalRevenue(0);
+        return;
+      }
+
+      // Fetch payments for these appointments
+      const { data: paymentsData, error: paymentsError } = await supabase
+        .from("payments")
+        .select("amount, appointment_id, status")
+        .in("appointment_id", appointmentIds)
+        .eq("status", "completed");
+
+      if (paymentsError || !paymentsData) {
+        setTotalRevenue(0);
+        console.warn("Failed to fetch payments for revenue calc");
+        return;
+      }
+
+      const grossRevenue = paymentsData.reduce((sum: number, p: any) => sum + (p.amount || 0), 0);
+      setTotalRevenue(grossRevenue);
 
     } catch (error) {
       console.error("Error fetching earnings data:", error);
@@ -184,6 +220,7 @@ const EarningsTab = () => {
         totalEarnings={totalEarnings}
         pendingEarnings={pendingEarnings}
         withdrawnAmount={withdrawnAmount}
+        totalRevenue={totalRevenue}
       />
 
       <Tabs defaultValue="overview" className="space-y-4">
