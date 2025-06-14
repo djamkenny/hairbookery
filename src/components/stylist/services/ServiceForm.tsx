@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Clock, DollarSign } from "lucide-react";
@@ -127,11 +126,15 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
                 name="price"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Price ($)</FormLabel>
+                    <FormLabel>Price (₵)</FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <DollarSign className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input placeholder="e.g. 65" className="pl-8" {...field} />
+                        <span className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground font-medium select-none">₵</span>
+                        <Input
+                          placeholder="e.g. 65"
+                          className="pl-8"
+                          {...field}
+                        />
                       </div>
                     </FormControl>
                     <FormMessage />
