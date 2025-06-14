@@ -1,7 +1,7 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Appointment } from "@/types/appointment";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 export const fetchStylistAppointments = async (): Promise<Appointment[]> => {
   try {
@@ -147,10 +147,20 @@ export const updateAppointmentStatus = async (
     
     if (error) throw error;
     
-    // Process earnings when appointment is completed
+    // Process earnings when appointment is completed by calling edge function
     if (newStatus === "completed") {
-      console.log("Processing earnings for completed appointment:", appointmentId);
-      await processAppointmentEarnings(appointmentId);
+      console.log("Triggering earnings processing for completed appointment:", appointmentId);
+      const { error: earningsError } = await supabase.functions.invoke('process-earnings', {
+        body: { appointment_id: appointmentId }
+      });
+
+      if (earningsError) {
+        // Log the error but don't block the UI flow. The user will be notified via toast.
+        console.error("Error invoking process-earnings function:", earningsError);
+        toast.error("An error occurred while processing earnings. The support team has been notified.");
+      } else {
+        toast.success("Appointment completed. Earnings are being processed.");
+      }
     }
     
     // Send notification to client if confirmed
