@@ -16,32 +16,15 @@ export interface MonthlyBookingData {
 
 export const fetchStylistBookingAnalytics = async (stylistId: string) => {
   try {
-    // Try to fetch earnings data for actual revenue calculation
+    // Fetch earnings data using the RPC function
     let earnings: any[] = [];
     try {
       const { data: earningsData, error: earningsError } = await supabase
         .rpc('get_stylist_earnings', { stylist_uuid: stylistId });
 
       if (earningsError) {
-        console.log("RPC function not available yet, using fallback method");
-        // Fallback: try to query the table directly using any to bypass type checking
-        try {
-          const { data: fallbackEarnings, error: fallbackError } = await (supabase as any)
-            .from('specialist_earnings')
-            .select('*')
-            .eq('stylist_id', stylistId)
-            .order('created_at', { ascending: false });
-          
-          if (fallbackError) {
-            console.log("Specialist earnings table not available yet");
-            earnings = [];
-          } else {
-            earnings = fallbackEarnings || [];
-          }
-        } catch (fallbackErr) {
-          console.log("Direct table query failed, proceeding without earnings data");
-          earnings = [];
-        }
+        console.log("Error fetching earnings:", earningsError);
+        earnings = [];
       } else {
         earnings = earningsData || [];
       }

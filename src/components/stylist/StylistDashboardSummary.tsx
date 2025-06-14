@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { CalendarClock, Users, CalendarCheck, Star, DollarSign } from "lucide-react";
@@ -27,35 +26,17 @@ const StylistDashboardSummary = ({
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Try to fetch earnings using RPC function first
-      let earnings: any[] = [];
-      try {
-        const { data: earningsData, error: earningsError } = await supabase
-          .rpc('get_stylist_earnings', { stylist_uuid: user.id });
+      // Fetch earnings using RPC function
+      const { data: earnings, error: earningsError } = await supabase
+        .rpc('get_stylist_earnings', { stylist_uuid: user.id });
 
-        if (earningsError) {
-          // Fallback to direct table query
-          try {
-            const { data: fallbackEarnings, error: fallbackError } = await (supabase as any)
-              .from('specialist_earnings')
-              .select('*')
-              .eq('stylist_id', user.id);
-            
-            if (!fallbackError && fallbackEarnings) {
-              earnings = fallbackEarnings;
-            }
-          } catch (fallbackErr) {
-            console.log("No earnings data available");
-          }
-        } else {
-          earnings = earningsData || [];
-        }
-      } catch (err) {
-        console.log("Error fetching earnings for dashboard:", err);
+      if (earningsError) {
+        console.error("Error fetching earnings for dashboard:", earningsError);
+        return;
       }
 
       // Calculate available balance
-      const available = earnings
+      const available = (earnings || [])
         .filter((e: any) => e.status === 'available')
         .reduce((sum: number, e: any) => sum + (e.net_amount || 0), 0);
 

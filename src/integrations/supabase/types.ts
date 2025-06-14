@@ -248,6 +248,63 @@ export type Database = {
         }
         Relationships: []
       }
+      specialist_earnings: {
+        Row: {
+          appointment_id: string | null
+          created_at: string
+          gross_amount: number
+          id: string
+          net_amount: number
+          payment_id: string | null
+          platform_fee: number
+          platform_fee_percentage: number
+          status: string
+          stylist_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          appointment_id?: string | null
+          created_at?: string
+          gross_amount: number
+          id?: string
+          net_amount: number
+          payment_id?: string | null
+          platform_fee: number
+          platform_fee_percentage?: number
+          status?: string
+          stylist_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          appointment_id?: string | null
+          created_at?: string
+          gross_amount?: number
+          id?: string
+          net_amount?: number
+          payment_id?: string | null
+          platform_fee?: number
+          platform_fee_percentage?: number
+          status?: string
+          stylist_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "specialist_earnings_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "specialist_earnings_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscribers: {
         Row: {
           cancel_at_period_end: boolean | null
@@ -302,6 +359,51 @@ export type Database = {
         }
         Relationships: []
       }
+      withdrawal_requests: {
+        Row: {
+          account_name: string | null
+          account_number: string | null
+          amount: number
+          bank_name: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          processed_at: string | null
+          processed_by: string | null
+          status: string
+          stylist_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          account_name?: string | null
+          account_number?: string | null
+          amount: number
+          bank_name?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          status?: string
+          stylist_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          account_name?: string | null
+          account_number?: string | null
+          amount?: number
+          bank_name?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          status?: string
+          stylist_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -337,6 +439,10 @@ export type Database = {
       generate_appointment_reference: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      get_stylist_available_balance: {
+        Args: { stylist_uuid: string }
+        Returns: number
       }
       get_stylist_earnings: {
         Args: { stylist_uuid: string }

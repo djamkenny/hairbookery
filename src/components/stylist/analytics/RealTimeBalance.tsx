@@ -18,40 +18,22 @@ const RealTimeBalance = ({ stylistId }: RealTimeBalanceProps) => {
     try {
       console.log("Fetching real-time balance for stylist:", stylistId);
       
-      // Try to fetch earnings using RPC function first
-      let earnings: any[] = [];
-      try {
-        const { data: earningsData, error: earningsError } = await supabase
-          .rpc('get_stylist_earnings', { stylist_uuid: stylistId });
+      // Fetch earnings using RPC function
+      const { data: earnings, error: earningsError } = await supabase
+        .rpc('get_stylist_earnings', { stylist_uuid: stylistId });
 
-        if (earningsError) {
-          console.log("RPC function not available, using fallback");
-          // Fallback to direct table query
-          try {
-            const { data: fallbackEarnings, error: fallbackError } = await (supabase as any)
-              .from('specialist_earnings')
-              .select('*')
-              .eq('stylist_id', stylistId);
-            
-            if (!fallbackError && fallbackEarnings) {
-              earnings = fallbackEarnings;
-            }
-          } catch (fallbackErr) {
-            console.log("Fallback query failed, no earnings data available");
-          }
-        } else {
-          earnings = earningsData || [];
-        }
-      } catch (err) {
-        console.log("Error fetching earnings:", err);
+      if (earningsError) {
+        console.error("Error fetching earnings:", earningsError);
+        toast.error("Failed to fetch balance");
+        return;
       }
 
       // Calculate balances
-      const available = earnings
+      const available = (earnings || [])
         .filter((e: any) => e.status === 'available')
         .reduce((sum: number, e: any) => sum + (e.net_amount || 0), 0);
       
-      const total = earnings
+      const total = (earnings || [])
         .reduce((sum: number, e: any) => sum + (e.net_amount || 0), 0);
 
       setAvailableBalance(available);
