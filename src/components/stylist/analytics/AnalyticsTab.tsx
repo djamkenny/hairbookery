@@ -1,94 +1,80 @@
 
-import React from "react";
-import { useStylistAnalytics } from "@/hooks/useStylistAnalytics";
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import AnalyticsOverview from "./AnalyticsOverview";
-import ServicePopularityChart from "./ServicePopularityChart";
-import MonthlyTrendsChart from "./MonthlyTrendsChart";
-import RealTimeBalance from "./RealTimeBalance";
 
 const AnalyticsTab = () => {
-  const {
-    serviceStats,
-    monthlyStats,
-    totalBookings,
-    totalRevenue,
-    loading,
-    error
-  } = useStylistAnalytics();
+  const [totalRevenue, setTotalRevenue] = useState(0);
+  const [loading, setLoading] = useState(true);
 
-  const [stylistId, setStylistId] = React.useState<string | null>(null);
+  useEffect(() => {
+    const fetchTotalRevenue = async () => {
+      setLoading(true);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          setTotalRevenue(0);
+          setLoading(false);
+          return;
+        }
+        // Fetch stylist's appointment IDs
+        const { data: appointments, error: aptErr } = await supabase
+          .from("appointments")
+          .select("id")
+          .eq("stylist_id", user.id)
+          .is("canceled_at", null);
 
-  React.useEffect(() => {
-    const getUserId = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setStylistId(user.id);
+        if (aptErr || !appointments) {
+          setTotalRevenue(0);
+          setLoading(false);
+          return;
+        }
+        const appointmentIds = appointments.map(a => a.id);
+        if (appointmentIds.length === 0) {
+          setTotalRevenue(0);
+          setLoading(false);
+          return;
+        }
+
+        // Sum payments for these completed appointments
+        const { data: payments, error: payErr } = await supabase
+          .from("payments")
+          .select("amount, appointment_id, status")
+          .in("appointment_id", appointmentIds)
+          .eq("status", "completed");
+
+        if (payErr || !payments) {
+          setTotalRevenue(0);
+        } else {
+          const revenue = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+          setTotalRevenue(revenue);
+        }
+      } catch (e) {
+        setTotalRevenue(0);
+      } finally {
+        setLoading(false);
       }
     };
-    getUserId();
+
+    fetchTotalRevenue();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-8">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2 text-muted-foreground">Loading analytics...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex items-center justify-center py-8">
-        <div className="text-center">
-          <p className="text-red-600 mb-2">Error loading analytics: {error}</p>
-          <p className="text-muted-foreground text-sm">
-            Please check if the earnings system is properly set up.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  const topService = serviceStats.length > 0 ? serviceStats[0] : null;
+  const formatAmount = (amt: number) => `GH₵${(amt / 100).toFixed(2)}`;
 
   return (
-    <div className="space-y-6">
-      {/* Real-time Balance Section */}
-      {stylistId && (
-        <div>
-          <h3 className="text-lg font-semibold mb-4">Real-Time Balance</h3>
-          <RealTimeBalance stylistId={stylistId} />
+    <Card className="mb-4">
+      <CardHeader>
+        <CardTitle>Total Revenue (All Client Payments)</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold text-purple-800">
+          {loading ? "..." : formatAmount(totalRevenue)}
         </div>
-      )}
-
-      {/* Analytics Overview */}
-      <AnalyticsOverview
-        totalBookings={totalBookings}
-        totalRevenue={totalRevenue}
-        topService={topService?.serviceName}
-        topServiceCount={topService?.bookingCount}
-      />
-
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ServicePopularityChart data={serviceStats} />
-        <MonthlyTrendsChart data={monthlyStats} />
-      </div>
-
-      {/* Additional Info */}
-      {serviceStats.length === 0 && (
-        <div className="text-center py-8">
-          <p className="text-muted-foreground mb-2">No booking data available yet</p>
-          <p className="text-sm text-muted-foreground">
-            Start completing appointments to see your analytics and earnings here.
-          </p>
+        <div className="text-sm text-muted-foreground">
+          Total from all completed client payments
         </div>
-      )}
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 
