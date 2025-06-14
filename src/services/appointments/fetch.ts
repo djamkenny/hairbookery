@@ -44,8 +44,9 @@ export const fetchStylistAppointments = async (): Promise<Appointment[]> => {
     if (appointmentIds.length > 0) {
       const { data: paymentsData, error: paymentsError } = await supabase
         .from('payments')
-        .select('appointment_id, amount')
-        .in('appointment_id', appointmentIds);
+        .select('appointment_id, amount, status')
+        .in('appointment_id', appointmentIds)
+        .eq('status', 'completed');  // ONLY fetch completed payments
 
       if (paymentsError) {
         console.error("Error fetching payments for appointments:", paymentsError);
