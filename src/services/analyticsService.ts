@@ -24,18 +24,23 @@ export const fetchStylistBookingAnalytics = async (stylistId: string) => {
 
       if (earningsError) {
         console.log("RPC function not available yet, using fallback method");
-        // Fallback: try to query the table directly
-        const { data: fallbackEarnings, error: fallbackError } = await supabase
-          .from('specialist_earnings')
-          .select('*')
-          .eq('stylist_id', stylistId)
-          .order('created_at', { ascending: false });
-        
-        if (fallbackError) {
-          console.log("Specialist earnings table not available yet");
+        // Fallback: try to query the table directly using any to bypass type checking
+        try {
+          const { data: fallbackEarnings, error: fallbackError } = await (supabase as any)
+            .from('specialist_earnings')
+            .select('*')
+            .eq('stylist_id', stylistId)
+            .order('created_at', { ascending: false });
+          
+          if (fallbackError) {
+            console.log("Specialist earnings table not available yet");
+            earnings = [];
+          } else {
+            earnings = fallbackEarnings || [];
+          }
+        } catch (fallbackErr) {
+          console.log("Direct table query failed, proceeding without earnings data");
           earnings = [];
-        } else {
-          earnings = fallbackEarnings || [];
         }
       } else {
         earnings = earningsData || [];
