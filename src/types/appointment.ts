@@ -1,4 +1,3 @@
-
 export interface Appointment {
   id: string;
   client: string;
@@ -12,4 +11,5 @@ export interface Appointment {
   updated_at?: string;
   stylist?: string;
   order_id?: string; // Unique order ID for client identification
+  amount?: number;   // <----- new field: payment amount in pesewas
 }

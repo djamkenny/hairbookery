@@ -9,13 +9,15 @@ interface StylistDashboardSummaryProps {
   totalClients: number;
   completedAppointments: number;
   rating: number | null;
+  extraBalance?: number;   // <--- new optional prop
 }
 
 const StylistDashboardSummary = ({
   upcomingAppointments = 0,
   totalClients = 0,
   completedAppointments = 0,
-  rating = null
+  rating = null,
+  extraBalance = 0
 }: StylistDashboardSummaryProps) => {
   const isMobile = useIsMobile();
   const [availableBalance, setAvailableBalance] = useState(0);
@@ -26,7 +28,6 @@ const StylistDashboardSummary = ({
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Fetch earnings using RPC function
       const { data: earnings, error: earningsError } = await supabase
         .rpc('get_stylist_earnings', { stylist_uuid: user.id });
 
@@ -34,8 +35,6 @@ const StylistDashboardSummary = ({
         console.error("Error fetching earnings for dashboard:", earningsError);
         return;
       }
-
-      // Calculate available balance
       const available = (earnings || [])
         .filter((e: any) => e.status === 'available')
         .reduce((sum: number, e: any) => sum + (e.net_amount || 0), 0);
@@ -50,41 +49,27 @@ const StylistDashboardSummary = ({
 
   useEffect(() => {
     fetchBalance();
-
-    // Set up real-time subscription
     const channel = supabase
       .channel('dashboard-balance-updates')
       .on(
         'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'payments'
-        },
-        () => {
-          setTimeout(fetchBalance, 1000);
-        }
+        { event: '*', schema: 'public', table: 'payments' },
+        () => setTimeout(fetchBalance, 1000)
       )
       .on(
         'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'specialist_earnings'
-        },
-        () => {
-          fetchBalance();
-        }
+        { event: '*', schema: 'public', table: 'specialist_earnings' },
+        () => fetchBalance()
       )
       .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   const formatAmount = (amount: number) => `GH₵${(amount / 100).toFixed(2)}`;
-  
+
+  // New: "available balance" can have the appended booking amount
+  const totalBalance = availableBalance + (extraBalance || 0);
+
   return (
     <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4">
       <Card className="border border-border/30 hover:shadow-md transition-shadow">
@@ -143,7 +128,12 @@ const StylistDashboardSummary = ({
           <div>
             <p className="text-green-700 text-xs sm:text-sm font-medium">Balance</p>
             <p className="text-xl sm:text-2xl font-bold text-green-800">
-              {loading ? '...' : formatAmount(availableBalance)}
+              {loading ? '...' : formatAmount(totalBalance)}
+              {extraBalance > 0 && (
+                <span className="ml-2 bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded">
+                  +{formatAmount(extraBalance)} new
+                </span>
+              )}
             </p>
           </div>
         </CardContent>

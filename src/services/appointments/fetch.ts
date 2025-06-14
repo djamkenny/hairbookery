@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Appointment } from "@/types/appointment";
 import { format } from "date-fns";
@@ -15,12 +14,13 @@ export const fetchStylistAppointments = async (): Promise<Appointment[]> => {
     
     console.log("Fetching appointments for stylist:", user.id);
     
-    // Fetch appointments where this stylist is assigned, along with service info
+    // Fetch appointments where this stylist is assigned, along with service info and payment info
     const { data, error } = await supabase
       .from('appointments')
       .select(`
         *,
-        services:service_id(name)
+        services:service_id(name),
+        payments:appointment_id(amount)
       `)
       .eq('stylist_id', user.id)
       .is('canceled_at', null);
@@ -63,6 +63,14 @@ export const fetchStylistAppointments = async (): Promise<Appointment[]> => {
     const formattedAppointments = data.map(appointment => {
       const clientProfile = clientProfileMap[appointment.client_id] || {};
       
+      // Support payment amount for appointment (could be null)
+      let amount = 0;
+      if (appointment.payments && Array.isArray(appointment.payments) && appointment.payments[0]) {
+        amount = appointment.payments[0].amount || 0;
+      } else if (appointment.payments && typeof appointment.payments === 'object' && appointment.payments.amount !== undefined) {
+        amount = appointment.payments.amount || 0;
+      }
+      
       return {
         id: appointment.id,
         client: clientProfile.full_name || 'Client',
@@ -74,7 +82,8 @@ export const fetchStylistAppointments = async (): Promise<Appointment[]> => {
         clientPhone: clientProfile.phone,
         client_id: appointment.client_id,
         order_id: appointment.order_id || undefined,
-        created_at: appointment.created_at
+        created_at: appointment.created_at,
+        amount // <--- new field
       };
     });
     
