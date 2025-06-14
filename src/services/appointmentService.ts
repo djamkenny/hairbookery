@@ -147,6 +147,12 @@ export const updateAppointmentStatus = async (
     
     if (error) throw error;
     
+    // Process earnings when appointment is completed
+    if (newStatus === "completed") {
+      console.log("Processing earnings for completed appointment:", appointmentId);
+      await processAppointmentEarnings(appointmentId);
+    }
+    
     // Send notification to client if confirmed
     if (newStatus === "confirmed" && appointmentInfo) {
       const orderIdData = data && data[0] ? data[0] : null;
@@ -172,6 +178,64 @@ export const updateAppointmentStatus = async (
     }
   } catch (error) {
     console.error('Error updating appointment status:', error);
+    throw error;
+  }
+};
+
+// New function to process earnings when appointment is completed
+const processAppointmentEarnings = async (appointmentId: string): Promise<void> => {
+  try {
+    console.log("Processing earnings for appointment:", appointmentId);
+    
+    // Find the payment associated with this appointment
+    const { data: payment, error: paymentError } = await supabase
+      .from('payments')
+      .select('*')
+      .eq('appointment_id', appointmentId)
+      .eq('status', 'completed')
+      .single();
+    
+    if (paymentError || !payment) {
+      console.log("No completed payment found for appointment:", appointmentId);
+      return;
+    }
+    
+    console.log("Found payment for appointment:", payment);
+    
+    // Check if earnings already exist for this payment
+    const { data: existingEarnings, error: earningsCheckError } = await supabase
+      .from('specialist_earnings')
+      .select('id')
+      .eq('payment_id', payment.id)
+      .single();
+    
+    if (earningsCheckError && earningsCheckError.code !== 'PGRST116') {
+      console.error("Error checking existing earnings:", earningsCheckError);
+      return;
+    }
+    
+    if (existingEarnings) {
+      console.log("Earnings already exist for this payment:", payment.id);
+      return;
+    }
+    
+    // Call the process-earnings edge function
+    const { data: earningsResult, error: earningsError } = await supabase.functions.invoke('process-earnings', {
+      body: {
+        payment_id: payment.id,
+        appointment_id: appointmentId,
+        platform_fee_percentage: 15
+      }
+    });
+    
+    if (earningsError) {
+      console.error("Error processing earnings:", earningsError);
+      throw earningsError;
+    }
+    
+    console.log("Earnings processed successfully:", earningsResult);
+  } catch (error) {
+    console.error("Error in processAppointmentEarnings:", error);
     throw error;
   }
 };
