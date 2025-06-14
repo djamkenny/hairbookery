@@ -62,15 +62,13 @@ export const fetchStylistAppointments = async (): Promise<Appointment[]> => {
     // Format the appointments data with client info from the map
     const formattedAppointments = data.map(appointment => {
       const clientProfile = clientProfileMap[appointment.client_id] || {};
-      
-      // Support payment amount for appointment (could be null)
+
+      // Fix: payments is an array, use the first item if exists
       let amount = 0;
-      if (appointment.payments && Array.isArray(appointment.payments) && appointment.payments[0]) {
-        amount = appointment.payments[0].amount || 0;
-      } else if (appointment.payments && typeof appointment.payments === 'object' && appointment.payments.amount !== undefined) {
-        amount = appointment.payments.amount || 0;
+      if (Array.isArray(appointment.payments) && appointment.payments.length > 0) {
+        amount = appointment.payments[0]?.amount || 0;
       }
-      
+
       return {
         id: appointment.id,
         client: clientProfile.full_name || 'Client',
