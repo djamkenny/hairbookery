@@ -1,80 +1,77 @@
 
-import React, { useState, useEffect } from "react";
+import React from "react";
+import { useStylistAnalytics } from "@/hooks/useStylistAnalytics";
+import ServicePopularityChart from "./ServicePopularityChart";
+import MonthlyTrendsChart from "./MonthlyTrendsChart";
+import AnalyticsOverview from "./AnalyticsOverview";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { supabase } from "@/integrations/supabase/client";
 
 const AnalyticsTab = () => {
-  const [totalRevenue, setTotalRevenue] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const {
+    serviceStats,
+    monthlyStats,
+    totalBookings,
+    totalRevenue,
+    loading,
+    error
+  } = useStylistAnalytics();
 
-  useEffect(() => {
-    const fetchTotalRevenue = async () => {
-      setLoading(true);
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          setTotalRevenue(0);
-          setLoading(false);
-          return;
-        }
-        // Fetch stylist's appointment IDs
-        const { data: appointments, error: aptErr } = await supabase
-          .from("appointments")
-          .select("id")
-          .eq("stylist_id", user.id)
-          .is("canceled_at", null);
-
-        if (aptErr || !appointments) {
-          setTotalRevenue(0);
-          setLoading(false);
-          return;
-        }
-        const appointmentIds = appointments.map(a => a.id);
-        if (appointmentIds.length === 0) {
-          setTotalRevenue(0);
-          setLoading(false);
-          return;
-        }
-
-        // Sum payments for these completed appointments
-        const { data: payments, error: payErr } = await supabase
-          .from("payments")
-          .select("amount, appointment_id, status")
-          .in("appointment_id", appointmentIds)
-          .eq("status", "completed");
-
-        if (payErr || !payments) {
-          setTotalRevenue(0);
-        } else {
-          const revenue = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
-          setTotalRevenue(revenue);
-        }
-      } catch (e) {
-        setTotalRevenue(0);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTotalRevenue();
-  }, []);
-
-  const formatAmount = (amt: number) => `GH₵${(amt / 100).toFixed(2)}`;
+  // Find most popular service
+  const topServiceEntry =
+    serviceStats && serviceStats.length > 0
+      ? serviceStats[0]
+      : null;
 
   return (
-    <Card className="mb-4">
-      <CardHeader>
-        <CardTitle>Total Revenue (All Client Payments)</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold text-purple-800">
-          {loading ? "..." : formatAmount(totalRevenue)}
-        </div>
-        <div className="text-sm text-muted-foreground">
-          Total from all completed client payments
-        </div>
-      </CardContent>
-    </Card>
+    <div className="space-y-6">
+      <AnalyticsOverview
+        totalBookings={totalBookings}
+        totalRevenue={Math.round(totalRevenue * 100)} {/* in pesewas */}
+        topService={topServiceEntry?.serviceName}
+        topServiceCount={topServiceEntry?.bookingCount}
+      />
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <ServicePopularityChart data={serviceStats} />
+        <MonthlyTrendsChart data={monthlyStats} />
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Service Performance Details</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {serviceStats.length === 0 ? (
+            <div className="text-center text-muted-foreground py-6">
+              No service performance data yet.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200 text-sm">
+                <thead>
+                  <tr className="text-left">
+                    <th className="px-4 py-2 font-semibold">Service</th>
+                    <th className="px-4 py-2 font-semibold">Bookings</th>
+                    <th className="px-4 py-2 font-semibold">Total Revenue</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {serviceStats.map((service) => (
+                    <tr key={service.serviceName} className="border-b last:border-0">
+                      <td className="px-4 py-2">{service.serviceName}</td>
+                      <td className="px-4 py-2">{service.bookingCount}</td>
+                      <td className="px-4 py-2">
+                        GH₵{service.totalRevenue.toFixed(2)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
