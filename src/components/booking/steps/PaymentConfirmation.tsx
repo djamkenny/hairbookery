@@ -13,6 +13,7 @@ interface PaymentConfirmationProps {
   handleGoBack: () => void;
   isSubmitting: boolean;
   appointmentId?: string | null;
+  formatPrice?: (price: number) => string;
 }
 
 const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
@@ -21,7 +22,8 @@ const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
   time,
   handlePaymentSuccess,
   handleGoBack,
-  isSubmitting
+  isSubmitting,
+  formatPrice
 }) => {
   return (
     <div className="space-y-6">
@@ -40,28 +42,26 @@ const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
               <p className="text-sm text-muted-foreground">{selectedService?.description}</p>
             </div>
           </div>
-          
           <div className="flex items-center gap-3">
             <CalendarIcon className="h-4 w-4 text-muted-foreground" />
             <p>{date?.toLocaleDateString()}</p>
           </div>
-          
           <div className="flex items-center gap-3">
             <ClockIcon className="h-4 w-4 text-muted-foreground" />
             <p>{time}</p>
           </div>
-          
           <div className="pt-4 border-t">
             <div className="flex justify-between items-center">
               <span className="font-medium">Total Amount:</span>
               <span className="text-lg font-bold">
-                GH₵{selectedService?.price?.toFixed(2)}
+                {formatPrice
+                  ? formatPrice(selectedService?.price || 0)
+                  : `₵${selectedService?.price?.toFixed(2)}`}
               </span>
             </div>
           </div>
         </CardContent>
       </Card>
-
       <Card>
         <CardHeader>
           <CardTitle>Complete Payment</CardTitle>
@@ -70,7 +70,6 @@ const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
           <p className="text-sm text-muted-foreground">
             Click the button below to proceed with payment for your appointment. Your appointment will only be created after successful payment.
           </p>
-          
           <div className="flex gap-3">
             <Button 
               variant="outline" 
@@ -80,7 +79,6 @@ const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
             >
               Go Back
             </Button>
-            
             <div className="flex-1">
               <PaymentButton
                 amount={selectedService?.price || 0}

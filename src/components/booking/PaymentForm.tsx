@@ -6,6 +6,7 @@ import { CreditCard, Loader2, Smartphone } from "lucide-react";
 import { usePayment } from "@/components/payment/PaymentProvider";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "sonner";
+import { formatPrice } from "./utils/formatUtils";
 
 interface PaymentFormProps {
   amount: number;
@@ -27,30 +28,25 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
   const handlePayment = async () => {
     try {
       setProcessing(true);
-      
-      // Convert dollars to pesewas (1 GHS = 100 pesewas)
+
+      // Convert GHS to pesewas (1 GHS = 100 pesewas)
       const amountInPesewas = Math.round(amount * 100);
       console.log("Payment amount:", { original: amount, inPesewas: amountInPesewas });
-      
+
       if (amountInPesewas < 100) {
         throw new Error("Payment amount must be at least 1 GHS");
       }
-      
+
       const result = await createPayment(amountInPesewas, "Appointment Payment");
-      
+
       if (result?.url) {
-        // Mobile-friendly payment handling
         if (isMobile) {
-          // On mobile, redirect in the same tab for better UX
           toast.success("Redirecting to payment page...");
           setTimeout(() => {
             window.location.href = result.url;
           }, 1000);
         } else {
-          // On desktop, open in new tab
           window.open(result.url, '_blank');
-          
-          // Simulate success for demo - in real app, you'd wait for webhook or redirect
           setTimeout(() => {
             onSuccess();
             toast.success("Payment initiated successfully! Complete payment in the new tab.");
@@ -66,7 +62,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
   };
 
   // Display amount in GHS
-  const displayAmount = amount.toFixed(2);
+  const displayAmount = formatPrice(amount);
 
   return (
     <Card>
@@ -80,10 +76,9 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
         <div className="bg-muted/50 p-4 rounded-lg">
           <div className="flex justify-between items-center">
             <span className="text-sm font-medium">Total Amount:</span>
-            <span className="text-lg font-bold">GH₵{displayAmount}</span>
+            <span className="text-lg font-bold">{displayAmount}</span>
           </div>
         </div>
-
         <div className="bg-blue-50 p-3 rounded-lg text-sm">
           <p className="font-medium text-blue-900 mb-1">Payment Methods Available:</p>
           <ul className="text-blue-700 space-y-1">
@@ -92,7 +87,6 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
             <li>• Bank Transfer & USSD</li>
           </ul>
         </div>
-
         {isMobile && (
           <div className="bg-green-50 p-3 rounded-lg text-sm">
             <p className="text-green-800">
@@ -100,7 +94,6 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
             </p>
           </div>
         )}
-        
         <div className="flex gap-3">
           <Button 
             type="button" 
