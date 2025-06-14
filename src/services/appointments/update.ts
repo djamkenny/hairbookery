@@ -65,6 +65,19 @@ export const updateAppointmentStatus = async (
     
     // Process earnings when appointment is completed by calling edge function
     if (newStatus === "completed") {
+      // Ensure the corresponding payment is marked as 'completed'.
+      // This makes the earnings processing more robust and less dependent on webhook timing.
+      const { error: paymentError } = await supabase
+        .from('payments')
+        .update({ status: 'completed' })
+        .eq('appointment_id', appointmentId);
+      
+      if (paymentError) {
+        console.error("Error updating payment status to completed:", paymentError);
+        // We'll still attempt to process earnings, but log this issue.
+        toast.warning("Could not automatically update payment status, earnings might be delayed.");
+      }
+
       console.log("Triggering earnings processing for completed appointment:", appointmentId);
       const { error: earningsError } = await supabase.functions.invoke('process-earnings', {
         body: { appointment_id: appointmentId }
