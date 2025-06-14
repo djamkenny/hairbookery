@@ -1,11 +1,11 @@
 
 import React from "react";
 import { useStylistAnalytics } from "@/hooks/useStylistAnalytics";
-import { Loader2, RefreshCw } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 import AnalyticsOverview from "./AnalyticsOverview";
 import ServicePopularityChart from "./ServicePopularityChart";
 import MonthlyTrendsChart from "./MonthlyTrendsChart";
+import RealTimeBalance from "./RealTimeBalance";
 
 const AnalyticsTab = () => {
   const {
@@ -14,26 +14,41 @@ const AnalyticsTab = () => {
     totalBookings,
     totalRevenue,
     loading,
-    error,
-    refetch
+    error
   } = useStylistAnalytics();
+
+  const [stylistId, setStylistId] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    const getUserId = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setStylistId(user.id);
+      }
+    };
+    getUserId();
+  }, []);
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex items-center justify-center py-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-2 text-muted-foreground">Loading analytics...</p>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
-        <p className="text-destructive">Error loading analytics: {error}</p>
-        <Button onClick={refetch} variant="outline">
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Try Again
-        </Button>
+      <div className="flex items-center justify-center py-8">
+        <div className="text-center">
+          <p className="text-red-600 mb-2">Error loading analytics: {error}</p>
+          <p className="text-muted-foreground text-sm">
+            Please check if the earnings system is properly set up.
+          </p>
+        </div>
       </div>
     );
   }
@@ -42,17 +57,15 @@ const AnalyticsTab = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      {/* Real-time Balance Section */}
+      {stylistId && (
         <div>
-          <h2 className="text-2xl font-semibold">Analytics & Insights</h2>
-          <p className="text-muted-foreground">Track your booking performance and popular services</p>
+          <h3 className="text-lg font-semibold mb-4">Real-Time Balance</h3>
+          <RealTimeBalance stylistId={stylistId} />
         </div>
-        <Button onClick={refetch} variant="outline" size="sm">
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Refresh
-        </Button>
-      </div>
+      )}
 
+      {/* Analytics Overview */}
       <AnalyticsOverview
         totalBookings={totalBookings}
         totalRevenue={totalRevenue}
@@ -60,40 +73,19 @@ const AnalyticsTab = () => {
         topServiceCount={topService?.bookingCount}
       />
 
+      {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <ServicePopularityChart data={serviceStats} />
         <MonthlyTrendsChart data={monthlyStats} />
       </div>
 
-      {serviceStats.length > 0 && (
-        <div className="mt-6">
-          <h3 className="text-lg font-medium mb-4">Service Performance Details</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {serviceStats.map((service, index) => (
-              <div
-                key={service.serviceName}
-                className="bg-secondary/30 p-4 rounded-lg border"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-medium">{service.serviceName}</h4>
-                  <span className="text-sm text-primary font-medium">#{index + 1}</span>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">
-                    Bookings: <span className="font-medium text-foreground">{service.bookingCount}</span>
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Revenue: <span className="font-medium text-foreground">
-                      {new Intl.NumberFormat('en-GH', {
-                        style: 'currency',
-                        currency: 'GHS'
-                      }).format(service.totalRevenue)}
-                    </span>
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
+      {/* Additional Info */}
+      {serviceStats.length === 0 && (
+        <div className="text-center py-8">
+          <p className="text-muted-foreground mb-2">No booking data available yet</p>
+          <p className="text-sm text-muted-foreground">
+            Start completing appointments to see your analytics and earnings here.
+          </p>
         </div>
       )}
     </div>
