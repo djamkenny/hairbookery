@@ -16,11 +16,34 @@ export interface MonthlyBookingData {
 
 export const fetchStylistBookingAnalytics = async (stylistId: string) => {
   try {
-    // Fetch earnings data for actual revenue calculation
-    const { data: earnings, error: earningsError } = await supabase
-      .rpc('get_stylist_earnings', { stylist_uuid: stylistId });
+    // Try to fetch earnings data for actual revenue calculation
+    let earnings: any[] = [];
+    try {
+      const { data: earningsData, error: earningsError } = await supabase
+        .rpc('get_stylist_earnings', { stylist_uuid: stylistId });
 
-    if (earningsError) throw earningsError;
+      if (earningsError) {
+        console.log("RPC function not available yet, using fallback method");
+        // Fallback: try to query the table directly
+        const { data: fallbackEarnings, error: fallbackError } = await supabase
+          .from('specialist_earnings')
+          .select('*')
+          .eq('stylist_id', stylistId)
+          .order('created_at', { ascending: false });
+        
+        if (fallbackError) {
+          console.log("Specialist earnings table not available yet");
+          earnings = [];
+        } else {
+          earnings = fallbackEarnings || [];
+        }
+      } else {
+        earnings = earningsData || [];
+      }
+    } catch (err) {
+      console.log("Earnings data not available yet, proceeding with basic analytics");
+      earnings = [];
+    }
 
     // Fetch appointments with service details for booking counts
     const { data: appointments, error: appointmentsError } = await supabase
@@ -51,7 +74,7 @@ export const fetchStylistBookingAnalytics = async (stylistId: string) => {
     const monthlyStatsMap = new Map<string, MonthlyBookingData>();
     
     // Calculate total actual revenue from earnings (in pesewas, convert to cedis)
-    const totalRevenue = (earnings || []).reduce((sum: number, earning: any) => 
+    const totalRevenue = earnings.reduce((sum: number, earning: any) => 
       sum + (earning.net_amount || 0), 0) / 100;
 
     // Process appointments for booking counts
