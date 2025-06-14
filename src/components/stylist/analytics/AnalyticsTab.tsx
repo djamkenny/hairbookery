@@ -24,9 +24,10 @@ const AnalyticsTab = () => {
 
   return (
     <div className="space-y-6">
+      {/* totalRevenue is in pesewas */}
       <AnalyticsOverview
         totalBookings={totalBookings}
-        totalRevenue={Math.round(totalRevenue * 100)} {/* in pesewas */}
+        totalRevenue={Math.round(totalRevenue * 100)}
         topService={topServiceEntry?.serviceName}
         topServiceCount={topServiceEntry?.bookingCount}
       />
