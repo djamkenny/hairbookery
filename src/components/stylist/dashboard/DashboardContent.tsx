@@ -7,6 +7,7 @@ import StylistClientsTab from "@/components/stylist/StylistClientsTab";
 import StylistServicesTab from "@/components/stylist/StylistServicesTab";
 import StylistSettingsTab from "@/components/stylist/StylistSettingsTab";
 import EarningsTab from "@/components/stylist/earnings/EarningsTab";
+import AnalyticsTab from "@/components/stylist/analytics/AnalyticsTab";
 
 interface DashboardContentProps {
   user: any;
@@ -72,6 +73,10 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
       
       <TabsContent value="services" className="w-full mt-4">
         <StylistServicesTab />
+      </TabsContent>
+      
+      <TabsContent value="analytics" className="w-full mt-4">
+        <AnalyticsTab />
       </TabsContent>
       
       <TabsContent value="earnings" className="w-full mt-4">
