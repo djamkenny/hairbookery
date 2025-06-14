@@ -13,35 +13,48 @@ const RealTimeBalance = ({ stylistId }: RealTimeBalanceProps) => {
   const [availableBalance, setAvailableBalance] = useState(0);
   const [totalEarnings, setTotalEarnings] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   const fetchBalance = async () => {
     try {
+      setFetchError(null);
+      setLoading(true);
       console.log("Fetching real-time balance for stylist:", stylistId);
-      
+
       // Fetch earnings using RPC function
       const { data: earnings, error: earningsError } = await supabase
         .rpc('get_stylist_earnings', { stylist_uuid: stylistId });
 
       if (earningsError) {
         console.error("Error fetching earnings:", earningsError);
+        setFetchError("Failed to fetch from Supabase: " + earningsError.message);
         toast.error("Failed to fetch balance");
+        setAvailableBalance(0);
+        setTotalEarnings(0);
         return;
       }
+
+      console.log("Earnings returned:", earnings);
 
       // Calculate balances
       const available = (earnings || [])
         .filter((e: any) => e.status === 'available')
         .reduce((sum: number, e: any) => sum + (e.net_amount || 0), 0);
-      
+
       const total = (earnings || [])
         .reduce((sum: number, e: any) => sum + (e.net_amount || 0), 0);
 
       setAvailableBalance(available);
       setTotalEarnings(total);
-      
+
+      // Debug: show in UI if empty
+      if ((earnings || []).length === 0) {
+        setFetchError("No earnings data found for your account. Please confirm you are viewing your stylist account.");
+      }
       console.log("Balance updated - Available:", available, "Total:", total);
     } catch (error) {
       console.error("Error fetching balance:", error);
+      setFetchError("Unexpected error: " + (error as any)?.message);
       toast.error("Failed to fetch balance");
     } finally {
       setLoading(false);
@@ -51,7 +64,6 @@ const RealTimeBalance = ({ stylistId }: RealTimeBalanceProps) => {
   useEffect(() => {
     if (!stylistId) return;
 
-    // Initial fetch
     fetchBalance();
 
     // Set up real-time subscription for payments and earnings
@@ -100,6 +112,18 @@ const RealTimeBalance = ({ stylistId }: RealTimeBalanceProps) => {
       <Card>
         <CardContent className="flex items-center justify-center p-6">
           <RefreshCw className="h-6 w-6 animate-spin" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Show helpful error or empty message
+  if (fetchError) {
+    return (
+      <Card>
+        <CardContent className="flex flex-col items-center justify-center p-6">
+          <span className="text-red-600 font-medium">{fetchError}</span>
+          <span className="text-xs text-muted-foreground mt-2">If this persists, please contact support.</span>
         </CardContent>
       </Card>
     );
