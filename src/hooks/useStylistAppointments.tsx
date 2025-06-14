@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { Appointment } from "@/types/appointment";
-import { fetchStylistAppointments, updateAppointmentStatus } from "@/services/appointmentService";
+import { fetchStylistAppointments, updateAppointmentStatus } from "@/services/appointments";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
