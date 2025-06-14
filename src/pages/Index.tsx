@@ -39,13 +39,13 @@ const Index = () => {
                 <div className="space-y-4">
                   <div>
                     <h3 className="font-medium mb-1 md:mb-2 text-base md:text-lg">Our Location</h3>
-                    <p className="text-muted-foreground text-sm md:text-base">123 Styling Street</p>
-                    <p className="text-muted-foreground text-sm md:text-base">New York, NY 10001</p>
+                    <p className="text-muted-foreground text-sm md:text-base">45 Independence Avenue</p>
+                    <p className="text-muted-foreground text-sm md:text-base">Accra, Ghana</p>
                   </div>
                   
                   <div>
                     <h3 className="font-medium mb-1 md:mb-2 text-base md:text-lg">Contact Information</h3>
-                    <p className="text-muted-foreground text-sm md:text-base">Phone: +1 (555) 123-4567</p>
+                    <p className="text-muted-foreground text-sm md:text-base">Phone: +233 55 123 4567</p>
                     <p className="text-muted-foreground text-sm md:text-base">Email: info@knlbookery.com</p>
                   </div>
                   
@@ -60,7 +60,7 @@ const Index = () => {
               
               <div className="rounded-lg overflow-hidden animate-fade-in h-[300px] md:h-[450px]" style={{ animationDelay: "0.3s" }}>
                 <iframe 
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d48371.66637263144!2d-74.02786730228456!3d40.71531432062164!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c259a9b3117469%3A0xd134e199a405a163!2sEmpire%20State%20Building!5e0!3m2!1sen!2sus!4v1685559345499!5m2!1sen!2sus" 
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3971.1694593645463!2d-0.1908700847491133!3d5.548049635277688!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xfdf84b5b09d9aea%3A0x3d75bebc99ecb23a!2sIndependence%20Arch!5e0!3m2!1sen!2sgh!4v1718235000000!5m2!1sen!2sgh" 
                   width="100%" 
                   height="100%" 
                   style={{ border: 0 }} 
