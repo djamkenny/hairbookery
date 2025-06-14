@@ -61,29 +61,41 @@ export type Database = {
       }
       notifications: {
         Row: {
+          action_url: string | null
           created_at: string
+          expires_at: string | null
           id: string
           is_read: boolean
           message: string
+          priority: string | null
           related_id: string | null
+          title: string | null
           type: string
           user_id: string
         }
         Insert: {
+          action_url?: string | null
           created_at?: string
+          expires_at?: string | null
           id?: string
           is_read?: boolean
           message: string
+          priority?: string | null
           related_id?: string | null
+          title?: string | null
           type: string
           user_id: string
         }
         Update: {
+          action_url?: string | null
           created_at?: string
+          expires_at?: string | null
           id?: string
           is_read?: boolean
           message?: string
+          priority?: string | null
           related_id?: string | null
+          title?: string | null
           type?: string
           user_id?: string
         }
@@ -299,6 +311,18 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      create_notification: {
+        Args: {
+          p_user_id: string
+          p_title: string
+          p_message: string
+          p_type: string
+          p_related_id?: string
+          p_action_url?: string
+          p_priority?: string
+        }
+        Returns: string
+      }
       create_withdrawal_request: {
         Args: {
           p_stylist_id: string
@@ -308,6 +332,10 @@ export type Database = {
           p_account_name: string
           p_notes?: string
         }
+        Returns: string
+      }
+      generate_appointment_reference: {
+        Args: Record<PropertyKey, never>
         Returns: string
       }
       get_stylist_earnings: {
@@ -345,7 +373,16 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      notification_priority: "low" | "normal" | "high" | "urgent"
+      notification_type:
+        | "appointment_created"
+        | "appointment_confirmed"
+        | "appointment_canceled"
+        | "appointment_completed"
+        | "payment_received"
+        | "payment_failed"
+        | "earnings_available"
+        | "system_alert"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -460,6 +497,18 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      notification_priority: ["low", "normal", "high", "urgent"],
+      notification_type: [
+        "appointment_created",
+        "appointment_confirmed",
+        "appointment_canceled",
+        "appointment_completed",
+        "payment_received",
+        "payment_failed",
+        "earnings_available",
+        "system_alert",
+      ],
+    },
   },
 } as const

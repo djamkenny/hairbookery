@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
@@ -41,27 +40,35 @@ const PaymentReturn = () => {
           setSuccess(true);
           toast.success('Payment successful!');
           
-          // Check if there's a pending appointment confirmation
+          // Appointment creation block
           const hasCallback = localStorage.getItem('paymentSuccessCallback');
           const appointmentId = localStorage.getItem('appointmentId');
           const serviceId = localStorage.getItem('serviceId');
+          const stylistId = localStorage.getItem('stylistId');
+          const appointmentDate = localStorage.getItem('appointmentDate');
+          const appointmentTime = localStorage.getItem('appointmentTime');
+          const appointmentNotes = localStorage.getItem('appointmentNotes');
           
-          if (hasCallback && serviceId) {
+          if (hasCallback && serviceId && stylistId && appointmentDate && appointmentTime) {
             // Get current user
             const { data: { user } } = await supabase.auth.getUser();
-            
             if (user) {
-              // Create appointment after successful payment
+              // Generate order_id using Postgres function
+              const { data: refData, error: refError } = await supabase.rpc("generate_appointment_reference");
+              const generatedOrderId = refData;
+
+              // Create appointment with reference order_id
               const { data: appointmentData, error: appointmentError } = await supabase
                 .from('appointments')
                 .insert({
                   client_id: user.id,
                   service_id: serviceId,
-                  stylist_id: localStorage.getItem('stylistId') || '',
-                  appointment_date: localStorage.getItem('appointmentDate') || '',
-                  appointment_time: localStorage.getItem('appointmentTime') || '',
-                  notes: localStorage.getItem('appointmentNotes') || '',
-                  status: 'confirmed'
+                  stylist_id: stylistId || '',
+                  appointment_date: appointmentDate || '',
+                  appointment_time: appointmentTime || '',
+                  notes: appointmentNotes || '',
+                  status: 'confirmed',
+                  order_id: generatedOrderId || null
                 })
                 .select()
                 .single();
@@ -70,11 +77,39 @@ const PaymentReturn = () => {
                 console.error('Error creating appointment:', appointmentError);
                 toast.error('Payment successful but failed to create appointment');
               } else {
+                // Notify both client and specialist
+                const specialistId = stylistId;
+                const clientTitle = "Appointment Confirmed";
+                const specialistTitle = "You have a new appointment!";
+                const serviceRes = await supabase.from("services").select("name").eq("id", serviceId).single();
+                const serviceName = serviceRes.data?.name || "Service";
+                
+                // Create notification for client
+                await supabase.rpc("create_notification", {
+                  p_user_id: user.id,
+                  p_title: clientTitle,
+                  p_message: `Your appointment for ${serviceName} has been confirmed. Reference: ${appointmentData?.order_id}`,
+                  p_type: 'appointment_confirmed',
+                  p_related_id: appointmentData?.id,
+                  p_action_url: '/profile',
+                  p_priority: 'normal'
+                });
+                // Create notification for specialist
+                if (specialistId) {
+                  await supabase.rpc("create_notification", {
+                    p_user_id: specialistId,
+                    p_title: specialistTitle,
+                    p_message: `You have a new appointment for ${serviceName}. Reference: ${appointmentData?.order_id}`,
+                    p_type: 'appointment_created',
+                    p_related_id: appointmentData?.id,
+                    p_action_url: '/stylist-dashboard',
+                    p_priority: 'normal'
+                  });
+                }
                 console.log('Appointment created successfully:', appointmentData);
                 toast.success('Appointment booked successfully!');
               }
             }
-            
             // Clean up localStorage
             localStorage.removeItem('paymentSuccessCallback');
             localStorage.removeItem('appointmentId');
