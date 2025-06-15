@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,9 +27,9 @@ const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
   appointmentId,
   formatPrice
 }) => {
-  // Calculate fee breakdown
+  // Calculate only the fee—the amount user will pay is ONLY the fee!
   const basePrice = selectedService?.price || 0;
-  const { fee: bookingFee, total: totalAmount } = calculateBookingFee(basePrice, 20);
+  const { fee: bookingFee } = calculateBookingFee(basePrice, 20);
 
   return (
     <div className="space-y-6">
@@ -36,7 +37,7 @@ const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Scissors className="h-5 w-5" />
-            Booking Summary
+            Booking Fee Summary
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -57,7 +58,7 @@ const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
           </div>
           <div className="pt-4 border-t space-y-2">
             <div className="flex justify-between items-center">
-              <span className="font-medium">Service Amount:</span>
+              <span>Service Price:</span>
               <span>
                 {formatPrice
                   ? formatPrice(basePrice)
@@ -66,28 +67,32 @@ const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
             </div>
             <div className="flex justify-between items-center text-sm">
               <span className="font-medium text-amber-700">
-                Platform Fee (20%):
+                Booking Fee (20% to confirm):
               </span>
               <span className="text-amber-700">
                 {formatPrice ? formatPrice(bookingFee) : `₵${bookingFee.toFixed(2)}`}
               </span>
             </div>
             <div className="flex justify-between items-center font-bold border-t pt-2">
-              <span>Total to Pay:</span>
-              <span>
-                {formatPrice ? formatPrice(totalAmount) : `₵${totalAmount.toFixed(2)}`}
+              <span className="text-green-700">Total to Pay Now:</span>
+              <span className="text-green-700">
+                {formatPrice ? formatPrice(bookingFee) : `₵${bookingFee.toFixed(2)}`}
               </span>
             </div>
+          </div>
+          <div className="bg-yellow-50 p-3 rounded-lg text-sm mt-4 text-yellow-800">
+            <span className="font-semibold">Note:</span> Your booking will be confirmed when you pay the fee above. <br />
+            <span>You will pay the <strong>remaining {formatPrice ? formatPrice(basePrice - bookingFee) : `₵${(basePrice-bookingFee).toFixed(2)}`}</strong> directly to the specialist at your appointment.</span>
           </div>
         </CardContent>
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle>Complete Payment</CardTitle>
+          <CardTitle>Pay Booking Fee</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            Click the button below to proceed with payment for your appointment. Your appointment will only be created after successful payment.
+            Click the button below to pay the <span className="font-medium">booking fee</span> for your appointment. Your appointment will only be created after successful payment.
           </p>
           <div className="flex gap-3">
             <Button 
@@ -100,18 +105,19 @@ const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
             </Button>
             <div className="flex-1">
               <PaymentButton
-                amount={totalAmount}
-                description={`Appointment: ${selectedService?.name}`}
+                amount={bookingFee}
+                description={`Booking Fee for ${selectedService?.name}`}
                 serviceId={selectedService?.id}
                 metadata={{
                   base_price: basePrice,
                   booking_fee: bookingFee,
-                  total: totalAmount,
                   fee_percentage: 20
                 }}
                 className="w-full"
                 onPaymentSuccess={handlePaymentSuccess}
-              />
+              >
+                Pay Booking Fee
+              </PaymentButton>
             </div>
           </div>
         </CardContent>
@@ -121,3 +127,4 @@ const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
 };
 
 export default PaymentConfirmation;
+
