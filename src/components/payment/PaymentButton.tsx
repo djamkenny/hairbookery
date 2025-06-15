@@ -13,6 +13,7 @@ interface PaymentButtonProps {
   appointmentId?: string;
   className?: string;
   children?: React.ReactNode;
+  metadata?: Record<string, any>;
   onPaymentSuccess?: () => void;
 }
 
@@ -24,6 +25,7 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
   appointmentId,
   className,
   children,
+  metadata,
   onPaymentSuccess,
 }) => {
   const [loading, setLoading] = useState(false);
@@ -37,25 +39,20 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
       if (amount <= 0) {
         throw new Error("Invalid amount");
       }
-      
+
       // Convert to pesewas for Paystack
       const amountInPesewas = Math.round(amount * 100);
-      const result = await createPayment(amountInPesewas, description);
-      
+      const result = await createPayment(amountInPesewas, description, undefined, metadata);
+
       if (result?.url) {
-        // Store payment success callback in localStorage for PaymentReturn page
         if (onPaymentSuccess) {
           localStorage.setItem('paymentSuccessCallback', 'true');
           localStorage.setItem('appointmentId', appointmentId || '');
           localStorage.setItem('serviceId', serviceId || '');
         }
-        
-        // Mobile-friendly payment handling
         if (isMobile) {
-          // On mobile, use location.href for better compatibility
           window.location.href = result.url;
         } else {
-          // On desktop, open in new tab
           window.open(result.url, '_blank');
         }
       }

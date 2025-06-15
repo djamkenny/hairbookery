@@ -1,9 +1,9 @@
-
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CalendarIcon, ClockIcon, UserIcon, Scissors } from "lucide-react";
 import { PaymentButton } from "@/components/payment/PaymentButton";
+import { calculateBookingFee } from "../utils/feeUtils";
 
 interface PaymentConfirmationProps {
   selectedService: any;
@@ -14,6 +14,7 @@ interface PaymentConfirmationProps {
   isSubmitting: boolean;
   appointmentId?: string | null;
   formatPrice?: (price: number) => string;
+  calculateBookingFee?: (price: number, feePercent?: number) => { fee: number, total: number };
 }
 
 const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
@@ -23,8 +24,13 @@ const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
   handlePaymentSuccess,
   handleGoBack,
   isSubmitting,
-  formatPrice
+  formatPrice,
+  calculateBookingFee = calculateBookingFee
 }) => {
+  // Calculate fee breakdown
+  const basePrice = selectedService?.price || 0;
+  const { fee: bookingFee, total: totalAmount } = calculateBookingFee(basePrice, 20);
+
   return (
     <div className="space-y-6">
       <Card>
@@ -50,13 +56,27 @@ const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
             <ClockIcon className="h-4 w-4 text-muted-foreground" />
             <p>{time}</p>
           </div>
-          <div className="pt-4 border-t">
+          <div className="pt-4 border-t space-y-2">
             <div className="flex justify-between items-center">
-              <span className="font-medium">Total Amount:</span>
-              <span className="text-lg font-bold">
+              <span className="font-medium">Service Amount:</span>
+              <span>
                 {formatPrice
-                  ? formatPrice(selectedService?.price || 0)
-                  : `₵${selectedService?.price?.toFixed(2)}`}
+                  ? formatPrice(basePrice)
+                  : `₵${basePrice?.toFixed(2)}`}
+              </span>
+            </div>
+            <div className="flex justify-between items-center text-sm">
+              <span className="font-medium text-amber-700">
+                Platform Fee (20%):
+              </span>
+              <span className="text-amber-700">
+                {formatPrice ? formatPrice(bookingFee) : `₵${bookingFee.toFixed(2)}`}
+              </span>
+            </div>
+            <div className="flex justify-between items-center font-bold border-t pt-2">
+              <span>Total to Pay:</span>
+              <span>
+                {formatPrice ? formatPrice(totalAmount) : `₵${totalAmount.toFixed(2)}`}
               </span>
             </div>
           </div>
@@ -81,9 +101,15 @@ const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
             </Button>
             <div className="flex-1">
               <PaymentButton
-                amount={selectedService?.price || 0}
+                amount={totalAmount}
                 description={`Appointment: ${selectedService?.name}`}
                 serviceId={selectedService?.id}
+                metadata={{
+                  base_price: basePrice,
+                  booking_fee: bookingFee,
+                  total: totalAmount,
+                  fee_percentage: 20
+                }}
                 className="w-full"
                 onPaymentSuccess={handlePaymentSuccess}
               />
