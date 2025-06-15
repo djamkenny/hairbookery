@@ -1,4 +1,3 @@
-
 import React from "react";
 import { formatPrice, formatDuration } from "./utils/formatUtils";
 import { useBookingForm } from "./hooks/useBookingForm";
@@ -84,6 +83,7 @@ export const BookingForm = () => {
           handlePaymentSuccess={handlePaymentSuccess}
           handleGoBack={handleGoBack}
           isSubmitting={isSubmitting}
+          formatPrice={formatPrice}
         />
       )}
     </div>

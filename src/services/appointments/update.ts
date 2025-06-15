@@ -1,76 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { Appointment } from "@/types/appointment";
-import { format } from "date-fns";
-
-export const fetchStylistAppointments = async (): Promise<Appointment[]> => {
-  try {
-    // Get the authenticated user
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      return [];
-    }
-    
-    // Fetch appointments where this stylist is assigned, along with service info
-    const { data, error } = await supabase
-      .from('appointments')
-      .select(`
-        *,
-        services:service_id(name)
-      `)
-      .eq('stylist_id', user.id)
-      .is('canceled_at', null);
-    
-    if (error) {
-      throw error;
-    }
-    
-    if (!data || data.length === 0) {
-      return [];
-    }
-    
-    // Get all unique client IDs from the appointments
-    const clientIds = [...new Set(data.map(appointment => appointment.client_id))];
-    
-    // Fetch client profiles in a separate query
-    const { data: clientProfiles, error: clientError } = await supabase
-      .from('profiles')
-      .select('id, full_name, email, phone')
-      .in('id', clientIds);
-      
-    if (clientError) {
-      console.error("Error fetching client profiles:", clientError);
-    }
-    
-    // Create a map of client profiles by ID for easy lookup
-    const clientProfileMap = (clientProfiles || []).reduce((map, profile) => {
-      map[profile.id] = profile;
-      return map;
-    }, {} as Record<string, any>);
-    
-    // Format the appointments data with client info from the map
-    return data.map(appointment => {
-      const clientProfile = clientProfileMap[appointment.client_id] || {};
-      
-      return {
-        id: appointment.id,
-        client: clientProfile.full_name || 'Client',
-        service: appointment.services?.name || 'Service',
-        date: format(new Date(appointment.appointment_date), 'MMMM dd, yyyy'),
-        time: appointment.appointment_time,
-        status: appointment.status,
-        clientEmail: clientProfile.email,
-        clientPhone: clientProfile.phone,
-        client_id: appointment.client_id,
-        order_id: appointment.order_id || undefined
-      };
-    });
-  } catch (error) {
-    console.error("Error fetching appointments:", error);
-    throw error;
-  }
-};
+import { toast } from "sonner";
 
 // Helper function to generate a unique order ID with client name
 const generateOrderId = (clientName: string): string => {
@@ -132,6 +62,35 @@ export const updateAppointmentStatus = async (
       .select('order_id');
     
     if (error) throw error;
+    
+    // Process earnings when appointment is completed by calling edge function
+    if (newStatus === "completed") {
+      // Ensure the corresponding payment is marked as 'completed'.
+      // This makes the earnings processing more robust and less dependent on webhook timing.
+      const { error: paymentError } = await supabase
+        .from('payments')
+        .update({ status: 'completed' })
+        .eq('appointment_id', appointmentId);
+      
+      if (paymentError) {
+        console.error("Error updating payment status to completed:", paymentError);
+        // We'll still attempt to process earnings, but log this issue.
+        toast.warning("Could not automatically update payment status, earnings might be delayed.");
+      }
+
+      console.log("Triggering earnings processing for completed appointment:", appointmentId);
+      const { error: earningsError } = await supabase.functions.invoke('process-earnings', {
+        body: { appointment_id: appointmentId }
+      });
+
+      if (earningsError) {
+        // Log the error but don't block the UI flow. The user will be notified via toast.
+        console.error("Error invoking process-earnings function:", earningsError);
+        toast.error("An error occurred while processing earnings. The support team has been notified.");
+      } else {
+        toast.success("Appointment completed. Earnings are being processed.");
+      }
+    }
     
     // Send notification to client if confirmed
     if (newStatus === "confirmed" && appointmentInfo) {

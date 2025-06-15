@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Menu, X, Calendar } from "lucide-react";
@@ -10,6 +9,7 @@ import LoginMenu from "./LoginMenu";
 import MobileMenu from "./MobileMenu";
 import useNavbar from "@/hooks/useNavbar";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import NotificationBell from "@/components/ui/NotificationBell";
 
 export const Navbar = () => {
   const { isOpen, scrolled, user, isStylist, navLinks, toggleMenu } = useNavbar();
@@ -49,6 +49,7 @@ export const Navbar = () => {
                 <span>Book Now</span>
               </Button>
             </Link>
+            <NotificationBell />
           </div>
 
           <button

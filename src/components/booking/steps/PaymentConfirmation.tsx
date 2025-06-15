@@ -1,8 +1,9 @@
 
 import React from "react";
-import { format } from "date-fns";
-import PaymentForm from "../PaymentForm";
-import { formatPrice } from "../utils/formatUtils";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { CalendarIcon, ClockIcon, UserIcon, Scissors } from "lucide-react";
+import { PaymentButton } from "@/components/payment/PaymentButton";
 
 interface PaymentConfirmationProps {
   selectedService: any;
@@ -11,6 +12,8 @@ interface PaymentConfirmationProps {
   handlePaymentSuccess: () => void;
   handleGoBack: () => void;
   isSubmitting: boolean;
+  appointmentId?: string | null;
+  formatPrice?: (price: number) => string;
 }
 
 const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
@@ -20,45 +23,74 @@ const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
   handlePaymentSuccess,
   handleGoBack,
   isSubmitting,
+  formatPrice
 }) => {
-  // Ensure price is treated as dollars (GHS), not cents
-  const servicePrice = selectedService ? parseFloat(selectedService.price) : 0;
-  console.log("Service price for payment:", { raw: selectedService?.price, parsed: servicePrice });
-
   return (
     <div className="space-y-6">
-      <div className="bg-muted/50 p-4 rounded-lg">
-        <h2 className="text-lg font-medium mb-2">Complete Your Booking</h2>
-        <div className="grid grid-cols-2 gap-3 text-sm">
-          <div>
-            <p className="text-muted-foreground">Service</p>
-            <p className="font-medium">
-              {selectedService ? selectedService.name : "Not selected"}
-            </p>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Scissors className="h-5 w-5" />
+            Booking Summary
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center gap-3">
+            <Scissors className="h-4 w-4 text-muted-foreground" />
+            <div>
+              <p className="font-medium">{selectedService?.name}</p>
+              <p className="text-sm text-muted-foreground">{selectedService?.description}</p>
+            </div>
           </div>
-          
-          <div>
-            <p className="text-muted-foreground">Price</p>
-            <p className="font-medium">
-              {selectedService ? `GH₵${selectedService.price}` : "-"}
-            </p>
+          <div className="flex items-center gap-3">
+            <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+            <p>{date?.toLocaleDateString()}</p>
           </div>
-          
-          <div>
-            <p className="text-muted-foreground">Date & Time</p>
-            <p className="font-medium">
-              {date ? `${format(date, "PPP")} at ${time}` : "Not selected"}
-            </p>
+          <div className="flex items-center gap-3">
+            <ClockIcon className="h-4 w-4 text-muted-foreground" />
+            <p>{time}</p>
           </div>
-        </div>
-      </div>
-      
-      <PaymentForm
-        amount={servicePrice}
-        onSuccess={handlePaymentSuccess}
-        onCancel={handleGoBack}
-        isSubmitting={isSubmitting}
-      />
+          <div className="pt-4 border-t">
+            <div className="flex justify-between items-center">
+              <span className="font-medium">Total Amount:</span>
+              <span className="text-lg font-bold">
+                {formatPrice
+                  ? formatPrice(selectedService?.price || 0)
+                  : `₵${selectedService?.price?.toFixed(2)}`}
+              </span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Complete Payment</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Click the button below to proceed with payment for your appointment. Your appointment will only be created after successful payment.
+          </p>
+          <div className="flex gap-3">
+            <Button 
+              variant="outline" 
+              onClick={handleGoBack}
+              disabled={isSubmitting}
+              className="flex-1"
+            >
+              Go Back
+            </Button>
+            <div className="flex-1">
+              <PaymentButton
+                amount={selectedService?.price || 0}
+                description={`Appointment: ${selectedService?.name}`}
+                serviceId={selectedService?.id}
+                className="w-full"
+                onPaymentSuccess={handlePaymentSuccess}
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

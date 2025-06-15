@@ -3,15 +3,17 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CreditCard, Loader2, Smartphone } from "lucide-react";
 import { usePayment } from "./PaymentProvider";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface PaymentButtonProps {
   amount: number;
   description: string;
-  priceId?: string; // Not used with Paystack
+  priceId?: string;
   serviceId?: string;
   appointmentId?: string;
   className?: string;
   children?: React.ReactNode;
+  onPaymentSuccess?: () => void;
 }
 
 export const PaymentButton: React.FC<PaymentButtonProps> = ({
@@ -22,9 +24,11 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
   appointmentId,
   className,
   children,
+  onPaymentSuccess,
 }) => {
   const [loading, setLoading] = useState(false);
   const { createPayment } = usePayment();
+  const isMobile = useIsMobile();
 
   const handlePayment = async () => {
     try {
@@ -39,8 +43,21 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
       const result = await createPayment(amountInPesewas, description);
       
       if (result?.url) {
-        // Open Paystack checkout in new tab
-        window.open(result.url, '_blank');
+        // Store payment success callback in localStorage for PaymentReturn page
+        if (onPaymentSuccess) {
+          localStorage.setItem('paymentSuccessCallback', 'true');
+          localStorage.setItem('appointmentId', appointmentId || '');
+          localStorage.setItem('serviceId', serviceId || '');
+        }
+        
+        // Mobile-friendly payment handling
+        if (isMobile) {
+          // On mobile, use location.href for better compatibility
+          window.location.href = result.url;
+        } else {
+          // On desktop, open in new tab
+          window.open(result.url, '_blank');
+        }
       }
     } catch (error) {
       console.error("Payment failed:", error);

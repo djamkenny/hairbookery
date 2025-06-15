@@ -1,14 +1,15 @@
-
 /**
- * Format price to display as currency
+ * Format price to display as GHS currency
  */
 export const formatPrice = (price: number): string => {
-  return new Intl.NumberFormat('en-US', { 
-    style: 'currency', 
-    currency: 'USD',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2
-  }).format(price);
+  if (isNaN(price)) return "₵0";
+  return (
+    "₵" +
+    new Intl.NumberFormat("en-GH", {
+      minimumFractionDigits: Number.isInteger(price) ? 0 : 2,
+      maximumFractionDigits: 2,
+    }).format(price)
+  );
 };
 
 /**

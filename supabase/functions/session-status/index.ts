@@ -44,7 +44,13 @@ serve(async (req) => {
 
     if (!verifyData.status) {
       console.error("Paystack verification failed:", verifyData.message);
-      throw new Error(verifyData.message || "Failed to verify transaction");
+      return new Response(JSON.stringify({ 
+        status: 'failed',
+        error: verifyData.message || "Failed to verify transaction" 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
     }
 
     const transaction = verifyData.data;
@@ -61,19 +67,87 @@ serve(async (req) => {
     if (transaction.status === 'success') {
       console.log("Updating payment status to completed for session:", session_id);
       
-      const { error: updateError } = await supabaseService
+      const { data: paymentData, error: updateError } = await supabaseService
         .from("payments")
         .update({ 
           status: 'completed',
           stripe_payment_intent_id: transaction.id,
           updated_at: new Date().toISOString()
         })
-        .eq('stripe_session_id', session_id);
+        .eq('stripe_session_id', session_id)
+        .select('id, appointment_id, user_id, amount, service_id')
+        .single();
 
       if (updateError) {
         console.error("Failed to update payment status:", updateError);
       } else {
-        console.log("Payment status updated successfully");
+        console.log("Payment status updated successfully", paymentData);
+        
+        // Process earnings immediately after payment completion
+        if (paymentData?.id && paymentData?.service_id) {
+          try {
+            console.log("Processing earnings for payment:", paymentData.id);
+            
+            // Get service details to find the stylist
+            const { data: serviceData, error: serviceError } = await supabaseService
+              .from("services")
+              .select("stylist_id")
+              .eq("id", paymentData.service_id)
+              .single();
+
+            if (serviceError || !serviceData?.stylist_id) {
+              console.error("Failed to get service details:", serviceError);
+            } else {
+              console.log("Found stylist for service:", serviceData.stylist_id);
+              
+              // Check if earnings record already exists
+              const { data: existingEarning } = await supabaseService
+                .from("specialist_earnings")
+                .select("id")
+                .eq("payment_id", paymentData.id)
+                .single();
+
+              if (existingEarning) {
+                console.log("Earnings record already exists for payment:", paymentData.id);
+              } else {
+                // Calculate earnings (15% platform fee)
+                const grossAmount = paymentData.amount;
+                const platformFeePercentage = 15;
+                const platformFee = Math.round(grossAmount * (platformFeePercentage / 100));
+                const netAmount = grossAmount - platformFee;
+
+                console.log("Creating earnings record:", {
+                  grossAmount,
+                  platformFee,
+                  netAmount,
+                  stylist_id: serviceData.stylist_id
+                });
+
+                // Create earnings record
+                const { error: earningsError } = await supabaseService
+                  .from("specialist_earnings")
+                  .insert({
+                    stylist_id: serviceData.stylist_id,
+                    appointment_id: paymentData.appointment_id,
+                    payment_id: paymentData.id,
+                    gross_amount: grossAmount,
+                    platform_fee: platformFee,
+                    net_amount: netAmount,
+                    platform_fee_percentage: platformFeePercentage,
+                    status: 'available' // Make immediately available for withdrawal
+                  });
+
+                if (earningsError) {
+                  console.error("Failed to create earnings record:", earningsError);
+                } else {
+                  console.log("Earnings record created successfully");
+                }
+              }
+            }
+          } catch (earningsProcessingError) {
+            console.error("Error processing earnings:", earningsProcessingError);
+          }
+        }
       }
     }
 
@@ -93,7 +167,8 @@ serve(async (req) => {
       customer_email: transaction.customer?.email || '',
       transaction_reference: transaction.reference,
       amount: transaction.amount,
-      currency: transaction.currency
+      currency: transaction.currency,
+      success: transaction.status === 'success'
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,

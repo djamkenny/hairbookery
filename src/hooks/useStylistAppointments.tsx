@@ -1,7 +1,6 @@
-
 import { useState, useEffect } from "react";
 import { Appointment } from "@/types/appointment";
-import { fetchStylistAppointments, updateAppointmentStatus } from "@/services/appointmentService";
+import { fetchStylistAppointments, updateAppointmentStatus } from "@/services/appointments";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -74,7 +73,10 @@ export const useStylistAppointments = () => {
         )
       );
       
-      toast.success(`Appointment ${newStatus}`);
+      // The 'completed' status has its own toast messages in the service to provide more detail
+      if (newStatus !== "completed") {
+        toast.success(`Appointment ${newStatus}`);
+      }
     } catch (error: any) {
       console.error('Error updating appointment status:', error);
       toast.error("Failed to update appointment status");

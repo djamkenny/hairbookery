@@ -1,9 +1,11 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 import { Appointment } from "@/types/appointment";
+import { toast } from "sonner";
 
 interface AppointmentRowProps {
   appointment: Appointment;
@@ -16,6 +18,8 @@ const AppointmentRow: React.FC<AppointmentRowProps> = ({
   onUpdateStatus,
   onViewDetails 
 }) => {
+  const [isCompleting, setIsCompleting] = useState(false);
+
   const getBadgeVariant = (status: string) => {
     switch(status) {
       case "confirmed": return "default";
@@ -31,6 +35,19 @@ const AppointmentRow: React.FC<AppointmentRowProps> = ({
       case "completed": return "Completed";
       case "canceled": return "Canceled";
       default: return "Pending";
+    }
+  };
+
+  const handleCompleteAppointment = async () => {
+    setIsCompleting(true);
+    try {
+      await onUpdateStatus(appointment.id, "completed", appointment.client_id);
+      toast.success("Appointment completed! Earnings have been processed and added to your balance.");
+    } catch (error) {
+      console.error("Error completing appointment:", error);
+      toast.error("Failed to complete appointment. Please try again.");
+    } finally {
+      setIsCompleting(false);
     }
   };
 
@@ -65,9 +82,17 @@ const AppointmentRow: React.FC<AppointmentRowProps> = ({
           {appointment.status === "confirmed" && (
             <Button 
               size="sm"
-              onClick={() => onUpdateStatus(appointment.id, "completed", appointment.client_id)}
+              onClick={handleCompleteAppointment}
+              disabled={isCompleting}
             >
-              Complete
+              {isCompleting ? (
+                <>
+                  <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                  Processing
+                </>
+              ) : (
+                "Complete"
+              )}
             </Button>
           )}
         </div>

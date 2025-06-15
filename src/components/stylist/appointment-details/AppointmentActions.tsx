@@ -12,6 +12,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface AppointmentActionsProps {
@@ -32,6 +33,7 @@ const AppointmentActions: React.FC<AppointmentActionsProps> = ({
   onClose
 }) => {
   const [isCancelAlertOpen, setIsCancelAlertOpen] = useState(false);
+  const [isCompleting, setIsCompleting] = useState(false);
 
   const handleCancelAppointment = () => {
     if (onCancelAppointment) {
@@ -39,6 +41,22 @@ const AppointmentActions: React.FC<AppointmentActionsProps> = ({
       setIsCancelAlertOpen(false);
       toast.success("Appointment canceled");
       onClose();
+    }
+  };
+
+  const handleCompleteAppointment = async () => {
+    if (onUpdateStatus) {
+      setIsCompleting(true);
+      try {
+        await onUpdateStatus(appointmentId, "completed", clientId);
+        toast.success("Appointment completed! Earnings have been processed and added to your balance.");
+        onClose();
+      } catch (error) {
+        console.error("Error completing appointment:", error);
+        toast.error("Failed to complete appointment. Please try again.");
+      } finally {
+        setIsCompleting(false);
+      }
     }
   };
 
@@ -57,12 +75,17 @@ const AppointmentActions: React.FC<AppointmentActionsProps> = ({
         )}
         {status === "confirmed" && onUpdateStatus && (
           <Button 
-            onClick={() => {
-              onUpdateStatus(appointmentId, "completed", clientId);
-              onClose();
-            }}
+            onClick={handleCompleteAppointment}
+            disabled={isCompleting}
           >
-            Complete
+            {isCompleting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              "Complete & Process Payment"
+            )}
           </Button>
         )}
         {(status === "pending" || status === "confirmed") && onCancelAppointment && (

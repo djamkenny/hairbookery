@@ -1,10 +1,10 @@
-
 import React from "react";
 import { Clock, DollarSign, Edit, Trash2, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Service } from "./types";
+import { formatGHS } from "./formatGHS";
 
 interface ServiceCardProps {
   service: Service;
@@ -13,11 +13,11 @@ interface ServiceCardProps {
   isEditing: boolean;
 }
 
-export const ServiceCard: React.FC<ServiceCardProps> = ({ 
-  service, 
-  onEdit, 
-  onDelete, 
-  isEditing 
+export const ServiceCard: React.FC<ServiceCardProps> = ({
+  service,
+  onEdit,
+  onDelete,
+  isEditing
 }) => {
   const hasImages = service.image_urls && service.image_urls.length > 0;
   const firstImage = hasImages ? service.image_urls[0] : null;
@@ -32,8 +32,8 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
             className="w-full h-full object-cover"
           />
           {service.image_urls && service.image_urls.length > 1 && (
-            <Badge 
-              variant="secondary" 
+            <Badge
+              variant="secondary"
               className="absolute top-2 right-2 bg-black/70 text-white"
             >
               <ImageIcon className="h-3 w-3 mr-1" />
@@ -42,7 +42,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
           )}
         </div>
       )}
-      
+
       <CardHeader>
         <div className="flex justify-between items-start">
           <div className="max-w-[70%]">
@@ -73,19 +73,19 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
           </div>
         </div>
       </CardHeader>
-      
+
       <CardContent>
         <div className="flex items-center justify-between text-sm">
           <div className="flex items-center">
             <DollarSign className="h-4 w-4 mr-1 text-green-600" />
-            <span className="font-medium">${service.price}</span>
+            <span className="font-medium">{formatGHS(service.price)}</span>
           </div>
           <div className="flex items-center text-muted-foreground">
             <Clock className="h-4 w-4 mr-1" />
             <span>{service.duration}min</span>
           </div>
         </div>
-        
+
         {!hasImages && (
           <div className="mt-3 p-3 bg-muted/30 rounded-lg text-center">
             <ImageIcon className="h-6 w-6 mx-auto text-muted-foreground mb-1" />

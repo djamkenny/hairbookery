@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,13 +39,14 @@ const EarningsTab = () => {
   const [totalEarnings, setTotalEarnings] = useState(0);
   const [pendingEarnings, setPendingEarnings] = useState(0);
   const [withdrawnAmount, setWithdrawnAmount] = useState(0);
+  const [totalRevenue, setTotalRevenue] = useState(0);
 
   const fetchEarningsData = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Fetch earnings data using the new RPC function
+      // Fetch earnings data using the RPC function
       const { data: earningsData, error: earningsError } = await supabase
         .rpc('get_stylist_earnings', { stylist_uuid: user.id });
 
@@ -54,12 +54,11 @@ const EarningsTab = () => {
         console.error("Earnings error:", earningsError);
         setEarnings([]);
       } else {
-        // Type assertion since we know the structure from our RPC function
         const typedEarnings = (earningsData as any[]) || [];
         setEarnings(typedEarnings);
       }
 
-      // Fetch withdrawals data using the new RPC function
+      // Fetch withdrawals data using the RPC function
       const { data: withdrawalsData, error: withdrawalsError } = await supabase
         .rpc('get_stylist_withdrawals', { stylist_uuid: user.id });
 
@@ -67,7 +66,6 @@ const EarningsTab = () => {
         console.error("Withdrawals error:", withdrawalsError);
         setWithdrawalRequests([]);
       } else {
-        // Type assertion since we know the structure from our RPC function
         const typedWithdrawals = (withdrawalsData as any[]) || [];
         setWithdrawalRequests(typedWithdrawals);
       }
@@ -96,6 +94,42 @@ const EarningsTab = () => {
       setTotalEarnings(total);
       setWithdrawnAmount(withdrawn);
 
+      // New: Fetch total gross revenue from payments table for this stylist's completed appointments
+      // Fetch all stylist's appointment ids
+      const { data: appointmentsData, error: aptsError } = await supabase
+        .from("appointments")
+        .select("id")
+        .eq("stylist_id", user.id)
+        .is('canceled_at', null);
+
+      if (aptsError || !appointmentsData) {
+        setTotalRevenue(0);
+        console.warn("Failed to fetch stylist appointments for revenue calc");
+        return;
+      }
+      const appointmentIds = appointmentsData.map((apt: any) => apt.id);
+
+      if (appointmentIds.length === 0) {
+        setTotalRevenue(0);
+        return;
+      }
+
+      // Fetch payments for these appointments
+      const { data: paymentsData, error: paymentsError } = await supabase
+        .from("payments")
+        .select("amount, appointment_id, status")
+        .in("appointment_id", appointmentIds)
+        .eq("status", "completed");
+
+      if (paymentsError || !paymentsData) {
+        setTotalRevenue(0);
+        console.warn("Failed to fetch payments for revenue calc");
+        return;
+      }
+
+      const grossRevenue = paymentsData.reduce((sum: number, p: any) => sum + (p.amount || 0), 0);
+      setTotalRevenue(grossRevenue);
+
     } catch (error) {
       console.error("Error fetching earnings data:", error);
       toast.error("Failed to load earnings data. Please try again later.");
@@ -104,8 +138,59 @@ const EarningsTab = () => {
     }
   };
 
+  // Real-time updates for earnings
   useEffect(() => {
     fetchEarningsData();
+
+    // Set up real-time subscriptions for earnings updates
+    const earningsChannel = supabase
+      .channel('earnings-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'specialist_earnings'
+        },
+        () => {
+          console.log('Earnings updated, refreshing data...');
+          fetchEarningsData();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'withdrawal_requests'
+        },
+        () => {
+          console.log('Withdrawal requests updated, refreshing data...');
+          fetchEarningsData();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'payments'
+        },
+        () => {
+          console.log('Payments updated, refreshing earnings...');
+          // Small delay to ensure related earnings records are created
+          setTimeout(fetchEarningsData, 1000);
+        }
+      )
+      .subscribe();
+
+    // Auto-refresh every 30 seconds as backup
+    const refreshInterval = setInterval(fetchEarningsData, 30000);
+
+    return () => {
+      supabase.removeChannel(earningsChannel);
+      clearInterval(refreshInterval);
+    };
   }, []);
 
   const formatAmount = (amount: number) => `GH₵${(amount / 100).toFixed(2)}`;
@@ -135,6 +220,7 @@ const EarningsTab = () => {
         totalEarnings={totalEarnings}
         pendingEarnings={pendingEarnings}
         withdrawnAmount={withdrawnAmount}
+        totalRevenue={totalRevenue}
       />
 
       <Tabs defaultValue="overview" className="space-y-4">
@@ -146,8 +232,16 @@ const EarningsTab = () => {
 
         <TabsContent value="overview" className="space-y-4">
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Recent Earnings</CardTitle>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={fetchEarningsData}
+                disabled={loading}
+              >
+                Refresh
+              </Button>
             </CardHeader>
             <CardContent>
               {earnings.length === 0 ? (

@@ -61,29 +61,41 @@ export type Database = {
       }
       notifications: {
         Row: {
+          action_url: string | null
           created_at: string
+          expires_at: string | null
           id: string
           is_read: boolean
           message: string
+          priority: string | null
           related_id: string | null
+          title: string | null
           type: string
           user_id: string
         }
         Insert: {
+          action_url?: string | null
           created_at?: string
+          expires_at?: string | null
           id?: string
           is_read?: boolean
           message: string
+          priority?: string | null
           related_id?: string | null
+          title?: string | null
           type: string
           user_id: string
         }
         Update: {
+          action_url?: string | null
           created_at?: string
+          expires_at?: string | null
           id?: string
           is_read?: boolean
           message?: string
+          priority?: string | null
           related_id?: string | null
+          title?: string | null
           type?: string
           user_id?: string
         }
@@ -236,6 +248,63 @@ export type Database = {
         }
         Relationships: []
       }
+      specialist_earnings: {
+        Row: {
+          appointment_id: string | null
+          created_at: string
+          gross_amount: number
+          id: string
+          net_amount: number
+          payment_id: string | null
+          platform_fee: number
+          platform_fee_percentage: number
+          status: string
+          stylist_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          appointment_id?: string | null
+          created_at?: string
+          gross_amount: number
+          id?: string
+          net_amount: number
+          payment_id?: string | null
+          platform_fee: number
+          platform_fee_percentage?: number
+          status?: string
+          stylist_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          appointment_id?: string | null
+          created_at?: string
+          gross_amount?: number
+          id?: string
+          net_amount?: number
+          payment_id?: string | null
+          platform_fee?: number
+          platform_fee_percentage?: number
+          status?: string
+          stylist_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "specialist_earnings_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "specialist_earnings_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscribers: {
         Row: {
           cancel_at_period_end: boolean | null
@@ -290,6 +359,51 @@ export type Database = {
         }
         Relationships: []
       }
+      withdrawal_requests: {
+        Row: {
+          account_name: string | null
+          account_number: string | null
+          amount: number
+          bank_name: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          processed_at: string | null
+          processed_by: string | null
+          status: string
+          stylist_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          account_name?: string | null
+          account_number?: string | null
+          amount: number
+          bank_name?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          status?: string
+          stylist_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          account_name?: string | null
+          account_number?: string | null
+          amount?: number
+          bank_name?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          status?: string
+          stylist_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -298,6 +412,18 @@ export type Database = {
       check_service_permissions: {
         Args: Record<PropertyKey, never>
         Returns: Json
+      }
+      create_notification: {
+        Args: {
+          p_user_id: string
+          p_title: string
+          p_message: string
+          p_type: string
+          p_related_id?: string
+          p_action_url?: string
+          p_priority?: string
+        }
+        Returns: string
       }
       create_withdrawal_request: {
         Args: {
@@ -309,6 +435,14 @@ export type Database = {
           p_notes?: string
         }
         Returns: string
+      }
+      generate_appointment_reference: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_stylist_available_balance: {
+        Args: { stylist_uuid: string }
+        Returns: number
       }
       get_stylist_earnings: {
         Args: { stylist_uuid: string }
@@ -345,7 +479,16 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      notification_priority: "low" | "normal" | "high" | "urgent"
+      notification_type:
+        | "appointment_created"
+        | "appointment_confirmed"
+        | "appointment_canceled"
+        | "appointment_completed"
+        | "payment_received"
+        | "payment_failed"
+        | "earnings_available"
+        | "system_alert"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -460,6 +603,18 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      notification_priority: ["low", "normal", "high", "urgent"],
+      notification_type: [
+        "appointment_created",
+        "appointment_confirmed",
+        "appointment_canceled",
+        "appointment_completed",
+        "payment_received",
+        "payment_failed",
+        "earnings_available",
+        "system_alert",
+      ],
+    },
   },
 } as const

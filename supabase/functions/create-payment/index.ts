@@ -34,7 +34,7 @@ serve(async (req) => {
     }
 
     // Parse request body for payment details
-    const { amount, currency = 'GHS', description, serviceId, appointmentId } = await req.json();
+    const { amount, currency = 'GHS', description } = await req.json();
     
     // Validate required fields
     if (!amount || amount <= 0) {
@@ -67,9 +67,7 @@ serve(async (req) => {
       callback_url: `${req.headers.get("origin") || "http://localhost:3000"}/return`,
       metadata: {
         user_id: user.id,
-        service_id: serviceId || '',
-        appointment_id: appointmentId || '',
-        description: description || 'Appointment Payment'
+        description: description || 'Service Payment'
       }
     };
 
@@ -107,8 +105,6 @@ serve(async (req) => {
       currency: currency,
       status: 'pending',
       description: description,
-      service_id: serviceId,
-      appointment_id: appointmentId,
     });
 
     if (insertError) {

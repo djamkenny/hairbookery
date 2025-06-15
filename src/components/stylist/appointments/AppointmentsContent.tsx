@@ -1,17 +1,25 @@
-
 import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
-import AppointmentsTable from "../AppointmentsTable";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Appointment } from "@/types/appointment";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ArrowDown, ArrowUp, Eye } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface AppointmentsContentProps {
   loading: boolean;
   statusFilter: string;
   filteredAppointments: Appointment[];
-  sortKey?: keyof Appointment;
-  sortDirection: 'asc' | 'desc';
+  sortKey: keyof Appointment | undefined;
+  sortDirection: "asc" | "desc";
   onUpdateStatus: (appointmentId: string, newStatus: string, clientId: string) => void;
   onViewDetails: (appointment: Appointment) => void;
   clearFilters: () => void;
@@ -25,48 +33,103 @@ const AppointmentsContent: React.FC<AppointmentsContentProps> = ({
   sortDirection,
   onUpdateStatus,
   onViewDetails,
-  clearFilters
+  clearFilters,
 }) => {
-  const getCardTitle = () => {
-    return statusFilter === "all" 
-      ? "All Appointments" 
-      : `${statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1)} Appointments`;
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "pending":
+        return "bg-yellow-100 text-yellow-800";
+      case "confirmed":
+        return "bg-green-100 text-green-800";
+      case "completed":
+        return "bg-blue-100 text-blue-800";
+      case "canceled":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{getCardTitle()}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {loading ? (
-          <div className="flex justify-center items-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        ) : filteredAppointments.length > 0 ? (
-          <AppointmentsTable 
-            appointments={filteredAppointments} 
-            onUpdateStatus={onUpdateStatus}
-            onViewDetails={onViewDetails}
-            sortKey={sortKey}
-            sortDirection={sortDirection}
-          />
-        ) : (
-          <div className="text-center py-8">
-            <p className="text-muted-foreground">
-              {statusFilter !== "all" || filteredAppointments.length === 0
-                ? "No appointments match your filters." 
-                : "You don't have any appointments."}
-            </p>
-            {(statusFilter !== "all" || filteredAppointments.length === 0) && (
-              <Button variant="outline" size="sm" onClick={clearFilters} className="mt-2">
-                Clear filters
-              </Button>
-            )}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+    <div className="relative overflow-x-auto">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-[150px]">Client</TableHead>
+            <TableHead>Service</TableHead>
+            <TableHead>Date</TableHead>
+            <TableHead>Time</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead className="font-mono">Reference ID</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {loading ? (
+            <>
+              {Array.from({ length: 5 }).map((_, i) => (
+                <TableRow key={i}>
+                  <TableCell>
+                    <Skeleton className="h-4 w-[150px]" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-[100px]" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-[80px]" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-[60px]" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-[80px]" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-[100px]" />
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Skeleton className="h-4 w-[80px]" />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </>
+          ) : filteredAppointments.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={7} className="text-center py-4">
+                No appointments found.
+              </TableCell>
+            </TableRow>
+          ) : (
+            filteredAppointments.map((appointment) => (
+              <TableRow key={appointment.id}>
+                <TableCell className="font-medium">{appointment.client}</TableCell>
+                <TableCell>{appointment.service}</TableCell>
+                <TableCell>{appointment.date}</TableCell>
+                <TableCell>{appointment.time}</TableCell>
+                <TableCell>
+                  <Badge className={getStatusColor(appointment.status)}>
+                    {appointment.status}
+                  </Badge>
+                </TableCell>
+                <TableCell className="font-mono text-xs text-primary">
+                  {appointment.order_id || "-"}
+                </TableCell>
+                <TableCell className="text-right">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onViewDetails(appointment)}
+                  >
+                    <Eye className="h-4 w-4 mr-2" />
+                    View Details
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+    </div>
   );
 };
 
