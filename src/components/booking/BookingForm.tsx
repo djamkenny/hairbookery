@@ -3,7 +3,6 @@ import { formatPrice, formatDuration } from "./utils/formatUtils";
 import { useBookingForm } from "./hooks/useBookingForm";
 import ServiceSelection from "./steps/ServiceSelection";
 import PaymentConfirmation from "./steps/PaymentConfirmation";
-import { calculateBookingFee } from "./utils/feeUtils";
 
 export const BookingForm = () => {
   const {
@@ -75,7 +74,6 @@ export const BookingForm = () => {
           currentUser={currentUser}
           formatPrice={formatPrice}
           formatDuration={formatDuration}
-          calculateBookingFee={calculateBookingFee}
         />
       ) : (
         <PaymentConfirmation
@@ -86,7 +84,6 @@ export const BookingForm = () => {
           handleGoBack={handleGoBack}
           isSubmitting={isSubmitting}
           formatPrice={formatPrice}
-          calculateBookingFee={calculateBookingFee}
         />
       )}
     </div>

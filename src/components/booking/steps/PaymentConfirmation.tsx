@@ -14,7 +14,6 @@ interface PaymentConfirmationProps {
   isSubmitting: boolean;
   appointmentId?: string | null;
   formatPrice?: (price: number) => string;
-  calculateBookingFee?: (price: number, feePercent?: number) => { fee: number, total: number };
 }
 
 const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
@@ -24,8 +23,8 @@ const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
   handlePaymentSuccess,
   handleGoBack,
   isSubmitting,
-  formatPrice,
-  calculateBookingFee = calculateBookingFee
+  appointmentId,
+  formatPrice
 }) => {
   // Calculate fee breakdown
   const basePrice = selectedService?.price || 0;
