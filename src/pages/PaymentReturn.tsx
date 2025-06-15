@@ -102,6 +102,25 @@ const PaymentReturn = () => {
                       console.log('Linked payment to appointment:', payment.id, appointmentData.id);
                     }
                   }
+                  // (NEW) Immediately process earnings for this appointment
+                  if (appointmentData?.id) {
+                    try {
+                      console.log('Invoking process-earnings edge function:', appointmentData.id);
+                      const { data: earningsResult, error: earningsError } = await supabase.functions.invoke('process-earnings', {
+                        body: { appointment_id: appointmentData.id }
+                      });
+                      if (earningsError) {
+                        console.error('process-earnings invocation error:', earningsError);
+                        toast.error('Payment went through, but failed to add funds to specialist account.');
+                      } else {
+                        console.log('process-earnings response:', earningsResult);
+                        toast.success('Specialist has been credited.');
+                      }
+                    } catch (processErr: any) {
+                      console.error('Exception calling process-earnings:', processErr);
+                      toast.error('Could not process stylist earnings record.');
+                    }
+                  }
                 } catch (linkExc) {
                   console.error('Exception linking payment and appointment:', linkExc);
                 }
