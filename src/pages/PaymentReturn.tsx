@@ -77,6 +77,35 @@ const PaymentReturn = () => {
                 console.error('Error creating appointment:', appointmentError);
                 toast.error('Payment successful but failed to create appointment');
               } else {
+                // (NEW) Immediately update the payment record to link to the appointment
+                try {
+                  // Find the latest payment for this user, service, completed, with no appointment_id set
+                  const { data: payment } = await supabase
+                    .from('payments')
+                    .select('id')
+                    .eq('user_id', user.id)
+                    .eq('service_id', serviceId)
+                    .eq('status', 'completed')
+                    .is('appointment_id', null)
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
+                    
+                  if (payment?.id && appointmentData?.id) {
+                    const { error: linkError } = await supabase
+                      .from('payments')
+                      .update({ appointment_id: appointmentData.id })
+                      .eq('id', payment.id);
+                    if (linkError) {
+                      console.error('Failed to link payment to appointment:', linkError);
+                    } else {
+                      console.log('Linked payment to appointment:', payment.id, appointmentData.id);
+                    }
+                  }
+                } catch (linkExc) {
+                  console.error('Exception linking payment and appointment:', linkExc);
+                }
+
                 // Notify both client and specialist
                 const specialistId = stylistId;
                 const clientTitle = "Appointment Confirmed";
