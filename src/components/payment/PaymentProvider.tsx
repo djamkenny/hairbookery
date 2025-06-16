@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -9,7 +8,7 @@ interface PaymentContextType {
   subscriptionEnd: string | null;
   loading: boolean;
   checkSubscription: () => Promise<void>;
-  createPayment: (amount: number, description: string, priceId?: string) => Promise<{ url: string; sessionId: string; reference: string } | null>;
+  createPayment: (amount: number, description: string, priceId?: string, metadata?: Record<string, any>) => Promise<{ url: string; sessionId: string; reference: string } | null>;
   createSubscription: (priceId: string, planType: string) => Promise<string | null>;
   openCustomerPortal: () => Promise<void>;
   checkSessionStatus: (sessionId: string) => Promise<{ status: string; customer_email: string } | null>;
@@ -58,13 +57,13 @@ export const PaymentProvider: React.FC<PaymentProviderProps> = ({ children }) =>
   const createPayment = async (
     amount: number, 
     description: string, 
-    priceId?: string
+    priceId?: string,
+    metadata?: Record<string, any>
   ): Promise<{ url: string; sessionId: string; reference: string } | null> => {
     try {
       if (amount <= 0) {
         throw new Error("Amount must be positive");
       }
-
       // Convert amount to pesewas (Paystack expects smallest currency unit)
       const amountInPesewas = Math.round(amount);
 
@@ -72,12 +71,12 @@ export const PaymentProvider: React.FC<PaymentProviderProps> = ({ children }) =>
         body: { 
           amount: amountInPesewas, 
           description, 
-          currency: 'GHS' // Ghana Cedis
+          currency: 'GHS', // Ghana Cedis
+          metadata
         }
       });
       
       if (error) throw error;
-      
       return {
         url: data.url,
         sessionId: data.sessionId,
