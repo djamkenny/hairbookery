@@ -1,16 +1,7 @@
 import React, { useState } from "react";
 import ReviewCard from "@/components/ui/ReviewCard";
 
-const initialReviews = [
-	{
-		id: 1,
-		name: "Larichica",
-		date: "2 weeks ago",
-		rating: 5,
-		comment: "I really enjoy this site, it's easy to navigate, very professional and excessible for timely appointment and pay",
-		image: "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80"
-	}
-];
+const initialReviews = [];
 
 const gradientTextStyle: React.CSSProperties = {
 	background: "linear-gradient(90deg, #4f8cff 0%, #38e8c3 100%)",
