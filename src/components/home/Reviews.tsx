@@ -92,7 +92,7 @@ const Reviews = () => {
 				</div>
 
 				{/* Review Submission Form */}
-				<form onSubmit={handleSubmit} className="max-w-xl mx-auto mb-10 bg-white rounded-lg shadow p-6 space-y-4">
+				<form onSubmit={handleSubmit} className="max-w-xl mx-auto mb-10 bg-transparent rounded-lg shadow p-6 space-y-4">
 					<input
 						type="text"
 						name="name"
