@@ -65,7 +65,7 @@ const services = [
     description: "Professional nail care treatments focused on shaping, polishing, and beautifying your nails.",
     price: "GHS30+",
     duration: "45 mins",
-    image: "",
+    image: "./images/manicure.jpg",
     category: "nail"
   },
   {
@@ -74,7 +74,7 @@ const services = [
     description: "Comprehensive foot care that includes soaking, exfoliation, nail trimming, and polish application.",
     price: "GHS120+",
     duration: "60 mins",
-    image: "",
+    image: "./images/perdicure.png",
     category: "nail"
   },
   {
@@ -101,7 +101,7 @@ const services = [
     description: "Convenient laundry service where your clothes are washed, dried, and neatly folded for pickup.",
     price: "GHS100/14kg",
     duration: "24 hours",
-    image: "",
+    image: "./images/wash.png",
     category: "laundry"
   },
   {
@@ -110,7 +110,7 @@ const services = [
     description: "Professional pressing service to keep your garments wrinkle-free and looking crisp.",
     price: "GHS4-11/kg",
     duration: "48 hours",
-    image: "",
+    image: "./images/iron.png",
     category: "laundry"
   }
 ];
