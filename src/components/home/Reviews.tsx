@@ -9,30 +9,6 @@ const initialReviews = [
 		rating: 5,
 		comment: "I really enjoy this site, it's easy to navigate, very professional and excessible for timely appointment and pay",
 		image: "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80"
-	},
-	{
-		id: 2,
-		name: "",
-		date: "1 month ago",
-		rating: 5,
-		comment: "Malik is the best barber I've ever had. Perfect fade every time and his beard work is exceptional. Highly recommend!",
-		image: "https://images.unsplash.com/photo-1531384441138-2736e62e0919?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80"
-	},
-	{
-		id: 3,
-		name: "Tiana Brooks",
-		date: "3 weeks ago",
-		rating: 4,
-		comment: "Zara did an excellent job with my color. She really understood what I wanted and delivered exactly that. My hair feels healthy and the color is beautiful.",
-		image: "https://images.unsplash.com/photo-1523824921871-d6f1a15151f1?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80"
-	},
-	{
-		id: 4,
-		name: "Deon Taylor",
-		date: "2 months ago",
-		rating: 5,
-		comment: "Damon's expertise with locs is unmatched. He's been maintaining mine for over a year now and they've never looked better. Great conversation too!",
-		image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80"
 	}
 ];
 
@@ -92,7 +68,7 @@ const Reviews = () => {
 				</div>
 
 				{/* Review Submission Form */}
-				<form onSubmit={handleSubmit} className="max-w-xl mx-auto mb-10 bg-sky-100 hover:bg-sky-600 rounded-lg shadow p-6 space-y-4">
+				<form onSubmit={handleSubmit} className="max-w-xl mx-auto mb-10 bg-sky-300 hover:bg-sky-600 rounded-lg shadow p-6 space-y-4">
 					<input
 						type="text"
 						name="name"
