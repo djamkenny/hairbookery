@@ -160,7 +160,7 @@
   }
   
   .container {
-    @apply px-4 sm:px-6 lg:px-8 max-w-full md:max-w-[90%] lg:max-w-[85%] mx-auto;
+    @apply px-4 sm:px-6 lg:px-8 max-w-full md:max-w-[90%] lg:max-w-[90%] mx-auto;
   }
   
   .section-padding {
