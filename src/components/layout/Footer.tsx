@@ -52,10 +52,9 @@ export const Footer = () => {
           <div>
             <h3 className="font-medium text-foreground mb-4">Contact Us</h3>
             <ul className="space-y-2">
-              <li className="text-muted-foreground">123 Styling Street</li>
-              <li className="text-muted-foreground">New York, NY 10001</li>
-              <li className="text-muted-foreground">+1 (555) 123-4567</li>
-              <li><a href="mailto:info@knlbookery.com" className="text-primary hover:text-primary/80 transition-colors">info@knlbookery.com</a></li>
+              <li className="text-muted-foreground">Accra, Ghana</li>
+              <li className="text-muted-foreground">+233 (050) 7134930</li>
+              <li><a href="mailto:info@knlbookery.com" className="text-primary hover:text-primary/80 transition-colors">beamahnenoch5@gmail.com</a></li>
             </ul>
           </div>
         </div>
