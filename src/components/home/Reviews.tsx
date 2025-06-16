@@ -36,6 +36,13 @@ const initialReviews = [
 	}
 ];
 
+const gradientTextStyle: React.CSSProperties = {
+	background: "linear-gradient(90deg, #4f8cff 0%, #38e8c3 100%)",
+	WebkitBackgroundClip: "text",
+	WebkitTextFillColor: "transparent",
+	backgroundClip: "text",
+};
+
 const Reviews = () => {
 	const [reviews, setReviews] = useState(initialReviews);
 	const [form, setForm] = useState({
@@ -70,8 +77,16 @@ const Reviews = () => {
 		<section id="reviews" className="py-20 bg-background">
 			<div className="container mx-auto px-4">
 				<div className="text-center max-w-xl mx-auto mb-12">
-					<h2 className="text-3xl md:text-4xl font-semibold mb-4">What Our Clients Say</h2>
-					<p className="text-muted-foreground text-balance">
+					<h2
+						className="text-3xl md:text-4xl font-semibold mb-4"
+						style={gradientTextStyle}
+					>
+						What Our Clients Say
+					</h2>
+					<p
+						className="text-muted-foreground text-balance"
+						style={gradientTextStyle}
+					>
 						Don't just take our word for it. Here's what our clients have to say about their experiences with our stylists.
 					</p>
 				</div>
