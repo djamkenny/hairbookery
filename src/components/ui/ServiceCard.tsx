@@ -25,7 +25,7 @@ const ServiceCard = ({
       "group relative overflow-hidden rounded-lg border border-border/30 bg-card shadow-sm transition-all duration-300 hover:shadow-md hover:border-border hover-scale",
       className
     )}>
-      <div className="aspect-[6/3] overflow-hidden bg-muted relative">
+      <div className="aspect-[2/3] overflow-hidden bg-muted relative">
         <img
           src={image}
           alt={title}
