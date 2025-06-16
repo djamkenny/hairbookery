@@ -92,20 +92,20 @@ const Reviews = () => {
 				</div>
 
 				{/* Review Submission Form */}
-				<form onSubmit={handleSubmit} className="max-w-xl mx-auto mb-10 bg-sky-500 hover:bg-sky-600 rounded-lg shadow p-6 space-y-4">
+				<form onSubmit={handleSubmit} className="max-w-xl mx-auto mb-10 bg-sky-100 hover:bg-sky-600 rounded-lg shadow p-6 space-y-4">
 					<input
 						type="text"
 						name="name"
 						placeholder="Your Name (optional)"
 						value={form.name}
 						onChange={handleChange}
-						className="w-full border bg-green-500 hover:bg-green-600 rounded px-3 py-2"
+						className="w-full border bg-green-700 hover:bg-green-600 rounded px-3 py-2"
 					/>
 					<select
 						name="rating"
 						value={form.rating}
 						onChange={handleChange}
-						className="w-full border bg-green-500 hover:bg-green-600 rounded px-3 py-2"
+						className="w-full border bg-green-700 hover:bg-green-600 rounded px-3 py-2"
 					>
 						{[5,4,3,2,1].map(r => (
 							<option key={r} value={r}>{r} Star{r > 1 ? "s" : ""}</option>
@@ -117,7 +117,7 @@ const Reviews = () => {
 						value={form.comment}
 						onChange={handleChange}
 						required
-						className="w-full border bg-green-500 hover:bg-green-600 rounded px-3 py-2"
+						className="w-full border bg-green-700 hover:bg-green-600 rounded px-3 py-2"
 					/>
 					<input
 						type="url"
@@ -125,7 +125,7 @@ const Reviews = () => {
 						placeholder="Image URL (optional)"
 						value={form.image}
 						onChange={handleChange}
-						className="w-full border bg-green-500 hover:bg-green-600 rounded px-3 py-2"
+						className="w-full border bg-green-700 hover:bg-green-600 rounded px-3 py-2"
 					/>
 					<button type="submit" className="bg-primary text-white px-4 py-2 rounded hover:bg-primary/90">
 						Submit Review
