@@ -37,16 +37,11 @@ const Index = () => {
                 </p>
                 
                 <div className="space-y-4">
-                  <div>
-                    <h3 className="font-medium mb-1 md:mb-2 text-base md:text-lg">Our Location</h3>
-                    <p className="text-muted-foreground text-sm md:text-base">45 Independence Avenue</p>
-                    <p className="text-muted-foreground text-sm md:text-base">Accra, Ghana</p>
-                  </div>
                   
                   <div>
                     <h3 className="font-medium mb-1 md:mb-2 text-base md:text-lg">Contact Information</h3>
-                    <p className="text-muted-foreground text-sm md:text-base">Phone: +233 55 123 4567</p>
-                    <p className="text-muted-foreground text-sm md:text-base">Email: info@knlbookery.com</p>
+                    <p className="text-muted-foreground text-sm md:text-base">Phone: +233 (050) 7134930</p>
+                    <p className="text-muted-foreground text-sm md:text-base">Email: beamahnenoch5@gmail.com</p>
                   </div>
                   
                   <div>
