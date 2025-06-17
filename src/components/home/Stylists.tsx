@@ -84,43 +84,13 @@ const Stylists = () => {
         const mockStylists = [
           {
             id: "1",
-            full_name: "Amara Johnson",
-            specialty: "Protective Styles",
-            experience: "10+ years",
-            card_image_url: "https://images.unsplash.com/photo-1589156191108-c762ff4b96ab?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80",
-            avatar_url: "https://images.unsplash.com/photo-1589156191108-c762ff4b96ab?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80",
-            bio: "Specializing in textured hair, protective styles, and natural hair care with over 10 years of experience.",
-            location: "New York, NY"
-          },
-          {
-            id: "2",
-            full_name: "Malik Williams",
-            specialty: "Master Barber",
-            experience: "8 years",
-            card_image_url: "https://images.unsplash.com/photo-1618146366204-a1ffee4a9c8d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80",
-            avatar_url: "https://images.unsplash.com/photo-1618146366204-a1ffee4a9c8d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80",
-            bio: "Expertise in fades, designs, and beard grooming with a passion for helping clients look and feel their best.",
-            location: "Chicago, IL"
-          },
-          {
-            id: "3",
-            full_name: "Zara Thompson",
-            specialty: "Color Specialist",
-            experience: "6 years",
-            card_image_url: "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80",
-            avatar_url: "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80",
-            bio: "Award-winning colorist with extensive training in techniques for all hair types and textures.",
-            location: "Atlanta, GA"
-          },
-          {
-            id: "4",
-            full_name: "Damon Carter",
-            specialty: "Styling Expert",
-            experience: "5 years",
-            card_image_url: "https://images.unsplash.com/photo-1621605815971-fbc98d665033?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80",
-            avatar_url: "https://images.unsplash.com/photo-1621605815971-fbc98d665033?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80",
-            bio: "Specializes in natural hairstyling, braiding, twists, and maintaining healthy hair through proper technique.",
-            location: "Los Angeles, CA"
+            full_name: "",
+            specialty: "",
+            experience: "",
+            card_image_url: "",
+            avatar_url: "",
+            bio: "",
+            location: ""
           }
         ];
         
