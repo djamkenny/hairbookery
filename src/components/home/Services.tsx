@@ -56,7 +56,7 @@ const services = [
     description: "Quality hair extensions applied by certified professionals for added length and volume.",
     price: "GHS40+",
     duration: "180 mins",
-    image: "./images/extension.jpg",
+    image: "./images/extension.png",
     category: "hair"
   },
   {
