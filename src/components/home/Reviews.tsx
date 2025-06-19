@@ -108,13 +108,13 @@ const Reviews = () => {
 						placeholder="Your Name (optional)"
 						value={form.name}
 						onChange={handleChange}
-						className="w-full border bg-green-700 hover:bg-green-600 rounded px-3 py-2"
+						className="w-full border rounded px-3 py-2 bg-white"
 					/>
 					<select
 						name="rating"
 						value={form.rating}
 						onChange={handleChange}
-						className="w-full border bg-green-700 hover:bg-green-600 rounded px-3 py-2"
+						className="w-full border rounded px-3 py-2 bg-white"
 					>
 						{[5, 4, 3, 2, 1].map((r) => (
 							<option key={r} value={r}>
@@ -128,7 +128,7 @@ const Reviews = () => {
 						value={form.comment}
 						onChange={handleChange}
 						required
-						className="w-full border bg-green-700 hover:bg-green-600 rounded px-3 py-2"
+						className="w-full border rounded px-3 py-2 bg-white"
 					/>
 					<input
 						type="url"
@@ -136,7 +136,7 @@ const Reviews = () => {
 						placeholder="Image URL (optional)"
 						value={form.image}
 						onChange={handleChange}
-						className="w-full border bg-green-700 hover:bg-green-600 rounded px-3 py-2"
+						className="w-full border rounded px-3 py-2 bg-white"
 					/>
 					<button
 						type="submit"
