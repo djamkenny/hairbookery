@@ -1,4 +1,3 @@
-
 import React from "react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -7,7 +6,7 @@ import Services from "@/components/home/Services";
 import Stylists from "@/components/home/Stylists";
 import Specialists from "@/components/home/Specialists";
 import Gallery from "@/components/home/Gallery";
-import Reviews from "@/components/home/Reviews";
+import Reviews from "@/components/home/Review";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const Index = () => {
