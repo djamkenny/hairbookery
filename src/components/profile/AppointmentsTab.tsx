@@ -1,16 +1,21 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { 
   CalendarIcon, 
   ClockIcon,
-  ClipboardList
+  ClipboardList,
+  Star
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Appointment } from "@/types/appointment";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface AppointmentsTabProps {
   upcomingAppointments: Appointment[];
@@ -26,6 +31,87 @@ const AppointmentsTab = ({
   handleCancelAppointment 
 }: AppointmentsTabProps) => {
   const isMobile = useIsMobile();
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState("");
+  const [submittingReview, setSubmittingReview] = useState(false);
+
+  const handleBookSimilar = (appointment: Appointment) => {
+    // Store appointment details in localStorage for booking form
+    localStorage.setItem('similarBooking', JSON.stringify({
+      service: appointment.service,
+      stylist: appointment.stylist || '',
+      notes: `Similar to previous appointment on ${appointment.date}`
+    }));
+    
+    // Navigate to booking page
+    window.location.href = '/booking';
+  };
+
+  const handleLeaveReview = (appointment: Appointment) => {
+    setSelectedAppointment(appointment);
+    setReviewDialogOpen(true);
+  };
+
+  const handleSubmitReview = async () => {
+    if (!selectedAppointment || !comment.trim()) {
+      toast.error("Please provide a comment for your review");
+      return;
+    }
+
+    setSubmittingReview(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Please log in to submit a review");
+        return;
+      }
+
+      const { error } = await supabase
+        .from("reviews")
+        .insert([
+          {
+            user_id: user.id,
+            rating: rating,
+            comment: comment.trim(),
+          },
+        ]);
+
+      if (error) {
+        console.error("Error submitting review:", error);
+        toast.error("Failed to submit review");
+      } else {
+        toast.success("Review submitted successfully!");
+        setReviewDialogOpen(false);
+        setComment("");
+        setRating(5);
+        setSelectedAppointment(null);
+      }
+    } catch (error) {
+      console.error("Error submitting review:", error);
+      toast.error("Failed to submit review");
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
+  const StarRating = ({ value, onChange }: { value: number; onChange: (rating: number) => void }) => {
+    return (
+      <div className="flex gap-1">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <button
+            key={star}
+            type="button"
+            onClick={() => onChange(star)}
+            className={`p-1 ${star <= value ? 'text-yellow-400' : 'text-gray-300'} hover:text-yellow-400 transition-colors`}
+          >
+            <Star className="h-6 w-6 fill-current" />
+          </button>
+        ))}
+      </div>
+    );
+  };
   
   return (
     <div className="space-y-4 md:space-y-6">
@@ -124,16 +210,67 @@ const AppointmentsTab = ({
                         variant="outline" 
                         size={isMobile ? "sm" : "sm"}
                         className="text-xs md:text-sm"
+                        onClick={() => handleBookSimilar(appointment)}
                       >
                         Book Similar
                       </Button>
-                      <Button 
-                        variant="ghost" 
-                        size={isMobile ? "sm" : "sm"}
-                        className="text-xs md:text-sm"
-                      >
-                        Leave Review
-                      </Button>
+                      <Dialog open={reviewDialogOpen} onOpenChange={setReviewDialogOpen}>
+                        <DialogTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size={isMobile ? "sm" : "sm"}
+                            className="text-xs md:text-sm"
+                            onClick={() => handleLeaveReview(appointment)}
+                          >
+                            Leave Review
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[425px]">
+                          <DialogHeader>
+                            <DialogTitle>Leave a Review</DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-4 py-4">
+                            <div>
+                              <p className="text-sm text-muted-foreground mb-2">
+                                Service: {selectedAppointment?.service}
+                              </p>
+                              <p className="text-sm text-muted-foreground mb-4">
+                                Specialist: {selectedAppointment?.stylist}
+                              </p>
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium mb-2 block">Rating</label>
+                              <StarRating value={rating} onChange={setRating} />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium mb-2 block">Comment</label>
+                              <Textarea
+                                placeholder="Share your experience with this specialist..."
+                                value={comment}
+                                onChange={(e) => setComment(e.target.value)}
+                                rows={4}
+                                className="w-full"
+                              />
+                            </div>
+                            <div className="flex gap-2 pt-4">
+                              <Button
+                                onClick={handleSubmitReview}
+                                disabled={submittingReview || !comment.trim()}
+                                className="flex-1"
+                              >
+                                {submittingReview ? "Submitting..." : "Submit Review"}
+                              </Button>
+                              <Button
+                                variant="outline"
+                                onClick={() => setReviewDialogOpen(false)}
+                                className="flex-1"
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
                     </div>
                   </div>
                 </CardContent>
