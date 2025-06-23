@@ -23,17 +23,74 @@ export interface RevenueRecord {
 
 export const fetchStylistRevenueSummary = async (stylistId: string): Promise<RevenueSummary> => {
   try {
-    const { data, error } = await supabase.rpc('get_stylist_revenue_summary', {
-      stylist_uuid: stylistId
-    });
+    // First try to get revenue from revenue_tracking table
+    const { data: revenueData, error: revenueError } = await supabase
+      .from('revenue_tracking')
+      .select('*')
+      .eq('stylist_id', stylistId);
 
-    if (error) {
-      console.error("Error fetching revenue summary:", error);
-      throw error;
+    if (revenueError) {
+      console.error("Error fetching revenue data:", revenueError);
     }
 
-    // Return the first row since the function returns a single summary
-    return data?.[0] || {
+    // If no revenue records exist, calculate from completed appointments
+    if (!revenueData || revenueData.length === 0) {
+      const { data: appointments, error: appointmentsError } = await supabase
+        .from('appointments')
+        .select(`
+          id,
+          status,
+          services:service_id(price)
+        `)
+        .eq('stylist_id', stylistId)
+        .eq('status', 'completed');
+
+      if (appointmentsError) {
+        console.error("Error fetching appointments:", appointmentsError);
+        throw appointmentsError;
+      }
+
+      if (appointments && appointments.length > 0) {
+        let totalRevenue = 0;
+        let totalBookingFees = 0;
+        let totalServiceRevenue = 0;
+
+        appointments.forEach(appointment => {
+          if (appointment.services && appointment.services.price) {
+            const servicePrice = Number(appointment.services.price);
+            const bookingFee = servicePrice * 0.20; // 20% booking fee
+            
+            totalServiceRevenue += servicePrice;
+            totalBookingFees += bookingFee;
+            totalRevenue += servicePrice + bookingFee;
+          }
+        });
+
+        return {
+          total_revenue: totalRevenue,
+          total_bookings: appointments.length,
+          total_booking_fees: totalBookingFees,
+          total_service_revenue: totalServiceRevenue,
+          avg_booking_value: appointments.length > 0 ? totalRevenue / appointments.length : 0
+        };
+      }
+    } else {
+      // Calculate from revenue_tracking table
+      const totalRevenue = revenueData.reduce((sum, record) => sum + Number(record.total_revenue), 0);
+      const totalBookingFees = revenueData.reduce((sum, record) => sum + Number(record.booking_fee), 0);
+      const totalServiceRevenue = revenueData.reduce((sum, record) => sum + Number(record.service_amount), 0);
+
+      return {
+        total_revenue: totalRevenue,
+        total_bookings: revenueData.length,
+        total_booking_fees: totalBookingFees,
+        total_service_revenue: totalServiceRevenue,
+        avg_booking_value: revenueData.length > 0 ? totalRevenue / revenueData.length : 0
+      };
+    }
+
+    // Default empty response
+    return {
       total_revenue: 0,
       total_bookings: 0,
       total_booking_fees: 0,

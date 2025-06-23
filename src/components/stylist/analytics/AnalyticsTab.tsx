@@ -28,6 +28,11 @@ const AnalyticsTab = () => {
     error: analyticsError
   } = useStylistAnalytics();
 
+  const {
+    revenueSummary,
+    loading: revenueLoading
+  } = useStylistRevenue(userId);
+
   // Find most popular service
   const topServiceEntry =
     serviceStats && serviceStats.length > 0
@@ -41,11 +46,14 @@ const AnalyticsTab = () => {
       currency: 'GHS'
     }).format(amount);
 
+  // Use revenue from revenue service if available, otherwise use analytics revenue
+  const displayRevenue = revenueSummary.total_revenue > 0 ? revenueSummary.total_revenue : totalRevenue;
+
   return (
     <div className="space-y-6">
       <AnalyticsOverview
         totalBookings={totalBookings}
-        totalRevenue={totalRevenue}
+        totalRevenue={displayRevenue}
         topService={topServiceEntry?.serviceName}
         topServiceCount={topServiceEntry?.bookingCount}
       />

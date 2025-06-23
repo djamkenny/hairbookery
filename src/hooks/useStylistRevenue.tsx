@@ -20,7 +20,9 @@ export const useStylistRevenue = (stylistId: string | undefined) => {
     try {
       setLoading(true);
       setError(null);
+      console.log("Fetching revenue for stylist:", stylistId);
       const summary = await fetchStylistRevenueSummary(stylistId);
+      console.log("Revenue summary:", summary);
       setRevenueSummary(summary);
     } catch (err: any) {
       console.error("Error fetching revenue:", err);
@@ -49,6 +51,18 @@ export const useStylistRevenue = (stylistId: string | undefined) => {
         }, 
         () => {
           console.log("Revenue data changed, refreshing...");
+          fetchRevenue();
+        }
+      )
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'appointments',
+          filter: `stylist_id=eq.${stylistId}`
+        }, 
+        () => {
+          console.log("Appointment data changed, refreshing revenue...");
           fetchRevenue();
         }
       )
