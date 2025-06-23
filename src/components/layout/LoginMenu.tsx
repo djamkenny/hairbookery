@@ -1,7 +1,7 @@
 
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { User, Scissors } from "lucide-react";
+import { User, Scissors, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -37,6 +37,14 @@ const LoginMenu = ({ isMobile = false }: LoginMenuProps) => {
           <Scissors className="h-4 w-4 mr-2" />
           Stylist Login
         </Button>
+        <Button 
+          variant="outline" 
+          className="w-full flex items-center justify-center"
+          onClick={() => navigate("/admin-login")}
+        >
+          <Shield className="h-4 w-4 mr-2" />
+          Admin Login
+        </Button>
       </>
     );
   }
@@ -58,6 +66,11 @@ const LoginMenu = ({ isMobile = false }: LoginMenuProps) => {
         <DropdownMenuItem onClick={() => navigate("/login")}>
           <Scissors className="h-4 w-4 mr-2" />
           Stylist Login
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => navigate("/admin-login")}>
+          <Shield className="h-4 w-4 mr-2" />
+          Admin Login
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
