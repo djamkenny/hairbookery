@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Edit2, Trash2, Save, X } from "lucide-react";
 import ReviewCard from "@/components/ui/ReviewCard";
@@ -208,15 +207,7 @@ const Reviews = () => {
 			<section id="reviews" className="py-20 bg-background">
 				<div className="container mx-auto px-4">
 					<div className="text-center max-w-xl mx-auto mb-12">
-						<h2
-							className="text-3xl md:text-4xl font-semibold mb-4"
-							style={gradientTextStyle}
-						>
-							What Our Clients Say
-						</h2>
-						<p
-							className="text-foreground mb-4"
-						>
+						<p className="text-foreground mb-4">
 							Don't just take our word for it. Here's what our clients have to say
 							about their experiences with our stylists.
 						</p>
@@ -233,15 +224,7 @@ const Reviews = () => {
 		<section id="reviews" className="py-20 bg-background">
 			<div className="container mx-auto px-4">
 				<div className="text-center max-w-xl mx-auto mb-12">
-					<h2
-						className="text-3xl md:text-4xl font-semibold mb-4"
-						style={gradientTextStyle}
-					>
-						What Our Clients Say
-					</h2>
-					<p
-						className="text-foreground"
-					>
+					<p className="text-foreground">
 						Don't just take our word for it. Here's what our clients have to say
 						about their experiences with our stylists.
 					</p>
