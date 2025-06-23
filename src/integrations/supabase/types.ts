@@ -216,26 +216,26 @@ export type Database = {
         Row: {
           comment: string
           created_at: string | null
-          id: number
-          image: string | null
-          name: string
+          id: string
           rating: number
+          updated_at: string | null
+          user_id: string
         }
         Insert: {
           comment: string
           created_at?: string | null
-          id?: number
-          image?: string | null
-          name: string
+          id?: string
           rating: number
+          updated_at?: string | null
+          user_id: string
         }
         Update: {
           comment?: string
           created_at?: string | null
-          id?: number
-          image?: string | null
-          name?: string
+          id?: string
           rating?: number
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
