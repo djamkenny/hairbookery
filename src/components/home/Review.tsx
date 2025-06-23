@@ -8,7 +8,7 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const gradientTextStyle: React.CSSProperties = {
-	background: "linear-gradient(90deg, #4f8cff 0%, #38e8c3 100%)",
+	background: "linear-gradient(90deg,rgb(55, 56, 58) 0%, #38e8c3 100%)",
 	WebkitBackgroundClip: "text",
 	WebkitTextFillColor: "transparent",
 	backgroundClip: "text",
