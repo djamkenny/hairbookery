@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { fetchStylistRevenueSummary, RevenueSummary } from "@/services/revenueService";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,7 +6,6 @@ export const useStylistRevenue = (stylistId: string | undefined) => {
   const [revenueSummary, setRevenueSummary] = useState<RevenueSummary>({
     total_revenue: 0,
     total_bookings: 0,
-    total_booking_fees: 0,
     total_service_revenue: 0,
     avg_booking_value: 0
   });
