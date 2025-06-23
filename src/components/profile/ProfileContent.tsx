@@ -21,6 +21,7 @@ interface ProfileContentProps {
   upcomingAppointments: Appointment[];
   pastAppointments: Appointment[];
   favoriteSylists: any[];
+  loyaltyPoints: number;
   handleRescheduleAppointment: (id: string) => void;
   handleCancelAppointment: (id: string) => void;
   emailNotifications: boolean;
@@ -43,6 +44,7 @@ const ProfileContent = ({
   upcomingAppointments,
   pastAppointments,
   favoriteSylists,
+  loyaltyPoints,
   handleRescheduleAppointment,
   handleCancelAppointment,
   emailNotifications,
@@ -62,6 +64,7 @@ const ProfileContent = ({
           upcomingAppointments={upcomingAppointments}
           pastAppointments={pastAppointments}
           favoriteSylists={favoriteSylists}
+          loyaltyPoints={loyaltyPoints}
           handleRescheduleAppointment={handleRescheduleAppointment}
           handleCancelAppointment={handleCancelAppointment}
         />

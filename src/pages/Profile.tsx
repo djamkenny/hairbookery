@@ -28,6 +28,7 @@ const Profile = () => {
     upcomingAppointments,
     pastAppointments,
     favoriteSylists,
+    loyaltyPoints,
     handleCancelAppointment,
     handleRescheduleAppointment,
     removeFavoriteStylist
@@ -74,6 +75,7 @@ const Profile = () => {
               upcomingAppointments={upcomingAppointments}
               pastAppointments={pastAppointments}
               favoriteSylists={favoriteSylists}
+              loyaltyPoints={loyaltyPoints}
               handleRescheduleAppointment={handleRescheduleAppointment}
               handleCancelAppointment={handleCancelAppointment}
               emailNotifications={emailNotifications}

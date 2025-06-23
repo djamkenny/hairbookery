@@ -70,6 +70,39 @@ export const useBookingForm = () => {
           
         if (stylistsError) throw stylistsError;
         setStylists(stylistsData || []);
+
+        // Check for similar booking data from localStorage
+        const similarBookingData = localStorage.getItem('similarBooking');
+        if (similarBookingData) {
+          try {
+            const bookingData = JSON.parse(similarBookingData);
+            
+            // Find and pre-select service if it matches
+            const matchingService = servicesData?.find(s => s.name === bookingData.service);
+            if (matchingService) {
+              setService(matchingService.id);
+            }
+            
+            // Find and pre-select stylist if it matches
+            const matchingStylist = stylistsData?.find(s => s.full_name === bookingData.stylist);
+            if (matchingStylist) {
+              setStylist(matchingStylist.id);
+            }
+            
+            // Set notes
+            if (bookingData.notes) {
+              setNotes(bookingData.notes);
+            }
+            
+            // Clear the localStorage data
+            localStorage.removeItem('similarBooking');
+            
+            toast.success("Pre-filled with similar appointment details!");
+          } catch (error) {
+            console.error("Error parsing similar booking data:", error);
+            localStorage.removeItem('similarBooking');
+          }
+        }
         
       } catch (error) {
         console.error('Error fetching data:', error);
