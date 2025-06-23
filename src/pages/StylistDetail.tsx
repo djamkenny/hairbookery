@@ -6,8 +6,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { CalendarIcon, ClockIcon, StarIcon, MapPin } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import { ServiceGallery } from "@/components/stylist/services/ServiceGallery";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Service } from "@/components/stylist/services/types";
 
 interface StylistProfile {
   id: string;
@@ -24,44 +26,74 @@ interface StylistProfile {
 const StylistDetail = () => {
   const { id } = useParams();
   const [stylist, setStylist] = useState<StylistProfile | null>(null);
+  const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    const fetchStylist = async () => {
+    const fetchStylistAndServices = async () => {
       if (!id) return;
       
       try {
         setLoading(true);
         console.log("Fetching stylist with ID:", id);
         
-        const { data, error } = await supabase
+        // Fetch stylist profile
+        const { data: stylistData, error: stylistError } = await supabase
           .from('profiles')
           .select('id, full_name, specialty, bio, avatar_url, location, experience, email, phone')
           .eq('id', id)
           .eq('is_stylist', true)
           .single();
         
-        if (error) {
-          console.error("Error fetching stylist:", error);
+        if (stylistError) {
+          console.error("Error fetching stylist:", stylistError);
           toast.error("Failed to load stylist profile");
           return;
         }
         
-        if (data) {
-          console.log("Fetched stylist data:", data);
-          setStylist(data);
+        if (stylistData) {
+          console.log("Fetched stylist data:", stylistData);
+          setStylist(stylistData);
         } else {
           toast.error("Stylist not found");
+          return;
         }
+
+        // Fetch stylist's services
+        const { data: servicesData, error: servicesError } = await supabase
+          .from('services')
+          .select('*')
+          .eq('stylist_id', id)
+          .order('name');
+
+        if (servicesError) {
+          console.error("Error fetching services:", servicesError);
+          toast.error("Failed to load services");
+          return;
+        }
+
+        if (servicesData) {
+          const formattedServices = servicesData.map(service => ({
+            id: service.id,
+            name: service.name,
+            description: service.description,
+            duration: `${service.duration}`,
+            price: `${service.price}`,
+            stylist_id: service.stylist_id,
+            image_urls: service.image_urls || []
+          }));
+          setServices(formattedServices);
+        }
+        
       } catch (error) {
-        console.error("Error in fetchStylist:", error);
+        console.error("Error in fetchStylistAndServices:", error);
         toast.error("Failed to load stylist profile");
       } finally {
         setLoading(false);
       }
     };
     
-    fetchStylist();
+    fetchStylistAndServices();
   }, [id]);
   
   if (loading) {
@@ -186,6 +218,11 @@ const StylistDetail = () => {
                     {stylist.specialty || "General Styling"}
                   </span>
                 </div>
+              </div>
+
+              {/* Service Gallery Section */}
+              <div>
+                <ServiceGallery services={services} />
               </div>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
