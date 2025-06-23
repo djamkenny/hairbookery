@@ -19,10 +19,10 @@ export const ServiceImageUpload: React.FC<ServiceImageUploadProps> = ({
   maxImages = 5
 }) => {
   const [uploading, setUploading] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
+  const handleImageUpload = async (files: FileList) => {
     if (!files || files.length === 0) return;
 
     if (currentImages.length + files.length > maxImages) {
@@ -89,6 +89,32 @@ export const ServiceImageUpload: React.FC<ServiceImageUploadProps> = ({
     }
   };
 
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files) {
+      handleImageUpload(files);
+    }
+  };
+
+  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setDragOver(false);
+    const files = event.dataTransfer.files;
+    if (files) {
+      handleImageUpload(files);
+    }
+  };
+
+  const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setDragOver(true);
+  };
+
+  const handleDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setDragOver(false);
+  };
+
   const handleRemoveImage = async (imageUrl: string) => {
     try {
       const newImages = currentImages.filter(url => url !== imageUrl);
@@ -128,8 +154,9 @@ export const ServiceImageUpload: React.FC<ServiceImageUploadProps> = ({
           size="sm"
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading || currentImages.length >= maxImages}
+          className="flex items-center gap-2"
         >
-          <Upload className="h-4 w-4 mr-2" />
+          <Upload className="h-4 w-4" />
           {uploading ? 'Uploading...' : 'Add Images'}
         </Button>
       </div>
@@ -140,7 +167,7 @@ export const ServiceImageUpload: React.FC<ServiceImageUploadProps> = ({
         accept="image/jpeg, image/png, image/gif, image/webp"
         multiple
         className="hidden"
-        onChange={handleImageUpload}
+        onChange={handleFileSelect}
         disabled={uploading}
       />
       
@@ -169,16 +196,32 @@ export const ServiceImageUpload: React.FC<ServiceImageUploadProps> = ({
           ))}
         </div>
       ) : (
-        <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
-          <ImageIcon className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-          <p className="text-sm text-muted-foreground">No images uploaded yet</p>
-          <p className="text-xs text-muted-foreground mt-1">Add images to showcase your service</p>
+        <div 
+          className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer ${
+            dragOver 
+              ? 'border-primary bg-primary/5' 
+              : 'border-muted-foreground/25 hover:border-muted-foreground/40'
+          }`}
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onClick={() => fileInputRef.current?.click()}
+        >
+          <ImageIcon className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+          <h3 className="text-lg font-medium mb-2">No images uploaded yet</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            Add images to showcase your service
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Drag and drop images here, or click to browse
+          </p>
         </div>
       )}
       
-      <p className="text-xs text-muted-foreground">
-        Upload high-quality images (JPEG, PNG, GIF, WebP). Max 5MB per image.
-      </p>
+      <div className="text-xs text-muted-foreground space-y-1">
+        <p>Upload high-quality images (JPEG, PNG, GIF, WebP). Max 5MB per image.</p>
+        <p>Recommended: Use high-resolution images that clearly show your work.</p>
+      </div>
     </div>
   );
 };
