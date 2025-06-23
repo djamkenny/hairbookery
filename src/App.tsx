@@ -14,6 +14,8 @@ import Profile from "./pages/Profile";
 import StylistDashboard from "./pages/StylistDashboard";
 import StylistDetail from "./pages/StylistDetail";
 import PaymentReturn from "./pages/PaymentReturn";
+import AdminLogin from "./pages/AdminLogin";
+import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import { ThemeProvider } from "./components/theme/ThemeProvider";
@@ -50,6 +52,8 @@ const App = () => (
                 </ProtectedRoute>
               } />
               <Route path="/stylist/:id" element={<StylistDetail />} />
+              <Route path="/admin-login" element={<AdminLogin />} />
+              <Route path="/admin-dashboard" element={<AdminDashboard />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
