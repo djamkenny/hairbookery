@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Edit2, Trash2, Save, X } from "lucide-react";
 import ReviewCard from "@/components/ui/ReviewCard";
@@ -249,14 +250,14 @@ const Reviews = () => {
 				{/* Review Submission Form */}
 				<form
 					onSubmit={handleSubmit}
-					className="max-w-xl mx-auto mb-10 bg-sky-300 hover:bg-sky-600 rounded-lg shadow p-6 space-y-4"
+					className="max-w-xl mx-auto mb-10 bg-white rounded-lg shadow p-6 space-y-4 border"
 				>
-					<h3 className="text-lg font-semibold text-white">Leave a Review</h3>
+					<h3 className="text-lg font-semibold text-black">Leave a Review</h3>
 					<select
 						name="rating"
 						value={form.rating}
 						onChange={handleChange}
-						className="w-full border rounded px-3 py-2 bg-white text-foreground"
+						className="w-full border rounded px-3 py-2 bg-white text-black"
 						required
 					>
 						{[5, 4, 3, 2, 1].map((r) => (
@@ -272,7 +273,7 @@ const Reviews = () => {
 						onChange={handleChange}
 						required
 						rows={4}
-						className="w-full text-foreground placeholder:text-muted-foreground"
+						className="w-full text-black placeholder:text-gray-500 bg-white border border-gray-300"
 					/>
 					<Button
 						type="submit"
@@ -292,13 +293,13 @@ const Reviews = () => {
 						reviews.map((review, index) => (
 							<div key={review.id} className="relative">
 								{editingId === review.id ? (
-									<div className="bg-card p-6 rounded-lg border border-border/30 shadow-sm">
+									<div className="bg-white p-6 rounded-lg border border-gray-300 shadow-sm">
 										<div className="space-y-4">
 											<select
 												name="rating"
 												value={editForm.rating}
 												onChange={handleEditChange}
-												className="w-full border rounded px-3 py-2 text-foreground"
+												className="w-full border rounded px-3 py-2 text-black bg-white"
 											>
 												{[5, 4, 3, 2, 1].map((r) => (
 													<option key={r} value={r}>
@@ -311,7 +312,7 @@ const Reviews = () => {
 												value={editForm.comment}
 												onChange={handleEditChange}
 												rows={4}
-												className="w-full text-foreground"
+												className="w-full text-black bg-white border border-gray-300"
 											/>
 											<div className="flex gap-2">
 												<Button
