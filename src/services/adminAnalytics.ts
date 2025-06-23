@@ -117,15 +117,20 @@ export const adminAnalytics = {
 
   async getStylistAnalytics(): Promise<StylistAnalytics> {
     try {
-      const { data: earnings, error } = await supabase
+      // First get earnings data
+      const { data: earnings, error: earningsError } = await supabase
         .from('specialist_earnings')
-        .select(`
-          stylist_id,
-          net_amount,
-          stylist_id:profiles!specialist_earnings_stylist_id_fkey(full_name)
-        `);
+        .select('stylist_id, net_amount');
 
-      if (error) throw error;
+      if (earningsError) throw earningsError;
+
+      // Then get stylist profile data separately
+      const { data: stylists, error: stylistsError } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .eq('is_stylist', true);
+
+      if (stylistsError) throw stylistsError;
 
       const totalEarnings = earnings?.reduce((sum, e) => sum + e.net_amount, 0) || 0;
       const averageEarnings = earnings?.length ? totalEarnings / earnings.length : 0;
@@ -134,7 +139,8 @@ export const adminAnalytics = {
       const stylistMap = new Map();
       earnings?.forEach(earning => {
         const stylistId = earning.stylist_id;
-        const stylistName = earning.stylist_id?.full_name || 'Unknown';
+        const stylist = stylists?.find(s => s.id === stylistId);
+        const stylistName = stylist?.full_name || 'Unknown';
         
         if (!stylistMap.has(stylistId)) {
           stylistMap.set(stylistId, {
@@ -144,9 +150,9 @@ export const adminAnalytics = {
           });
         }
         
-        const stylist = stylistMap.get(stylistId);
-        stylist.earnings += earning.net_amount;
-        stylist.bookings += 1;
+        const stylistData = stylistMap.get(stylistId);
+        stylistData.earnings += earning.net_amount;
+        stylistData.bookings += 1;
       });
 
       const topStylists = Array.from(stylistMap.values())
