@@ -59,6 +59,73 @@ export type Database = {
           },
         ]
       }
+      favorites: {
+        Row: {
+          created_at: string | null
+          id: string
+          stylist_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          stylist_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          stylist_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favorites_stylist_id_fkey"
+            columns: ["stylist_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      loyalty_points: {
+        Row: {
+          appointment_id: string | null
+          created_at: string | null
+          earned_from: string | null
+          id: string
+          points: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          appointment_id?: string | null
+          created_at?: string | null
+          earned_from?: string | null
+          id?: string
+          points?: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          appointment_id?: string | null
+          created_at?: string | null
+          earned_from?: string | null
+          id?: string
+          points?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loyalty_points_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           action_url: string | null
@@ -503,6 +570,10 @@ export type Database = {
           created_at: string
           updated_at: string
         }[]
+      }
+      get_user_loyalty_points: {
+        Args: { user_uuid: string }
+        Returns: number
       }
     }
     Enums: {

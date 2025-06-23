@@ -21,6 +21,7 @@ interface DashboardTabProps {
   upcomingAppointments: Appointment[];
   pastAppointments: Appointment[];
   favoriteSylists: any[];
+  loyaltyPoints: number;
   handleRescheduleAppointment: (id: string) => void;
   handleCancelAppointment: (id: string) => void;
 }
@@ -30,7 +31,8 @@ const DashboardTab = ({
   avatarUrl,
   upcomingAppointments,
   pastAppointments,
-  favoriteSylists, 
+  favoriteSylists,
+  loyaltyPoints,
   handleRescheduleAppointment, 
   handleCancelAppointment 
 }: DashboardTabProps) => {
@@ -46,7 +48,12 @@ const DashboardTab = ({
         </div>
       </div>
       
-      <DashboardSummary appointments={upcomingAppointments.length} favorites={favoriteSylists.length} />
+      <DashboardSummary 
+        appointments={upcomingAppointments.length} 
+        favorites={favoriteSylists.length}
+        services={pastAppointments.length}
+        loyaltyPoints={loyaltyPoints}
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <AppointmentStats pastAppointments={pastAppointments.length} upcomingAppointments={upcomingAppointments.length} />

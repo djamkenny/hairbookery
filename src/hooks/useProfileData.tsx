@@ -4,6 +4,7 @@ import { useUserProfile } from "./useUserProfile";
 import { useAppointments } from "./useAppointments";
 import { useNotificationSettings } from "./useNotificationSettings";
 import { useFavorites } from "./useFavorites";
+import { useLoyaltyPoints } from "./useLoyaltyPoints";
 
 export const useProfileData = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -41,8 +42,16 @@ export const useProfileData = () => {
   // Get favorites data
   const {
     favoriteSylists,
-    removeFavoriteStylist
+    removeFavoriteStylist,
+    addFavoriteStylist,
+    refreshFavorites
   } = useFavorites();
+
+  // Get loyalty points data
+  const {
+    loyaltyPoints,
+    refreshLoyaltyPoints
+  } = useLoyaltyPoints();
 
   return {
     activeTab,
@@ -64,8 +73,12 @@ export const useProfileData = () => {
     upcomingAppointments,
     pastAppointments,
     favoriteSylists,
+    loyaltyPoints,
     handleCancelAppointment,
     handleRescheduleAppointment,
-    removeFavoriteStylist
+    removeFavoriteStylist,
+    addFavoriteStylist,
+    refreshFavorites,
+    refreshLoyaltyPoints
   };
 };
