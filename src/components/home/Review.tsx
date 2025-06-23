@@ -1,11 +1,7 @@
+
 import React, { useState, useEffect } from "react";
 import ReviewCard from "@/components/ui/ReviewCard";
-import { createClient } from "@supabase/supabase-js";
-
-// Use import.meta.env for Vite projects (instead of process.env)
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+import { supabase } from "@/integrations/supabase/client";
 
 const gradientTextStyle: React.CSSProperties = {
 	background: "linear-gradient(90deg, #4f8cff 0%, #38e8c3 100%)",
