@@ -40,7 +40,7 @@ const RevenueOverview = ({ revenueSummary, loading }: RevenueOverviewProps) => {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{formatCurrency(revenueSummary.total_revenue)}</div>
-          <p className="text-xs text-muted-foreground">Service earnings only</p>
+          <p className="text-xs text-muted-foreground">Today's revenue</p>
         </CardContent>
       </Card>
 
