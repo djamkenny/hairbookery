@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Edit2, Trash2, Save, X } from "lucide-react";
 import ReviewCard from "@/components/ui/ReviewCard";
@@ -214,8 +213,7 @@ const Reviews = () => {
 							What Our Clients Say
 						</h2>
 						<p
-							className="text-muted-foreground text-balance mb-4"
-							style={gradientTextStyle}
+							className="text-foreground mb-4"
 						>
 							Don't just take our word for it. Here's what our clients have to say
 							about their experiences with our stylists.
@@ -240,8 +238,7 @@ const Reviews = () => {
 						What Our Clients Say
 					</h2>
 					<p
-						className="text-muted-foreground text-balance"
-						style={gradientTextStyle}
+						className="text-foreground"
 					>
 						Don't just take our word for it. Here's what our clients have to say
 						about their experiences with our stylists.
@@ -258,7 +255,7 @@ const Reviews = () => {
 						name="rating"
 						value={form.rating}
 						onChange={handleChange}
-						className="w-full border rounded px-3 py-2 bg-white"
+						className="w-full border rounded px-3 py-2 bg-white text-foreground"
 						required
 					>
 						{[5, 4, 3, 2, 1].map((r) => (
@@ -274,7 +271,7 @@ const Reviews = () => {
 						onChange={handleChange}
 						required
 						rows={4}
-						className="w-full border rounded px-3 py-2 bg-white"
+						className="w-full border rounded px-3 py-2 bg-white text-foreground placeholder:text-muted-foreground"
 					/>
 					<Button
 						type="submit"
