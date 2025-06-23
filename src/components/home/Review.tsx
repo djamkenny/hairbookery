@@ -33,11 +33,20 @@ const Reviews = () => {
 	useEffect(() => {
 		const fetchReviews = async () => {
 			setLoading(true);
-			const { data, error } = await supabase
-				.from("reviews")
-				.select("*")
-				.order("created_at", { ascending: false });
-			if (!error && data) setReviews(data as Review[]);
+			try {
+				const { data, error } = await supabase
+					.from("reviews")
+					.select("*")
+					.order("created_at", { ascending: false });
+				
+				if (error) {
+					console.error("Error fetching reviews:", error);
+				} else if (data) {
+					setReviews(data as Review[]);
+				}
+			} catch (error) {
+				console.error("Error fetching reviews:", error);
+			}
 			setLoading(false);
 		};
 		fetchReviews();
@@ -52,24 +61,32 @@ const Reviews = () => {
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		if (!form.comment) return;
+		
 		setLoading(true);
-		const { data, error } = await supabase
-			.from("reviews")
-			.insert([
-				{
-					name: form.name || "Anonymous",
-					rating: Number(form.rating),
-					comment: form.comment,
-					image:
-						form.image ||
-						"https://ui-avatars.com/api/?name=" +
-							encodeURIComponent(form.name || "Anonymous"),
-				},
-			])
-			.select("*");
-		if (!error && data && data.length > 0) {
-			setReviews([data[0], ...reviews]);
-			setForm({ name: "", rating: 5, comment: "", image: "" });
+		try {
+			const { data, error } = await supabase
+				.from("reviews")
+				.insert([
+					{
+						name: form.name || "Anonymous",
+						rating: Number(form.rating),
+						comment: form.comment,
+						image:
+							form.image ||
+							"https://ui-avatars.com/api/?name=" +
+								encodeURIComponent(form.name || "Anonymous"),
+					},
+				])
+				.select("*");
+			
+			if (error) {
+				console.error("Error submitting review:", error);
+			} else if (data && data.length > 0) {
+				setReviews([data[0] as Review, ...reviews]);
+				setForm({ name: "", rating: 5, comment: "", image: "" });
+			}
+		} catch (error) {
+			console.error("Error submitting review:", error);
 		}
 		setLoading(false);
 	};
