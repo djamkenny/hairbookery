@@ -1,7 +1,7 @@
 
 import React from "react";
 import { TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Calendar, Users, Briefcase, DollarSign, Settings, BarChart3 } from "lucide-react";
+import { User, Calendar, Users, Briefcase, Settings, BarChart3 } from "lucide-react";
 
 interface DashboardTabsProps {
   breakpoint: string;
@@ -16,12 +16,11 @@ const DashboardTabs: React.FC<DashboardTabsProps> = ({ breakpoint }) => {
     { value: "clients", label: "Clients", icon: Users },
     { value: "services", label: "Services", icon: Briefcase },
     { value: "analytics", label: "Analytics", icon: BarChart3 },
-    { value: "earnings", label: "Earnings", icon: DollarSign },
     { value: "settings", label: "Settings", icon: Settings },
   ];
 
   return (
-    <TabsList className={`grid w-full ${isMobile ? 'grid-cols-4 h-auto' : 'grid-cols-7'} gap-1 p-1`}>
+    <TabsList className={`grid w-full ${isMobile ? 'grid-cols-3 h-auto' : 'grid-cols-6'} gap-1 p-1`}>
       {tabs.map(({ value, label, icon: Icon }) => (
         <TabsTrigger 
           key={value}
