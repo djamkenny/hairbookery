@@ -20,18 +20,20 @@ const DashboardTabs: React.FC<DashboardTabsProps> = ({ breakpoint }) => {
   ];
 
   return (
-    <TabsList className={`grid w-full ${isMobile ? 'grid-cols-3 h-auto' : 'grid-cols-6'} gap-1 p-1`}>
-      {tabs.map(({ value, label, icon: Icon }) => (
-        <TabsTrigger 
-          key={value}
-          value={value} 
-          className={`flex items-center gap-1.5 text-xs ${isMobile ? 'flex-col py-2 px-1' : 'px-3 py-2'}`}
-        >
-          <Icon className={isMobile ? "h-3.5 w-3.5" : "h-4 w-4"} />
-          <span className={isMobile ? "text-[10px] leading-none" : ""}>{label}</span>
-        </TabsTrigger>
-      ))}
-    </TabsList>
+    <div className="w-full overflow-x-auto hide-scrollbar">
+      <TabsList className={`grid w-full ${isMobile ? 'grid-cols-3 min-w-[300px]' : 'grid-cols-6'} gap-1 p-1`}>
+        {tabs.map(({ value, label, icon: Icon }) => (
+          <TabsTrigger 
+            key={value}
+            value={value} 
+            className={`flex items-center gap-1.5 text-xs whitespace-nowrap ${isMobile ? 'flex-col py-2 px-2 min-w-[90px]' : 'px-3 py-2'}`}
+          >
+            <Icon className={isMobile ? "h-3.5 w-3.5" : "h-4 w-4"} />
+            <span className={isMobile ? "text-[10px] leading-none" : ""}>{label}</span>
+          </TabsTrigger>
+        ))}
+      </TabsList>
+    </div>
   );
 };
 

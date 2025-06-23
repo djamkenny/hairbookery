@@ -20,10 +20,10 @@ const LoginMenu = ({ isMobile = false }: LoginMenuProps) => {
 
   if (isMobile) {
     return (
-      <>
+      <div className="space-y-2">
         <Button 
           variant="outline" 
-          className="w-full flex items-center justify-center"
+          className="w-full flex items-center justify-center touch-button"
           onClick={() => navigate("/login")}
         >
           <User className="h-4 w-4 mr-2" />
@@ -31,7 +31,7 @@ const LoginMenu = ({ isMobile = false }: LoginMenuProps) => {
         </Button>
         <Button 
           variant="outline" 
-          className="w-full flex items-center justify-center"
+          className="w-full flex items-center justify-center touch-button"
           onClick={() => navigate("/login")}
         >
           <Scissors className="h-4 w-4 mr-2" />
@@ -39,13 +39,13 @@ const LoginMenu = ({ isMobile = false }: LoginMenuProps) => {
         </Button>
         <Button 
           variant="outline" 
-          className="w-full flex items-center justify-center"
+          className="w-full flex items-center justify-center touch-button"
           onClick={() => navigate("/admin-login")}
         >
           <Shield className="h-4 w-4 mr-2" />
           Admin Login
         </Button>
-      </>
+      </div>
     );
   }
 
@@ -57,7 +57,7 @@ const LoginMenu = ({ isMobile = false }: LoginMenuProps) => {
           <span>Login</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align="end" className="z-50 bg-background">
         <DropdownMenuItem onClick={() => navigate("/login")}>
           <User className="h-4 w-4 mr-2" />
           Client Login

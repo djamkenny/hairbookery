@@ -68,7 +68,7 @@ const AdminDashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center p-4">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-lg">Loading analytics...</p>
@@ -80,62 +80,62 @@ const AdminDashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b border-border bg-card">
-        <div className="container mx-auto px-4 py-4">
+      <header className="border-b border-border bg-card sticky top-0 z-10">
+        <div className="container mx-auto px-4 py-3 sm:py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Shield className="h-8 w-8 text-primary" />
-              <div>
-                <h1 className="text-2xl font-semibold">Admin Dashboard</h1>
-                <p className="text-sm text-muted-foreground">
+            <div className="flex items-center space-x-2 sm:space-x-4 min-w-0">
+              <Shield className="h-6 w-6 sm:h-8 sm:w-8 text-primary flex-shrink-0" />
+              <div className="min-w-0">
+                <h1 className="text-lg sm:text-2xl font-semibold truncate">Admin Dashboard</h1>
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">
                   Welcome, {currentAdmin?.full_name}
                 </p>
               </div>
             </div>
-            <Button variant="outline" onClick={handleLogout}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
+            <Button variant="outline" onClick={handleLogout} size="sm" className="flex-shrink-0">
+              <LogOut className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Logout</span>
             </Button>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-4 sm:py-8">
         {/* Overview Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
+          <Card className="mobile-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-xs sm:text-sm font-medium">Total Users</CardTitle>
+              <Users className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{userAnalytics?.totalUsers || 0}</div>
+            <CardContent className="p-3 sm:p-6 pt-0">
+              <div className="text-lg sm:text-2xl font-bold">{userAnalytics?.totalUsers || 0}</div>
               <p className="text-xs text-muted-foreground">
                 {userAnalytics?.newUsersThisMonth || 0} new this month
               </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="mobile-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-xs sm:text-sm font-medium">Total Bookings</CardTitle>
+              <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{bookingAnalytics?.totalBookings || 0}</div>
+            <CardContent className="p-3 sm:p-6 pt-0">
+              <div className="text-lg sm:text-2xl font-bold">{bookingAnalytics?.totalBookings || 0}</div>
               <p className="text-xs text-muted-foreground">
                 {bookingAnalytics?.bookingsThisMonth || 0} this month
               </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="mobile-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Platform Revenue</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-xs sm:text-sm font-medium">Platform Revenue</CardTitle>
+              <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
+            <CardContent className="p-3 sm:p-6 pt-0">
+              <div className="text-lg sm:text-2xl font-bold">
                 GH₵{bookingAnalytics?.totalRevenue?.toFixed(2) || '0.00'}
               </div>
               <p className="text-xs text-muted-foreground">
@@ -144,13 +144,13 @@ const AdminDashboard = () => {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="mobile-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Stylists</CardTitle>
-              <Scissors className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-xs sm:text-sm font-medium">Active Stylists</CardTitle>
+              <Scissors className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{userAnalytics?.totalStylists || 0}</div>
+            <CardContent className="p-3 sm:p-6 pt-0">
+              <div className="text-lg sm:text-2xl font-bold">{userAnalytics?.totalStylists || 0}</div>
               <p className="text-xs text-muted-foreground">
                 Total stylists registered
               </p>
@@ -159,15 +159,15 @@ const AdminDashboard = () => {
         </div>
 
         {/* Detailed Analytics */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
           {/* Booking Status */}
-          <Card>
+          <Card className="mobile-card">
             <CardHeader>
-              <CardTitle>Booking Status Overview</CardTitle>
-              <CardDescription>Current status of all bookings</CardDescription>
+              <CardTitle className="text-base sm:text-lg">Booking Status Overview</CardTitle>
+              <CardDescription className="text-sm">Current status of all bookings</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-sm">Completed</span>
                   <span className="font-medium text-green-600">
@@ -191,13 +191,13 @@ const AdminDashboard = () => {
           </Card>
 
           {/* User Distribution */}
-          <Card>
+          <Card className="mobile-card">
             <CardHeader>
-              <CardTitle>User Distribution</CardTitle>
-              <CardDescription>Breakdown of user types</CardDescription>
+              <CardTitle className="text-base sm:text-lg">User Distribution</CardTitle>
+              <CardDescription className="text-sm">Breakdown of user types</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-sm">Clients</span>
                   <span className="font-medium text-blue-600">
@@ -216,22 +216,22 @@ const AdminDashboard = () => {
         </div>
 
         {/* Top Performers */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6">
           {/* Top Stylists */}
-          <Card>
+          <Card className="mobile-card">
             <CardHeader>
-              <CardTitle>Top Performing Stylists</CardTitle>
-              <CardDescription>Based on total earnings</CardDescription>
+              <CardTitle className="text-base sm:text-lg">Top Performing Stylists</CardTitle>
+              <CardDescription className="text-sm">Based on total earnings</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {stylistAnalytics?.topStylists?.map((stylist, index) => (
                   <div key={index} className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <Star className="h-4 w-4 text-yellow-500" />
-                      <span className="text-sm font-medium">{stylist.name}</span>
+                    <div className="flex items-center space-x-2 min-w-0">
+                      <Star className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500 flex-shrink-0" />
+                      <span className="text-sm font-medium truncate">{stylist.name}</span>
                     </div>
-                    <div className="text-right">
+                    <div className="text-right flex-shrink-0">
                       <p className="text-sm font-medium">GH₵{stylist.earnings.toFixed(2)}</p>
                       <p className="text-xs text-muted-foreground">{stylist.bookings} bookings</p>
                     </div>
@@ -244,20 +244,20 @@ const AdminDashboard = () => {
           </Card>
 
           {/* Popular Services */}
-          <Card>
+          <Card className="mobile-card">
             <CardHeader>
-              <CardTitle>Popular Services</CardTitle>
-              <CardDescription>Most booked services</CardDescription>
+              <CardTitle className="text-base sm:text-lg">Popular Services</CardTitle>
+              <CardDescription className="text-sm">Most booked services</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {serviceAnalytics?.popularServices?.map((service, index) => (
                   <div key={index} className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <TrendingUp className="h-4 w-4 text-green-500" />
-                      <span className="text-sm font-medium">{service.name}</span>
+                    <div className="flex items-center space-x-2 min-w-0">
+                      <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
+                      <span className="text-sm font-medium truncate">{service.name}</span>
                     </div>
-                    <div className="text-right">
+                    <div className="text-right flex-shrink-0">
                       <p className="text-sm font-medium">{service.bookings} bookings</p>
                       <p className="text-xs text-muted-foreground">
                         GH₵{service.revenue.toFixed(2)} revenue
@@ -273,27 +273,27 @@ const AdminDashboard = () => {
         </div>
 
         {/* Summary Stats */}
-        <Card className="mt-6">
+        <Card className="mobile-card">
           <CardHeader>
-            <CardTitle>Platform Summary</CardTitle>
-            <CardDescription>Overall platform performance metrics</CardDescription>
+            <CardTitle className="text-base sm:text-lg">Platform Summary</CardTitle>
+            <CardDescription className="text-sm">Overall platform performance metrics</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
               <div className="text-center">
-                <p className="text-2xl font-bold text-primary">
+                <p className="text-xl sm:text-2xl font-bold text-primary">
                   {((bookingAnalytics?.completedBookings || 0) / (bookingAnalytics?.totalBookings || 1) * 100).toFixed(1)}%
                 </p>
                 <p className="text-sm text-muted-foreground">Success Rate</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold text-primary">
+                <p className="text-xl sm:text-2xl font-bold text-primary">
                   GH₵{stylistAnalytics?.averageEarnings?.toFixed(2) || '0.00'}
                 </p>
                 <p className="text-sm text-muted-foreground">Avg. Stylist Earnings</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold text-primary">
+                <p className="text-xl sm:text-2xl font-bold text-primary">
                   {serviceAnalytics?.totalServices || 0}
                 </p>
                 <p className="text-sm text-muted-foreground">Total Services</p>

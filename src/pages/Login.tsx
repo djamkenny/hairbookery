@@ -16,16 +16,16 @@ const Login = () => {
     >
       <LoginForm />
       
-      <div className="text-center text-sm mt-4 space-y-2">
-        <div>
-          Don't have an account?{" "}
-          <Link to="/register" className="text-primary hover:underline">
+      <div className="text-center text-sm mt-4 space-y-2 px-4">
+        <div className="flex flex-col sm:flex-row sm:justify-center sm:space-x-1 space-y-1 sm:space-y-0">
+          <span>Don't have an account?</span>
+          <Link to="/register" className="text-primary hover:underline font-medium">
             Sign up
           </Link>
         </div>
-        <div>
-          Are you an administrator?{" "}
-          <Link to="/admin-login" className="text-primary hover:underline">
+        <div className="flex flex-col sm:flex-row sm:justify-center sm:space-x-1 space-y-1 sm:space-y-0">
+          <span>Are you an administrator?</span>
+          <Link to="/admin-login" className="text-primary hover:underline font-medium">
             Admin Login
           </Link>
         </div>

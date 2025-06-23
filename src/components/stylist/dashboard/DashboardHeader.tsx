@@ -11,8 +11,8 @@ interface DashboardHeaderProps {
 
 const DashboardHeader: React.FC<DashboardHeaderProps> = ({ isMobile }) => {
   return (
-    <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0 mb-6 md:mb-8">
-      <div>
+    <div className="flex flex-col space-y-3 md:flex-row md:items-center md:justify-between md:space-y-0 mb-4 md:mb-8">
+      <div className="min-w-0">
         {!isMobile && (
           <Breadcrumb className="mb-2">
             <BreadcrumbList>
@@ -28,12 +28,14 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ isMobile }) => {
             </BreadcrumbList>
           </Breadcrumb>
         )}
-        <h1 className="text-2xl md:text-3xl font-bold">Stylist Dashboard</h1>
+        <h1 className="text-xl md:text-3xl font-bold truncate">Stylist Dashboard</h1>
       </div>
-      <Link to="/">
-        <Button variant="outline" className="flex items-center gap-2 shrink-0">
+      <Link to="/" className="self-start md:self-auto">
+        <Button variant="outline" className="flex items-center gap-2 shrink-0 touch-button">
           <ArrowLeft className="h-4 w-4" />
-          {!isMobile && "Back to Home"}
+          <span className={isMobile ? "text-sm" : ""}>
+            {isMobile ? "Back" : "Back to Home"}
+          </span>
         </Button>
       </Link>
     </div>
