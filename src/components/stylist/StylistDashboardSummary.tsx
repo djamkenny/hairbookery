@@ -1,8 +1,10 @@
 
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { CalendarClock, Users, CalendarCheck, Star } from "lucide-react";
+import { CalendarClock, Users, CalendarCheck, DollarSign } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useStylistRevenue } from "@/hooks/useStylistRevenue";
+import { supabase } from "@/integrations/supabase/client";
 
 interface StylistDashboardSummaryProps {
   upcomingAppointments: number;
@@ -18,6 +20,24 @@ const StylistDashboardSummary = ({
   rating = null
 }: StylistDashboardSummaryProps) => {
   const isMobile = useIsMobile();
+  const [userId, setUserId] = React.useState<string | undefined>();
+  
+  React.useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUserId(user?.id);
+    };
+    getUser();
+  }, []);
+
+  const { revenueSummary } = useStylistRevenue(userId);
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-GH', {
+      style: 'currency',
+      currency: 'GHS'
+    }).format(amount);
+  };
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
@@ -59,12 +79,12 @@ const StylistDashboardSummary = ({
 
       <Card className="border border-border/30 hover:shadow-md transition-shadow">
         <CardContent className="flex items-center gap-3 md:gap-4 p-3 md:p-4">
-          <div className={`${isMobile ? 'h-10 w-10' : 'h-12 w-12'} flex items-center justify-center rounded-full bg-primary/10`}>
-            <Star className={`${isMobile ? 'h-5 w-5' : 'h-6 w-6'} text-primary`} />
+          <div className={`${isMobile ? 'h-10 w-10' : 'h-12 w-12'} flex items-center justify-center rounded-full bg-green-100`}>
+            <DollarSign className={`${isMobile ? 'h-5 w-5' : 'h-6 w-6'} text-green-600`} />
           </div>
           <div>
-            <p className="text-muted-foreground text-xs sm:text-sm">Rating</p>
-            <p className="text-xl sm:text-2xl font-medium">{rating ? rating.toFixed(1) : '--'}</p>
+            <p className="text-muted-foreground text-xs sm:text-sm">Revenue</p>
+            <p className="text-xl sm:text-2xl font-medium">{formatCurrency(revenueSummary.total_revenue)}</p>
           </div>
         </CardContent>
       </Card>

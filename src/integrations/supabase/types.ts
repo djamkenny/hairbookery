@@ -279,6 +279,50 @@ export type Database = {
         }
         Relationships: []
       }
+      revenue_tracking: {
+        Row: {
+          appointment_id: string | null
+          booking_fee: number
+          created_at: string
+          id: string
+          revenue_date: string
+          service_amount: number
+          stylist_id: string | null
+          total_revenue: number
+          updated_at: string
+        }
+        Insert: {
+          appointment_id?: string | null
+          booking_fee?: number
+          created_at?: string
+          id?: string
+          revenue_date?: string
+          service_amount?: number
+          stylist_id?: string | null
+          total_revenue?: number
+          updated_at?: string
+        }
+        Update: {
+          appointment_id?: string | null
+          booking_fee?: number
+          created_at?: string
+          id?: string
+          revenue_date?: string
+          service_amount?: number
+          stylist_id?: string | null
+          total_revenue?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "revenue_tracking_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reviews: {
         Row: {
           comment: string
@@ -552,6 +596,16 @@ export type Database = {
           status: string
           created_at: string
           updated_at: string
+        }[]
+      }
+      get_stylist_revenue_summary: {
+        Args: { stylist_uuid: string }
+        Returns: {
+          total_revenue: number
+          total_bookings: number
+          total_booking_fees: number
+          total_service_revenue: number
+          avg_booking_value: number
         }[]
       }
       get_stylist_withdrawals: {

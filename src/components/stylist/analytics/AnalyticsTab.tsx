@@ -1,20 +1,39 @@
 
 import React from "react";
 import { useStylistAnalytics } from "@/hooks/useStylistAnalytics";
+import { useStylistRevenue } from "@/hooks/useStylistRevenue";
+import { supabase } from "@/integrations/supabase/client";
 import ServicePopularityChart from "./ServicePopularityChart";
 import MonthlyTrendsChart from "./MonthlyTrendsChart";
 import AnalyticsOverview from "./AnalyticsOverview";
+import RevenueOverview from "../revenue/RevenueOverview";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const AnalyticsTab = () => {
+  const [userId, setUserId] = React.useState<string | undefined>();
+  
+  React.useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUserId(user?.id);
+    };
+    getUser();
+  }, []);
+
   const {
     serviceStats,
     monthlyStats,
     totalBookings,
     totalRevenue,
-    loading,
-    error
+    loading: analyticsLoading,
+    error: analyticsError
   } = useStylistAnalytics();
+
+  const {
+    revenueSummary,
+    loading: revenueLoading,
+    error: revenueError
+  } = useStylistRevenue(userId);
 
   // Find most popular service
   const topServiceEntry =
@@ -31,6 +50,11 @@ const AnalyticsTab = () => {
 
   return (
     <div className="space-y-6">
+      <RevenueOverview 
+        revenueSummary={revenueSummary}
+        loading={revenueLoading}
+      />
+
       <AnalyticsOverview
         totalBookings={totalBookings}
         totalRevenue={totalRevenue}  // Already in cedis from analytics
