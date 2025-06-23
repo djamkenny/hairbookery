@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const gradientTextStyle: React.CSSProperties = {
-	// background: "linear-gradient(90deg,rgb(41, 42, 43) 0%, #38e8c3 100%)",
+	background: "linear-gradient(90deg,rgb(56, 59, 62) 0%, #38e8c3 100%)",
 	WebkitBackgroundClip: "text",
 	WebkitTextFillColor: "transparent",
 	backgroundClip: "text",
