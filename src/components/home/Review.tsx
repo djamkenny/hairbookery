@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Edit2, Trash2, Save, X } from "lucide-react";
 import ReviewCard from "@/components/ui/ReviewCard";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -264,14 +265,14 @@ const Reviews = () => {
 							</option>
 						))}
 					</select>
-					<textarea
+					<Textarea
 						name="comment"
 						placeholder="Share your experience..."
 						value={form.comment}
 						onChange={handleChange}
 						required
 						rows={4}
-						className="w-full border rounded px-3 py-2 bg-white text-foreground placeholder:text-muted-foreground"
+						className="w-full text-foreground placeholder:text-muted-foreground"
 					/>
 					<Button
 						type="submit"
@@ -297,7 +298,7 @@ const Reviews = () => {
 												name="rating"
 												value={editForm.rating}
 												onChange={handleEditChange}
-												className="w-full border rounded px-3 py-2"
+												className="w-full border rounded px-3 py-2 text-foreground"
 											>
 												{[5, 4, 3, 2, 1].map((r) => (
 													<option key={r} value={r}>
@@ -305,12 +306,12 @@ const Reviews = () => {
 													</option>
 												))}
 											</select>
-											<textarea
+											<Textarea
 												name="comment"
 												value={editForm.comment}
 												onChange={handleEditChange}
 												rows={4}
-												className="w-full border rounded px-3 py-2"
+												className="w-full text-foreground"
 											/>
 											<div className="flex gap-2">
 												<Button
