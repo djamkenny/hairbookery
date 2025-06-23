@@ -57,11 +57,10 @@ export const fetchStylistBookingAnalytics = async (stylistId: string) => {
       const appointmentDate = new Date(appointment.appointment_date);
       const monthKey = appointmentDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 
-      // Calculate revenue for completed appointments
+      // Calculate revenue for completed appointments (only service price, no booking fee)
       let appointmentRevenue = 0;
       if (appointment.status === 'completed') {
-        const bookingFee = servicePrice * 0.20; // 20% booking fee
-        appointmentRevenue = servicePrice + bookingFee;
+        appointmentRevenue = servicePrice; // Only service price for stylists
         totalRevenue += appointmentRevenue;
         completedBookings++;
       }
@@ -108,7 +107,7 @@ export const fetchStylistBookingAnalytics = async (stylistId: string) => {
       serviceStats,
       monthlyStats,
       totalBookings: appointments.length,
-      totalRevenue // This is now actual revenue from completed appointments
+      totalRevenue // This is now only service revenue (no booking fees)
     };
   } catch (error) {
     console.error('Error fetching booking analytics:', error);

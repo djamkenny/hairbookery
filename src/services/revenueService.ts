@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 export interface RevenueSummary {
   total_revenue: number;
   total_bookings: number;
-  total_booking_fees: number;
   total_service_revenue: number;
   avg_booking_value: number;
 }
@@ -13,9 +12,7 @@ export interface RevenueRecord {
   id: string;
   stylist_id: string;
   appointment_id: string | null;
-  booking_fee: number;
   service_amount: number;
-  total_revenue: number;
   revenue_date: string;
   created_at: string;
   updated_at: string;
@@ -51,41 +48,31 @@ export const fetchStylistRevenueSummary = async (stylistId: string): Promise<Rev
       }
 
       if (appointments && appointments.length > 0) {
-        let totalRevenue = 0;
-        let totalBookingFees = 0;
         let totalServiceRevenue = 0;
 
         appointments.forEach(appointment => {
           if (appointment.services && appointment.services.price) {
             const servicePrice = Number(appointment.services.price);
-            const bookingFee = servicePrice * 0.20; // 20% booking fee
-            
-            totalServiceRevenue += servicePrice;
-            totalBookingFees += bookingFee;
-            totalRevenue += servicePrice + bookingFee;
+            totalServiceRevenue += servicePrice; // Only service price, no booking fee
           }
         });
 
         return {
-          total_revenue: totalRevenue,
+          total_revenue: totalServiceRevenue, // Only service revenue for stylists
           total_bookings: appointments.length,
-          total_booking_fees: totalBookingFees,
           total_service_revenue: totalServiceRevenue,
-          avg_booking_value: appointments.length > 0 ? totalRevenue / appointments.length : 0
+          avg_booking_value: appointments.length > 0 ? totalServiceRevenue / appointments.length : 0
         };
       }
     } else {
-      // Calculate from revenue_tracking table
-      const totalRevenue = revenueData.reduce((sum, record) => sum + Number(record.total_revenue), 0);
-      const totalBookingFees = revenueData.reduce((sum, record) => sum + Number(record.booking_fee), 0);
+      // Calculate from revenue_tracking table (only service amounts)
       const totalServiceRevenue = revenueData.reduce((sum, record) => sum + Number(record.service_amount), 0);
 
       return {
-        total_revenue: totalRevenue,
+        total_revenue: totalServiceRevenue, // Only service revenue for stylists
         total_bookings: revenueData.length,
-        total_booking_fees: totalBookingFees,
         total_service_revenue: totalServiceRevenue,
-        avg_booking_value: revenueData.length > 0 ? totalRevenue / revenueData.length : 0
+        avg_booking_value: revenueData.length > 0 ? totalServiceRevenue / revenueData.length : 0
       };
     }
 
@@ -93,7 +80,6 @@ export const fetchStylistRevenueSummary = async (stylistId: string): Promise<Rev
     return {
       total_revenue: 0,
       total_bookings: 0,
-      total_booking_fees: 0,
       total_service_revenue: 0,
       avg_booking_value: 0
     };
@@ -107,7 +93,7 @@ export const fetchStylistRevenueRecords = async (stylistId: string): Promise<Rev
   try {
     const { data, error } = await supabase
       .from('revenue_tracking')
-      .select('*')
+      .select('id, stylist_id, appointment_id, service_amount, revenue_date, created_at, updated_at')
       .eq('stylist_id', stylistId)
       .order('created_at', { ascending: false });
 
