@@ -6,7 +6,6 @@ import { supabase } from "@/integrations/supabase/client";
 import ServicePopularityChart from "./ServicePopularityChart";
 import MonthlyTrendsChart from "./MonthlyTrendsChart";
 import AnalyticsOverview from "./AnalyticsOverview";
-import RevenueOverview from "../revenue/RevenueOverview";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const AnalyticsTab = () => {
@@ -29,12 +28,6 @@ const AnalyticsTab = () => {
     error: analyticsError
   } = useStylistAnalytics();
 
-  const {
-    revenueSummary,
-    loading: revenueLoading,
-    error: revenueError
-  } = useStylistRevenue(userId);
-
   // Find most popular service
   const topServiceEntry =
     serviceStats && serviceStats.length > 0
@@ -50,14 +43,9 @@ const AnalyticsTab = () => {
 
   return (
     <div className="space-y-6">
-      <RevenueOverview 
-        revenueSummary={revenueSummary}
-        loading={revenueLoading}
-      />
-
       <AnalyticsOverview
         totalBookings={totalBookings}
-        totalRevenue={totalRevenue}  // Already in cedis from analytics
+        totalRevenue={totalRevenue}
         topService={topServiceEntry?.serviceName}
         topServiceCount={topServiceEntry?.bookingCount}
       />

@@ -21,12 +21,6 @@ const AppointmentDetailsContent: React.FC<AppointmentDetailsContentProps> = ({
   onCancelAppointment,
   onClose
 }) => {
-  // Add helper for formatting
-  const formatAmount = (amount?: number) =>
-    typeof amount === "number"
-      ? `GH₵${(amount / 100).toFixed(2)}`
-      : "--";
-
   return (
     <>
       <div className="grid gap-4 py-3">
@@ -46,13 +40,6 @@ const AppointmentDetailsContent: React.FC<AppointmentDetailsContentProps> = ({
           service={appointment.service}
           status={appointment.status}
         />
-        {/* Show the amount paid for this booking */}
-        {"amount" in appointment && appointment.amount !== undefined && (
-          <div className="border rounded-lg p-3 bg-green-50">
-            <span className="block text-xs text-green-600 font-medium mb-1">Amount Paid</span>
-            <span className="text-lg font-bold text-green-800">{formatAmount(appointment.amount)}</span>
-          </div>
-        )}
       </div>
       <Separator />
       <div className="flex justify-between items-center">
@@ -68,4 +55,5 @@ const AppointmentDetailsContent: React.FC<AppointmentDetailsContentProps> = ({
     </>
   );
 };
+
 export default AppointmentDetailsContent;
