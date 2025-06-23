@@ -27,7 +27,9 @@ export const adminAuth = {
         return { success: false, message: 'Authentication failed' };
       }
 
-      return data as AdminAuthResponse;
+      // Type assertion for the RPC response
+      const response = data as AdminAuthResponse;
+      return response;
     } catch (error) {
       console.error('Admin login error:', error);
       return { success: false, message: 'Authentication failed' };

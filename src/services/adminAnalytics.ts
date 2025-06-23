@@ -119,7 +119,11 @@ export const adminAnalytics = {
     try {
       const { data: earnings, error } = await supabase
         .from('specialist_earnings')
-        .select('stylist_id, net_amount, stylist_id(full_name)');
+        .select(`
+          stylist_id,
+          net_amount,
+          stylist_id:profiles!specialist_earnings_stylist_id_fkey(full_name)
+        `);
 
       if (error) throw error;
 
