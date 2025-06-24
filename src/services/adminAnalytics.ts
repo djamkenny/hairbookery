@@ -62,6 +62,8 @@ export const adminAnalytics = {
         new Date(p.created_at) >= thisMonth
       ).length || 0;
 
+      console.log('User Analytics:', { totalUsers, totalClients, totalStylists, newUsersThisMonth });
+
       return {
         totalUsers,
         totalClients,
@@ -76,20 +78,26 @@ export const adminAnalytics = {
 
   async getBookingAnalytics(): Promise<BookingAnalytics> {
     try {
-      // Get appointments with service pricing data
-      const { data: appointments, error } = await supabase
+      // Get all appointments
+      const { data: appointments, error: appointmentsError } = await supabase
         .from('appointments')
-        .select(`
-          id, 
-          status, 
-          created_at,
-          service_id:services(price)
-        `);
+        .select('id, status, created_at, service_id');
 
-      if (error) {
-        console.error('Error fetching appointments:', error);
-        throw error;
+      if (appointmentsError) {
+        console.error('Error fetching appointments:', appointmentsError);
+        throw appointmentsError;
       }
+
+      // Get all services to calculate revenue
+      const { data: services, error: servicesError } = await supabase
+        .from('services')
+        .select('id, price');
+
+      if (servicesError) {
+        console.error('Error fetching services:', servicesError);
+      }
+
+      const serviceMap = new Map(services?.map(s => [s.id, s.price]) || []);
 
       const totalBookings = appointments?.length || 0;
       const completedBookings = appointments?.filter(a => a.status === 'completed').length || 0;
@@ -109,9 +117,11 @@ export const adminAnalytics = {
       const totalRevenue = appointments
         ?.filter(a => a.status === 'completed')
         .reduce((sum, appointment) => {
-          const servicePrice = appointment.service_id?.price || 0;
+          const servicePrice = serviceMap.get(appointment.service_id) || 0;
           return sum + (servicePrice * 0.2); // 20% platform fee
         }, 0) || 0;
+
+      console.log('Booking Analytics:', { totalBookings, completedBookings, pendingBookings, canceledBookings, totalRevenue, bookingsThisMonth });
 
       return {
         totalBookings,
@@ -136,17 +146,16 @@ export const adminAnalytics = {
 
   async getStylistAnalytics(): Promise<StylistAnalytics> {
     try {
-      // Get stylist earnings data
+      // Get all earnings data
       const { data: earnings, error: earningsError } = await supabase
         .from('specialist_earnings')
         .select('stylist_id, net_amount');
 
       if (earningsError) {
         console.error('Error fetching earnings:', earningsError);
-        throw earningsError;
       }
 
-      // Get stylist profile data
+      // Get all stylist profiles
       const { data: stylists, error: stylistsError } = await supabase
         .from('profiles')
         .select('id, full_name')
@@ -154,20 +163,19 @@ export const adminAnalytics = {
 
       if (stylistsError) {
         console.error('Error fetching stylists:', stylistsError);
-        throw stylistsError;
       }
 
-      // Get appointment counts per stylist
+      // Get all completed appointments per stylist
       const { data: appointments, error: appointmentsError } = await supabase
         .from('appointments')
         .select('stylist_id, status')
         .eq('status', 'completed');
 
       if (appointmentsError) {
-        console.error('Error fetching appointments:', appointmentsError);
+        console.error('Error fetching appointments for stylist analytics:', appointmentsError);
       }
 
-      const totalEarnings = earnings?.reduce((sum, e) => sum + e.net_amount, 0) || 0;
+      const totalEarnings = earnings?.reduce((sum, e) => sum + (e.net_amount || 0), 0) || 0;
       const averageEarnings = earnings?.length ? totalEarnings / earnings.length : 0;
 
       // Create stylist performance map
@@ -186,7 +194,7 @@ export const adminAnalytics = {
       earnings?.forEach(earning => {
         const stylistData = stylistMap.get(earning.stylist_id);
         if (stylistData) {
-          stylistData.earnings += earning.net_amount;
+          stylistData.earnings += earning.net_amount || 0;
         }
       });
 
@@ -202,6 +210,8 @@ export const adminAnalytics = {
         .filter(stylist => stylist.earnings > 0 || stylist.bookings > 0)
         .sort((a, b) => b.earnings - a.earnings)
         .slice(0, 5);
+
+      console.log('Stylist Analytics:', { totalEarnings, averageEarnings, topStylists });
 
       return {
         totalEarnings,
@@ -226,15 +236,14 @@ export const adminAnalytics = {
         throw servicesError;
       }
 
-      // Get completed appointments with service data
+      // Get all completed appointments
       const { data: appointments, error: appointmentsError } = await supabase
         .from('appointments')
         .select('service_id, status')
         .eq('status', 'completed');
 
       if (appointmentsError) {
-        console.error('Error fetching appointments:', appointmentsError);
-        throw appointmentsError;
+        console.error('Error fetching appointments for service analytics:', appointmentsError);
       }
 
       const totalServices = services?.length || 0;
@@ -244,7 +253,7 @@ export const adminAnalytics = {
       services?.forEach(service => {
         serviceMap.set(service.id, {
           name: service.name,
-          price: service.price,
+          price: service.price || 0,
           bookings: 0,
           revenue: 0
         });
@@ -255,7 +264,7 @@ export const adminAnalytics = {
         const service = serviceMap.get(appointment.service_id);
         if (service) {
           service.bookings += 1;
-          service.revenue += service.price * 0.2; // Platform fee (20%)
+          service.revenue += (service.price * 0.2); // Platform fee (20%)
         }
       });
 
@@ -263,6 +272,8 @@ export const adminAnalytics = {
         .filter(service => service.bookings > 0)
         .sort((a, b) => b.bookings - a.bookings)
         .slice(0, 5);
+
+      console.log('Service Analytics:', { totalServices, popularServices });
 
       return {
         totalServices,
