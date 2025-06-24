@@ -19,7 +19,7 @@ const ProfessionalInfoCard = ({
   experience,
   setExperience
 }: ProfessionalInfoCardProps) => {
-  // Format the stylist information for display
+  // Format the specialist information for display
   const formatExperience = (exp: string) => {
     if (!exp) return "Not specified";
     return isNaN(Number(exp)) ? exp : `${exp} years`;
@@ -40,7 +40,7 @@ const ProfessionalInfoCard = ({
                 type="text"
                 value={specialty}
                 onChange={(e) => setSpecialty(e.target.value)}
-                placeholder="e.g. Hair Stylist, Colorist, Barber"
+                placeholder="e.g. Hair Specialist, Colorist, Barber"
               />
             </div>
             <div className="space-y-2">

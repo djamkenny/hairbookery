@@ -112,7 +112,7 @@ const ProfileForm = ({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Stylist Profile</h2>
+        <h2 className="text-xl font-semibold">Specialist Profile</h2>
         {!isEditing ? (
           <Button 
             variant="outline" 

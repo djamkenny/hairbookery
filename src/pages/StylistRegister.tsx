@@ -11,7 +11,7 @@ const StylistRegister = () => {
   
   return (
     <AuthLayout
-      title="Stylist Registration"
+      title="Specialist Registration"
       subtitle="Join our platform to connect with clients and grow your business"
       icon={<Scissors className="h-8 w-8 text-primary" />}
     >

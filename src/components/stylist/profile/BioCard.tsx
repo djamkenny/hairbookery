@@ -36,7 +36,7 @@ const BioCard = ({
               placeholder="Tell clients about yourself, your skills, and your styling philosophy"
             />
             <p className="text-xs text-muted-foreground">
-              Share your experience, specialties, and what makes you unique as a stylist
+              Share your experience, specialties, and what makes you unique as a specialist
             </p>
           </div>
         ) : (

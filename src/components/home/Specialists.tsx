@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -13,29 +14,29 @@ const Specialists = () => {
   const [registeredStylists, setRegisteredStylists] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch registered stylists from the database
+  // Fetch registered specialists from the database
   useEffect(() => {
     const fetchStylists = async () => {
       try {
-        console.log("Fetching registered stylists...");
+        console.log("Fetching registered specialists...");
         
         const { data, error } = await supabase
           .from('profiles')
           .select('id, full_name, specialty, bio, avatar_url, location')
           .eq('is_stylist', true)
-          .not('full_name', 'is', null); // Only get stylists with names
+          .not('full_name', 'is', null); // Only get specialists with names
         
         if (error) {
-          console.error("Error fetching stylists:", error);
+          console.error("Error fetching specialists:", error);
         } else {
-          console.log("Fetched stylists:", data);
+          console.log("Fetched specialists:", data);
           
           // Transform the data to match the expected format
           const transformedStylists = data?.map(stylist => ({
             id: stylist.id,
-            name: stylist.full_name || "Unnamed Stylist",
-            role: stylist.specialty || "Hair Stylist",
-            bio: stylist.bio || "Professional stylist with expertise in modern techniques.",
+            name: stylist.full_name || "Unnamed Specialist",
+            role: stylist.specialty || "Hair Specialist",
+            bio: stylist.bio || "Professional specialist with expertise in modern techniques.",
             image: stylist.avatar_url || "https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=761&q=80",
             location: stylist.location
           })) || [];
@@ -52,7 +53,7 @@ const Specialists = () => {
     fetchStylists();
   }, []);
 
-  // Combine registered stylists with hardcoded ones
+  // Combine registered specialists with hardcoded ones
   const allSpecialists = [...registeredStylists, ...hardcodedSpecialists];
   
   const filteredSpecialists = activeRole === "all" 
@@ -83,7 +84,7 @@ const Specialists = () => {
             className="animate-fade-in flex items-center gap-2 mb-2"
           >
             <Scissors className="h-4 w-4" />
-            Hair Stylists
+            Hair Specialists
           </Button>
           <Button 
             variant={activeRole === "nail" ? "default" : "outline"} 

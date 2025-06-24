@@ -23,12 +23,12 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ isMobile }) => {
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <span>Stylist Dashboard</span>
+                <span>Specialist Dashboard</span>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
         )}
-        <h1 className="text-xl md:text-3xl font-bold truncate">Stylist Dashboard</h1>
+        <h1 className="text-xl md:text-3xl font-bold truncate">Specialist Dashboard</h1>
       </div>
       <Link to="/" className="self-start md:self-auto">
         <Button variant="outline" className="flex items-center gap-2 shrink-0 touch-button">
