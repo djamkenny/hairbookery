@@ -18,6 +18,7 @@ import { adminAuth } from "@/services/adminAuth";
 import { adminAnalytics, UserAnalytics, BookingAnalytics, StylistAnalytics, ServiceAnalytics } from "@/services/adminAnalytics";
 import { adminDataService, DetailedUser, DetailedAppointment, DetailedPayment } from "@/services/adminData";
 import DataTables from "@/components/admin/DataTables";
+import RevenueHistory from "@/components/admin/RevenueHistory";
 import { toast } from "sonner";
 
 const AdminDashboard = () => {
@@ -130,10 +131,14 @@ const AdminDashboard = () => {
 
       <main className="container mx-auto px-4 py-4 sm:py-8">
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <TrendingUp className="h-4 w-4" />
               <span className="hidden sm:inline">Overview</span>
+            </TabsTrigger>
+            <TabsTrigger value="revenue" className="flex items-center gap-2">
+              <DollarSign className="h-4 w-4" />
+              <span className="hidden sm:inline">Revenue</span>
             </TabsTrigger>
             <TabsTrigger value="data" className="flex items-center gap-2">
               <Database className="h-4 w-4" />
@@ -342,6 +347,10 @@ const AdminDashboard = () => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="revenue" className="space-y-6">
+            <RevenueHistory />
           </TabsContent>
 
           <TabsContent value="data" className="space-y-6">

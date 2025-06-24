@@ -142,9 +142,33 @@ export const adminAnalytics = {
         console.error('Error fetching revenue data:', revenueError);
       }
 
+      // Also check specialist_earnings table for alternative revenue calculation
+      const { data: earningsData, error: earningsError } = await supabase
+        .from('specialist_earnings')
+        .select('*');
+
+      if (earningsError) {
+        console.error('Error fetching earnings data:', earningsError);
+      }
+
+      // Check payments table for completed payments
+      const { data: paymentsData, error: paymentsError } = await supabase
+        .from('payments')
+        .select('*')
+        .eq('status', 'completed');
+
+      if (paymentsError) {
+        console.error('Error fetching payments data:', paymentsError);
+      }
+
+      console.log('=== REVENUE DEBUG INFO ===');
       console.log('Appointments found:', appointments?.length || 0);
       console.log('Revenue records found:', revenueData?.length || 0);
-      console.log('Revenue data sample:', revenueData?.[0]);
+      console.log('Earnings records found:', earningsData?.length || 0);
+      console.log('Completed payments found:', paymentsData?.length || 0);
+      console.log('Revenue data:', revenueData);
+      console.log('Earnings data:', earningsData);
+      console.log('Payments data:', paymentsData);
 
       const totalBookings = appointments?.length || 0;
       const completedBookings = appointments?.filter(a => a.status === 'completed').length || 0;
@@ -160,25 +184,52 @@ export const adminAnalytics = {
         new Date(a.created_at) >= thisMonth
       ).length || 0;
 
-      // Calculate total platform revenue from booking fees
+      // Calculate total platform revenue from multiple sources
       let totalRevenue = 0;
       
+      // Method 1: Try revenue_tracking table first
       if (revenueData && revenueData.length > 0) {
-        totalRevenue = revenueData.reduce((sum, record) => {
-          console.log('Processing revenue record:', {
-            id: record.id,
-            booking_fee: record.booking_fee,
-            type: typeof record.booking_fee
-          });
-          
+        const revenueFromTracking = revenueData.reduce((sum, record) => {
           const fee = Number(record.booking_fee) || 0;
-          console.log('Converted fee:', fee);
-          
+          console.log('Revenue tracking fee:', fee);
           return sum + fee;
         }, 0);
+        totalRevenue += revenueFromTracking;
+        console.log('Revenue from tracking table:', revenueFromTracking);
       }
 
-      console.log('Total revenue calculated:', totalRevenue);
+      // Method 2: Calculate from specialist_earnings (platform fees)
+      if (earningsData && earningsData.length > 0) {
+        const revenueFromEarnings = earningsData.reduce((sum, record) => {
+          const platformFee = Number(record.platform_fee) || 0;
+          // Convert from cents to currency if needed
+          const adjustedFee = platformFee > 1000 ? platformFee / 100 : platformFee;
+          console.log('Platform fee from earnings:', adjustedFee);
+          return sum + adjustedFee;
+        }, 0);
+        
+        // Only use earnings data if no revenue tracking data exists
+        if (!revenueData || revenueData.length === 0) {
+          totalRevenue = revenueFromEarnings;
+          console.log('Revenue from earnings table (fallback):', revenueFromEarnings);
+        }
+      }
+
+      // Method 3: Calculate from completed payments as last resort
+      if (totalRevenue === 0 && paymentsData && paymentsData.length > 0) {
+        const revenueFromPayments = paymentsData.reduce((sum, payment) => {
+          const amount = Number(payment.amount) || 0;
+          // Assume 20% platform fee
+          const platformFee = (amount * 0.20) / 100; // Convert from cents
+          console.log('Platform fee from payment:', platformFee);
+          return sum + platformFee;
+        }, 0);
+        totalRevenue = revenueFromPayments;
+        console.log('Revenue from payments table (last resort):', revenueFromPayments);
+      }
+
+      console.log('=== FINAL REVENUE CALCULATION ===');
+      console.log('Total platform revenue:', totalRevenue);
 
       const result = {
         totalBookings,
