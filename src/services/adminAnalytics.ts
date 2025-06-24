@@ -39,6 +39,8 @@ export interface ServiceAnalytics {
 export const adminAnalytics = {
   async getUserAnalytics(): Promise<UserAnalytics> {
     try {
+      console.log('Fetching user analytics...');
+      
       // Get all profiles data
       const { data: profiles, error } = await supabase
         .from('profiles')
@@ -48,6 +50,8 @@ export const adminAnalytics = {
         console.error('Error fetching profiles:', error);
         throw error;
       }
+
+      console.log('Raw profiles data:', profiles);
 
       const totalUsers = profiles?.length || 0;
       const totalClients = profiles?.filter(p => !p.is_stylist).length || 0;
@@ -62,14 +66,15 @@ export const adminAnalytics = {
         new Date(p.created_at) >= thisMonth
       ).length || 0;
 
-      console.log('User Analytics:', { totalUsers, totalClients, totalStylists, newUsersThisMonth });
-
-      return {
+      const result = {
         totalUsers,
         totalClients,
         totalStylists,
         newUsersThisMonth
       };
+
+      console.log('User Analytics Result:', result);
+      return result;
     } catch (error) {
       console.error('Error in getUserAnalytics:', error);
       return { totalUsers: 0, totalClients: 0, totalStylists: 0, newUsersThisMonth: 0 };
@@ -78,6 +83,8 @@ export const adminAnalytics = {
 
   async getBookingAnalytics(): Promise<BookingAnalytics> {
     try {
+      console.log('Fetching booking analytics...');
+      
       // Get all appointments
       const { data: appointments, error: appointmentsError } = await supabase
         .from('appointments')
@@ -88,16 +95,18 @@ export const adminAnalytics = {
         throw appointmentsError;
       }
 
-      // Get all services to calculate revenue
-      const { data: services, error: servicesError } = await supabase
-        .from('services')
-        .select('id, price');
+      console.log('Raw appointments data:', appointments);
 
-      if (servicesError) {
-        console.error('Error fetching services:', servicesError);
+      // Get all payments to calculate actual platform revenue
+      const { data: payments, error: paymentsError } = await supabase
+        .from('payments')
+        .select('id, amount, status, created_at');
+
+      if (paymentsError) {
+        console.error('Error fetching payments:', paymentsError);
       }
 
-      const serviceMap = new Map(services?.map(s => [s.id, s.price]) || []);
+      console.log('Raw payments data:', payments);
 
       const totalBookings = appointments?.length || 0;
       const completedBookings = appointments?.filter(a => a.status === 'completed').length || 0;
@@ -113,24 +122,26 @@ export const adminAnalytics = {
         new Date(a.created_at) >= thisMonth
       ).length || 0;
 
-      // Calculate platform revenue (20% of completed bookings)
-      const totalRevenue = appointments
-        ?.filter(a => a.status === 'completed')
-        .reduce((sum, appointment) => {
-          const servicePrice = serviceMap.get(appointment.service_id) || 0;
-          return sum + (servicePrice * 0.2); // 20% platform fee
+      // Calculate platform revenue from completed payments (20% platform fee)
+      const totalRevenue = payments
+        ?.filter(p => p.status === 'completed')
+        .reduce((sum, payment) => {
+          // Platform fee is 20% of payment amount
+          const platformFee = (payment.amount || 0) * 0.2;
+          return sum + platformFee;
         }, 0) || 0;
 
-      console.log('Booking Analytics:', { totalBookings, completedBookings, pendingBookings, canceledBookings, totalRevenue, bookingsThisMonth });
-
-      return {
+      const result = {
         totalBookings,
         completedBookings,
         pendingBookings,
         canceledBookings,
-        totalRevenue,
+        totalRevenue: Math.round(totalRevenue) / 100, // Convert from cents to GHS
         bookingsThisMonth
       };
+
+      console.log('Booking Analytics Result:', result);
+      return result;
     } catch (error) {
       console.error('Error in getBookingAnalytics:', error);
       return { 
@@ -146,14 +157,18 @@ export const adminAnalytics = {
 
   async getStylistAnalytics(): Promise<StylistAnalytics> {
     try {
+      console.log('Fetching stylist analytics...');
+      
       // Get all earnings data
       const { data: earnings, error: earningsError } = await supabase
         .from('specialist_earnings')
-        .select('stylist_id, net_amount');
+        .select('stylist_id, net_amount, gross_amount');
 
       if (earningsError) {
         console.error('Error fetching earnings:', earningsError);
       }
+
+      console.log('Raw earnings data:', earnings);
 
       // Get all stylist profiles
       const { data: stylists, error: stylistsError } = await supabase
@@ -165,6 +180,8 @@ export const adminAnalytics = {
         console.error('Error fetching stylists:', stylistsError);
       }
 
+      console.log('Raw stylists data:', stylists);
+
       // Get all completed appointments per stylist
       const { data: appointments, error: appointmentsError } = await supabase
         .from('appointments')
@@ -175,7 +192,9 @@ export const adminAnalytics = {
         console.error('Error fetching appointments for stylist analytics:', appointmentsError);
       }
 
-      const totalEarnings = earnings?.reduce((sum, e) => sum + (e.net_amount || 0), 0) || 0;
+      console.log('Raw completed appointments data:', appointments);
+
+      const totalEarnings = earnings?.reduce((sum, e) => sum + ((e.net_amount || 0) / 100), 0) || 0;
       const averageEarnings = earnings?.length ? totalEarnings / earnings.length : 0;
 
       // Create stylist performance map
@@ -190,11 +209,11 @@ export const adminAnalytics = {
         });
       });
 
-      // Add earnings data
+      // Add earnings data (convert from cents to GHS)
       earnings?.forEach(earning => {
         const stylistData = stylistMap.get(earning.stylist_id);
         if (stylistData) {
-          stylistData.earnings += earning.net_amount || 0;
+          stylistData.earnings += (earning.net_amount || 0) / 100;
         }
       });
 
@@ -211,13 +230,14 @@ export const adminAnalytics = {
         .sort((a, b) => b.earnings - a.earnings)
         .slice(0, 5);
 
-      console.log('Stylist Analytics:', { totalEarnings, averageEarnings, topStylists });
-
-      return {
+      const result = {
         totalEarnings,
         averageEarnings,
         topStylists
       };
+
+      console.log('Stylist Analytics Result:', result);
+      return result;
     } catch (error) {
       console.error('Error in getStylistAnalytics:', error);
       return { totalEarnings: 0, averageEarnings: 0, topStylists: [] };
@@ -226,6 +246,8 @@ export const adminAnalytics = {
 
   async getServiceAnalytics(): Promise<ServiceAnalytics> {
     try {
+      console.log('Fetching service analytics...');
+      
       // Get all services
       const { data: services, error: servicesError } = await supabase
         .from('services')
@@ -235,6 +257,8 @@ export const adminAnalytics = {
         console.error('Error fetching services:', servicesError);
         throw servicesError;
       }
+
+      console.log('Raw services data:', services);
 
       // Get all completed appointments
       const { data: appointments, error: appointmentsError } = await supabase
@@ -246,6 +270,8 @@ export const adminAnalytics = {
         console.error('Error fetching appointments for service analytics:', appointmentsError);
       }
 
+      console.log('Raw appointments for services:', appointments);
+
       const totalServices = services?.length || 0;
 
       // Create service analytics map
@@ -253,7 +279,7 @@ export const adminAnalytics = {
       services?.forEach(service => {
         serviceMap.set(service.id, {
           name: service.name,
-          price: service.price || 0,
+          price: (service.price || 0) / 100, // Convert from cents to GHS
           bookings: 0,
           revenue: 0
         });
@@ -273,12 +299,13 @@ export const adminAnalytics = {
         .sort((a, b) => b.bookings - a.bookings)
         .slice(0, 5);
 
-      console.log('Service Analytics:', { totalServices, popularServices });
-
-      return {
+      const result = {
         totalServices,
         popularServices
       };
+
+      console.log('Service Analytics Result:', result);
+      return result;
     } catch (error) {
       console.error('Error in getServiceAnalytics:', error);
       return { totalServices: 0, popularServices: [] };
