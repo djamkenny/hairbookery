@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface DetailedUser {
@@ -35,7 +34,7 @@ export const adminDataService = {
     try {
       console.log('Fetching all users from profiles table...');
       
-      // First try to get from profiles table
+      // Get from profiles table
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('id, full_name, email, is_stylist, created_at')
@@ -43,52 +42,20 @@ export const adminDataService = {
 
       if (profilesError) {
         console.error('Error fetching from profiles:', profilesError);
+        return [];
       }
 
       console.log('Profiles data:', profilesData);
 
-      // Also try to get from auth.users via a different approach
-      // Since we can't directly access auth.users, let's try to get more comprehensive data
-      const { data: authData, error: authError } = await supabase.auth.admin.listUsers();
-      
-      if (authError) {
-        console.error('Error fetching auth users:', authError);
-      } else {
-        console.log('Auth users data:', authData?.users?.length || 0, 'users found');
-      }
+      // Transform and return profile data
+      const result = profilesData?.map(profile => ({
+        id: profile.id,
+        full_name: profile.full_name || 'Unknown',
+        email: profile.email || 'No email',
+        is_stylist: profile.is_stylist || false,
+        created_at: profile.created_at
+      })) || [];
 
-      // Combine and deduplicate data
-      const allUsers = new Map<string, DetailedUser>();
-
-      // Add profile data
-      if (profilesData) {
-        profilesData.forEach(profile => {
-          allUsers.set(profile.id, {
-            id: profile.id,
-            full_name: profile.full_name || 'Unknown',
-            email: profile.email || 'No email',
-            is_stylist: profile.is_stylist || false,
-            created_at: profile.created_at
-          });
-        });
-      }
-
-      // Add auth users data if available and not already in profiles
-      if (authData?.users) {
-        authData.users.forEach(user => {
-          if (!allUsers.has(user.id)) {
-            allUsers.set(user.id, {
-              id: user.id,
-              full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Unknown',
-              email: user.email || 'No email',
-              is_stylist: user.user_metadata?.is_stylist || false,
-              created_at: user.created_at
-            });
-          }
-        });
-      }
-
-      const result = Array.from(allUsers.values());
       console.log('Total users found:', result.length);
       
       return result;
