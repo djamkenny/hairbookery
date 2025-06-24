@@ -49,54 +49,56 @@ export const adminAnalytics = {
         console.error('Error fetching profiles:', profilesError);
       }
 
-      // Also try to get auth users count
-      const { data: authData, error: authError } = await supabase.auth.admin.listUsers();
-      
-      if (authError) {
-        console.error('Error fetching auth users:', authError);
-      } else {
-        console.log('Auth users data:', authData?.users?.length || 0, 'users found');
+      console.log('Profiles found:', profiles?.length || 0);
+
+      // Get all appointments to identify unique client users
+      const { data: appointments, error: appointmentsError } = await supabase
+        .from('appointments')
+        .select('client_id, created_at');
+
+      if (appointmentsError) {
+        console.error('Error fetching appointments for user analytics:', appointmentsError);
       }
 
-      console.log('Profiles found:', profiles?.length || 0);
-      console.log('Auth users found:', authData?.users?.length || 0);
+      // Get unique client IDs from appointments (these are definitely clients)
+      const uniqueClientIds = new Set(appointments?.map(apt => apt.client_id) || []);
+      
+      console.log('Unique client IDs from appointments:', uniqueClientIds.size);
 
-      // Use the higher count between profiles and auth users
-      const authUserCount = authData?.users?.length || 0;
-      const profileCount = profiles?.length || 0;
-      const totalUsers = Math.max(authUserCount, profileCount);
-
-      // Calculate breakdown from profiles if available, otherwise estimate
-      let totalClients = 0;
+      // Count users from profiles
       let totalStylists = 0;
+      let profileClientIds = new Set<string>();
       let newUsersThisMonth = 0;
 
+      const thisMonth = new Date();
+      thisMonth.setDate(1);
+      thisMonth.setHours(0, 0, 0, 0);
+
       if (profiles && profiles.length > 0) {
-        totalClients = profiles.filter(p => !p.is_stylist).length;
         totalStylists = profiles.filter(p => p.is_stylist).length;
         
-        // Calculate new users this month
-        const thisMonth = new Date();
-        thisMonth.setDate(1);
-        thisMonth.setHours(0, 0, 0, 0);
+        // Get client IDs from profiles (users who are not stylists)
+        profiles.forEach(p => {
+          if (!p.is_stylist) {
+            profileClientIds.add(p.id);
+          }
+        });
         
+        // Calculate new users this month
         newUsersThisMonth = profiles.filter(p => 
           new Date(p.created_at) >= thisMonth
         ).length;
-      } else if (authData?.users && Array.isArray(authData.users) && authData.users.length > 0) {
-        // Fallback to auth data with proper type checking
-        const authUsers = authData.users as any[];
-        totalClients = authUsers.filter(u => !u.user_metadata?.is_stylist).length;
-        totalStylists = authUsers.filter(u => u.user_metadata?.is_stylist).length;
-        
-        const thisMonth = new Date();
-        thisMonth.setDate(1);
-        thisMonth.setHours(0, 0, 0, 0);
-        
-        newUsersThisMonth = authUsers.filter(u => 
-          new Date(u.created_at) >= thisMonth
-        ).length;
       }
+
+      // Combine client IDs from profiles and appointments for total unique clients
+      const allClientIds = new Set([...profileClientIds, ...uniqueClientIds]);
+      const totalClients = allClientIds.size;
+
+      // Total users is the sum of all unique users (clients + stylists)
+      // We use profiles count as base since it includes both, but add any missing clients from appointments
+      const profileIds = new Set(profiles?.map(p => p.id) || []);
+      const missingClientIds = Array.from(uniqueClientIds).filter(id => !profileIds.has(id));
+      const totalUsers = (profiles?.length || 0) + missingClientIds.length;
 
       const result = {
         totalUsers,
@@ -106,6 +108,10 @@ export const adminAnalytics = {
       };
 
       console.log('Comprehensive User Analytics Result:', result);
+      console.log('Profile clients:', profileClientIds.size);
+      console.log('Appointment clients:', uniqueClientIds.size);
+      console.log('Missing clients (no profile):', missingClientIds.length);
+      
       return result;
     } catch (error) {
       console.error('Error in getUserAnalytics:', error);
