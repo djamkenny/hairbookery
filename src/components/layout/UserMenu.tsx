@@ -52,7 +52,7 @@ const UserMenu = ({ user, isStylist, isMobile = false }: UserMenuProps) => {
           {isStylist ? (
             <>
               <Scissors className="h-4 w-4 mr-2" />
-              Stylist Dashboard
+              Specialist Dashboard
             </>
           ) : (
             <>
@@ -82,7 +82,7 @@ const UserMenu = ({ user, isStylist, isMobile = false }: UserMenuProps) => {
           ) : (
             <User className="h-4 w-4 mr-1" />
           )}
-          <span>{isStylist ? "Stylist" : "Account"}</span>
+          <span>{isStylist ? "Specialist" : "Account"}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
@@ -90,7 +90,7 @@ const UserMenu = ({ user, isStylist, isMobile = false }: UserMenuProps) => {
           {isStylist ? (
             <>
               <Scissors className="h-4 w-4 mr-2" />
-              Stylist Dashboard
+              Specialist Dashboard
             </>
           ) : (
             <>

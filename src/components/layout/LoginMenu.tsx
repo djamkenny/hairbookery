@@ -35,7 +35,7 @@ const LoginMenu = ({ isMobile = false }: LoginMenuProps) => {
           onClick={() => navigate("/login")}
         >
           <Scissors className="h-4 w-4 mr-2" />
-          Stylist Login
+          Specialist Login
         </Button>
         <Button 
           variant="outline" 
@@ -65,7 +65,7 @@ const LoginMenu = ({ isMobile = false }: LoginMenuProps) => {
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => navigate("/login")}>
           <Scissors className="h-4 w-4 mr-2" />
-          Stylist Login
+          Specialist Login
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => navigate("/admin-login")}>
