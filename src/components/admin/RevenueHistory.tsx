@@ -13,6 +13,7 @@ interface RevenueRecord {
   total_revenue: number;
   revenue_date: string;
   created_at: string;
+  stylist_id?: string;
   stylist_name?: string;
 }
 
@@ -22,6 +23,7 @@ interface EarningsRecord {
   gross_amount: number;
   net_amount: number;
   created_at: string;
+  stylist_id?: string;
   stylist_name?: string;
 }
 
@@ -41,10 +43,7 @@ const RevenueHistory: React.FC = () => {
       // Get revenue tracking data
       const { data: revenue, error: revenueError } = await supabase
         .from('revenue_tracking')
-        .select(`
-          *,
-          profiles:stylist_id(full_name)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (revenueError) {
@@ -54,28 +53,48 @@ const RevenueHistory: React.FC = () => {
       // Get specialist earnings data
       const { data: earnings, error: earningsError } = await supabase
         .from('specialist_earnings')
-        .select(`
-          *,
-          profiles:stylist_id(full_name)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (earningsError) {
         console.error('Error fetching earnings history:', earningsError);
       }
 
+      // Get all profiles to map stylist names
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, full_name');
+
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+      }
+
       console.log('Revenue history data:', revenue);
       console.log('Earnings history data:', earnings);
+      console.log('Profiles data:', profiles);
 
-      setRevenueData(revenue?.map(r => ({
+      // Create a map of stylist IDs to names
+      const stylistNamesMap = new Map();
+      if (profiles) {
+        profiles.forEach(profile => {
+          stylistNamesMap.set(profile.id, profile.full_name || 'Unknown');
+        });
+      }
+
+      // Map revenue data with stylist names
+      const mappedRevenueData = revenue?.map(r => ({
         ...r,
-        stylist_name: r.profiles?.full_name || 'Unknown'
-      })) || []);
+        stylist_name: stylistNamesMap.get(r.stylist_id) || 'Unknown'
+      })) || [];
 
-      setEarningsData(earnings?.map(e => ({
+      // Map earnings data with stylist names
+      const mappedEarningsData = earnings?.map(e => ({
         ...e,
-        stylist_name: e.profiles?.full_name || 'Unknown'
-      })) || []);
+        stylist_name: stylistNamesMap.get(e.stylist_id) || 'Unknown'
+      })) || [];
+
+      setRevenueData(mappedRevenueData);
+      setEarningsData(mappedEarningsData);
 
     } catch (error) {
       console.error('Error loading revenue history:', error);
