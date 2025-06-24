@@ -113,12 +113,6 @@ const AdminLogin = () => {
                   "Sign In"
                 )}
               </Button>
-              
-              <div className="text-center text-sm mt-4 p-4 bg-muted/50 rounded-md">
-                <p className="font-medium mb-1">Default Admin Credentials:</p>
-                <p>Email: admin@admin.com</p>
-                <p>Password: admin123</p>
-              </div>
             </CardContent>
           </form>
         </Card>
