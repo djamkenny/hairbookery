@@ -204,30 +204,6 @@ const Reviews = () => {
 		setLoading(false);
 	};
 
-	if (!user) {
-		return (
-			<section id="reviews" className="py-20 bg-background">
-				<div className="container mx-auto px-4">
-					<div className="text-center max-w-xl mx-auto mb-12">
-						<h2
-							className="text-3xl md:text-4xl font-semibold mb-4"
-							style={gradientTextStyle}
-						>
-							What Our Clients Say
-						</h2>
-						<p className="text-foreground mb-4">
-							Don't just take our word for it. Here's what our clients have to say
-							about their experiences with our stylists.
-						</p>
-						<p className="text-sm text-muted-foreground">
-							Please log in to view and submit reviews.
-						</p>
-					</div>
-				</div>
-			</section>
-		);
-	}
-
 	return (
 		<section id="reviews" className="py-20 bg-background">
 			<div className="container mx-auto px-4">
@@ -244,49 +220,52 @@ const Reviews = () => {
 					</p>
 				</div>
 
-				{/* Review Submission Form */}
-				<form
-					onSubmit={handleSubmit}
-					className="max-w-xl mx-auto mb-10 bg-white rounded-lg shadow p-6 space-y-4 border"
-				>
-					<h3 className="text-lg font-semibold text-black">Leave a Review</h3>
-					<select
-						name="rating"
-						value={form.rating}
-						onChange={handleChange}
-						className="w-full border rounded px-3 py-2 bg-white text-black"
-						required
+				{/* Review Submission Form - Only show if user is logged in */}
+				{user && (
+					<form
+						onSubmit={handleSubmit}
+						className="max-w-xl mx-auto mb-10 bg-white rounded-lg shadow p-6 space-y-4 border"
 					>
-						{[5, 4, 3, 2, 1].map((r) => (
-							<option key={r} value={r}>
-								{r} Star{r > 1 ? "s" : ""}
-							</option>
-						))}
-					</select>
-					<Textarea
-						name="comment"
-						placeholder="Share your experience..."
-						value={form.comment}
-						onChange={handleChange}
-						required
-						rows={4}
-						className="w-full text-black placeholder:text-gray-500 bg-white border border-gray-300"
-					/>
-					<Button
-						type="submit"
-						className="w-full"
-						disabled={loading}
-					>
-						{loading ? "Submitting..." : "Submit Review"}
-					</Button>
-				</form>
+						<h3 className="text-lg font-semibold text-black">Leave a Review</h3>
+						<select
+							name="rating"
+							value={form.rating}
+							onChange={handleChange}
+							className="w-full border rounded px-3 py-2 bg-white text-black"
+							required
+						>
+							{[5, 4, 3, 2, 1].map((r) => (
+								<option key={r} value={r}>
+									{r} Star{r > 1 ? "s" : ""}
+								</option>
+							))}
+						</select>
+						<Textarea
+							name="comment"
+							placeholder="Share your experience..."
+							value={form.comment}
+							onChange={handleChange}
+							required
+							rows={4}
+							className="w-full text-black placeholder:text-gray-500 bg-white border border-gray-300"
+						/>
+						<Button
+							type="submit"
+							className="w-full"
+							disabled={loading}
+						>
+							{loading ? "Submitting..." : "Submit Review"}
+						</Button>
+					</form>
+				)}
 
+				{/* Reviews Display */}
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 					{loading && reviews.length === 0 ? (
 						<div className="col-span-2 text-center text-lg">
 							Loading reviews...
 						</div>
-					) : (
+					) : reviews.length > 0 ? (
 						reviews.map((review, index) => (
 							<div key={review.id} className="relative">
 								{editingId === review.id ? (
@@ -342,7 +321,7 @@ const Reviews = () => {
 											className="animate-fade-in"
 											style={{ animationDelay: `${index * 0.1}s` }}
 										/>
-										{review.user_id === user.id && (
+										{user && review.user_id === user.id && (
 											<div className="absolute top-4 right-4 flex gap-2">
 												<Button
 													size="sm"
@@ -366,8 +345,29 @@ const Reviews = () => {
 								)}
 							</div>
 						))
+					) : (
+						<div className="col-span-2 text-center space-y-4">
+							<p className="text-lg text-muted-foreground">No reviews yet.</p>
+							{!user && (
+								<p className="text-sm text-muted-foreground">
+									Please log in to be the first to leave a review!
+								</p>
+							)}
+						</div>
 					)}
 				</div>
+
+				{/* Login prompt for non-authenticated users at the bottom */}
+				{!user && (
+					<div className="text-center mt-8 p-6 bg-muted/30 rounded-lg">
+						<p className="text-muted-foreground mb-2">
+							Want to share your experience?
+						</p>
+						<p className="text-sm text-muted-foreground">
+							Please log in to submit a review.
+						</p>
+					</div>
+				)}
 			</div>
 		</section>
 	);
