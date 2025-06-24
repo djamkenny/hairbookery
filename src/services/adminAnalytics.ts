@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export interface UserAnalytics {
@@ -132,10 +133,10 @@ export const adminAnalytics = {
         console.error('Error fetching appointments:', appointmentsError);
       }
 
-      // Get platform revenue from revenue_tracking table (booking fees)
+      // Get ALL revenue tracking data including booking fees
       const { data: revenueData, error: revenueError } = await supabase
         .from('revenue_tracking')
-        .select('booking_fee, created_at');
+        .select('*');
 
       if (revenueError) {
         console.error('Error fetching revenue data:', revenueError);
@@ -143,6 +144,7 @@ export const adminAnalytics = {
 
       console.log('Appointments found:', appointments?.length || 0);
       console.log('Revenue records found:', revenueData?.length || 0);
+      console.log('Revenue data sample:', revenueData?.[0]);
 
       const totalBookings = appointments?.length || 0;
       const completedBookings = appointments?.filter(a => a.status === 'completed').length || 0;
@@ -158,14 +160,25 @@ export const adminAnalytics = {
         new Date(a.created_at) >= thisMonth
       ).length || 0;
 
-      // Calculate platform revenue from booking fees in revenue_tracking table
-      const totalRevenue = revenueData?.reduce((sum, record) => {
-        // booking_fee is stored as numeric, convert to number and divide by 100 if it's in cents
-        const fee = Number(record.booking_fee) || 0;
-        // Check if the fee seems to be in cents (very large numbers) and convert accordingly
-        const adjustedFee = fee > 1000 ? fee / 100 : fee;
-        return sum + adjustedFee;
-      }, 0) || 0;
+      // Calculate total platform revenue from booking fees
+      let totalRevenue = 0;
+      
+      if (revenueData && revenueData.length > 0) {
+        totalRevenue = revenueData.reduce((sum, record) => {
+          console.log('Processing revenue record:', {
+            id: record.id,
+            booking_fee: record.booking_fee,
+            type: typeof record.booking_fee
+          });
+          
+          const fee = Number(record.booking_fee) || 0;
+          console.log('Converted fee:', fee);
+          
+          return sum + fee;
+        }, 0);
+      }
+
+      console.log('Total revenue calculated:', totalRevenue);
 
       const result = {
         totalBookings,
@@ -176,11 +189,7 @@ export const adminAnalytics = {
         bookingsThisMonth
       };
 
-      console.log('Comprehensive Booking Analytics Result:', result);
-      console.log('Platform revenue calculation:', {
-        revenueRecords: revenueData?.length || 0,
-        totalPlatformRevenue: result.totalRevenue
-      });
+      console.log('Final Booking Analytics Result:', result);
       
       return result;
     } catch (error) {
