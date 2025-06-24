@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface UserAnalytics {
@@ -39,32 +38,62 @@ export interface ServiceAnalytics {
 export const adminAnalytics = {
   async getUserAnalytics(): Promise<UserAnalytics> {
     try {
-      console.log('Fetching user analytics...');
+      console.log('Fetching comprehensive user analytics...');
       
       // Get all profiles data
-      const { data: profiles, error } = await supabase
+      const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('id, is_stylist, created_at');
 
-      if (error) {
-        console.error('Error fetching profiles:', error);
-        throw error;
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
       }
 
-      console.log('Raw profiles data:', profiles);
+      // Also try to get auth users count
+      const { data: authData, error: authError } = await supabase.auth.admin.listUsers();
+      
+      if (authError) {
+        console.error('Error fetching auth users:', authError);
+      }
 
-      const totalUsers = profiles?.length || 0;
-      const totalClients = profiles?.filter(p => !p.is_stylist).length || 0;
-      const totalStylists = profiles?.filter(p => p.is_stylist).length || 0;
-      
-      // Calculate new users this month
-      const thisMonth = new Date();
-      thisMonth.setDate(1);
-      thisMonth.setHours(0, 0, 0, 0);
-      
-      const newUsersThisMonth = profiles?.filter(p => 
-        new Date(p.created_at) >= thisMonth
-      ).length || 0;
+      console.log('Profiles found:', profiles?.length || 0);
+      console.log('Auth users found:', authData?.users?.length || 0);
+
+      // Use the higher count between profiles and auth users
+      const authUserCount = authData?.users?.length || 0;
+      const profileCount = profiles?.length || 0;
+      const totalUsers = Math.max(authUserCount, profileCount);
+
+      // Calculate breakdown from profiles if available, otherwise estimate
+      let totalClients = 0;
+      let totalStylists = 0;
+      let newUsersThisMonth = 0;
+
+      if (profiles && profiles.length > 0) {
+        totalClients = profiles.filter(p => !p.is_stylist).length;
+        totalStylists = profiles.filter(p => p.is_stylist).length;
+        
+        // Calculate new users this month
+        const thisMonth = new Date();
+        thisMonth.setDate(1);
+        thisMonth.setHours(0, 0, 0, 0);
+        
+        newUsersThisMonth = profiles.filter(p => 
+          new Date(p.created_at) >= thisMonth
+        ).length;
+      } else if (authData?.users) {
+        // Fallback to auth data
+        totalClients = authData.users.filter(u => !u.user_metadata?.is_stylist).length;
+        totalStylists = authData.users.filter(u => u.user_metadata?.is_stylist).length;
+        
+        const thisMonth = new Date();
+        thisMonth.setDate(1);
+        thisMonth.setHours(0, 0, 0, 0);
+        
+        newUsersThisMonth = authData.users.filter(u => 
+          new Date(u.created_at) >= thisMonth
+        ).length;
+      }
 
       const result = {
         totalUsers,
@@ -73,7 +102,7 @@ export const adminAnalytics = {
         newUsersThisMonth
       };
 
-      console.log('User Analytics Result:', result);
+      console.log('Comprehensive User Analytics Result:', result);
       return result;
     } catch (error) {
       console.error('Error in getUserAnalytics:', error);
@@ -83,7 +112,7 @@ export const adminAnalytics = {
 
   async getBookingAnalytics(): Promise<BookingAnalytics> {
     try {
-      console.log('Fetching booking analytics...');
+      console.log('Fetching comprehensive booking analytics...');
       
       // Get all appointments
       const { data: appointments, error: appointmentsError } = await supabase
@@ -92,10 +121,7 @@ export const adminAnalytics = {
 
       if (appointmentsError) {
         console.error('Error fetching appointments:', appointmentsError);
-        throw appointmentsError;
       }
-
-      console.log('Raw appointments data:', appointments);
 
       // Get all payments to calculate actual platform revenue
       const { data: payments, error: paymentsError } = await supabase
@@ -106,7 +132,8 @@ export const adminAnalytics = {
         console.error('Error fetching payments:', paymentsError);
       }
 
-      console.log('Raw payments data:', payments);
+      console.log('Appointments found:', appointments?.length || 0);
+      console.log('Payments found:', payments?.length || 0);
 
       const totalBookings = appointments?.length || 0;
       const completedBookings = appointments?.filter(a => a.status === 'completed').length || 0;
@@ -140,7 +167,7 @@ export const adminAnalytics = {
         bookingsThisMonth
       };
 
-      console.log('Booking Analytics Result:', result);
+      console.log('Comprehensive Booking Analytics Result:', result);
       return result;
     } catch (error) {
       console.error('Error in getBookingAnalytics:', error);
@@ -157,7 +184,7 @@ export const adminAnalytics = {
 
   async getStylistAnalytics(): Promise<StylistAnalytics> {
     try {
-      console.log('Fetching stylist analytics...');
+      console.log('Fetching comprehensive stylist analytics...');
       
       // Get all earnings data
       const { data: earnings, error: earningsError } = await supabase
@@ -167,8 +194,6 @@ export const adminAnalytics = {
       if (earningsError) {
         console.error('Error fetching earnings:', earningsError);
       }
-
-      console.log('Raw earnings data:', earnings);
 
       // Get all stylist profiles
       const { data: stylists, error: stylistsError } = await supabase
@@ -180,8 +205,6 @@ export const adminAnalytics = {
         console.error('Error fetching stylists:', stylistsError);
       }
 
-      console.log('Raw stylists data:', stylists);
-
       // Get all completed appointments per stylist
       const { data: appointments, error: appointmentsError } = await supabase
         .from('appointments')
@@ -192,7 +215,9 @@ export const adminAnalytics = {
         console.error('Error fetching appointments for stylist analytics:', appointmentsError);
       }
 
-      console.log('Raw completed appointments data:', appointments);
+      console.log('Earnings found:', earnings?.length || 0);
+      console.log('Stylists found:', stylists?.length || 0);
+      console.log('Completed appointments found:', appointments?.length || 0);
 
       const totalEarnings = earnings?.reduce((sum, e) => sum + ((e.net_amount || 0) / 100), 0) || 0;
       const averageEarnings = earnings?.length ? totalEarnings / earnings.length : 0;
@@ -236,7 +261,7 @@ export const adminAnalytics = {
         topStylists
       };
 
-      console.log('Stylist Analytics Result:', result);
+      console.log('Comprehensive Stylist Analytics Result:', result);
       return result;
     } catch (error) {
       console.error('Error in getStylistAnalytics:', error);
@@ -246,7 +271,7 @@ export const adminAnalytics = {
 
   async getServiceAnalytics(): Promise<ServiceAnalytics> {
     try {
-      console.log('Fetching service analytics...');
+      console.log('Fetching comprehensive service analytics...');
       
       // Get all services
       const { data: services, error: servicesError } = await supabase
@@ -255,10 +280,7 @@ export const adminAnalytics = {
 
       if (servicesError) {
         console.error('Error fetching services:', servicesError);
-        throw servicesError;
       }
-
-      console.log('Raw services data:', services);
 
       // Get all completed appointments
       const { data: appointments, error: appointmentsError } = await supabase
@@ -270,7 +292,8 @@ export const adminAnalytics = {
         console.error('Error fetching appointments for service analytics:', appointmentsError);
       }
 
-      console.log('Raw appointments for services:', appointments);
+      console.log('Services found:', services?.length || 0);
+      console.log('Completed appointments for services found:', appointments?.length || 0);
 
       const totalServices = services?.length || 0;
 
@@ -304,7 +327,7 @@ export const adminAnalytics = {
         popularServices
       };
 
-      console.log('Service Analytics Result:', result);
+      console.log('Comprehensive Service Analytics Result:', result);
       return result;
     } catch (error) {
       console.error('Error in getServiceAnalytics:', error);
