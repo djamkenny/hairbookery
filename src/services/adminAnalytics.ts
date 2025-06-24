@@ -54,6 +54,8 @@ export const adminAnalytics = {
       
       if (authError) {
         console.error('Error fetching auth users:', authError);
+      } else {
+        console.log('Auth users data:', authData?.users?.length || 0, 'users found');
       }
 
       console.log('Profiles found:', profiles?.length || 0);
@@ -81,8 +83,8 @@ export const adminAnalytics = {
         newUsersThisMonth = profiles.filter(p => 
           new Date(p.created_at) >= thisMonth
         ).length;
-      } else if (authData?.users) {
-        // Fallback to auth data
+      } else if (authData?.users && authData.users.length > 0) {
+        // Fallback to auth data with proper type checking
         totalClients = authData.users.filter(u => !u.user_metadata?.is_stylist).length;
         totalStylists = authData.users.filter(u => u.user_metadata?.is_stylist).length;
         
