@@ -83,16 +83,17 @@ export const adminAnalytics = {
         newUsersThisMonth = profiles.filter(p => 
           new Date(p.created_at) >= thisMonth
         ).length;
-      } else if (authData?.users && authData.users.length > 0) {
+      } else if (authData?.users && Array.isArray(authData.users) && authData.users.length > 0) {
         // Fallback to auth data with proper type checking
-        totalClients = authData.users.filter(u => !u.user_metadata?.is_stylist).length;
-        totalStylists = authData.users.filter(u => u.user_metadata?.is_stylist).length;
+        const authUsers = authData.users as any[];
+        totalClients = authUsers.filter(u => !u.user_metadata?.is_stylist).length;
+        totalStylists = authUsers.filter(u => u.user_metadata?.is_stylist).length;
         
         const thisMonth = new Date();
         thisMonth.setDate(1);
         thisMonth.setHours(0, 0, 0, 0);
         
-        newUsersThisMonth = authData.users.filter(u => 
+        newUsersThisMonth = authUsers.filter(u => 
           new Date(u.created_at) >= thisMonth
         ).length;
       }
