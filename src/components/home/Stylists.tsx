@@ -78,28 +78,39 @@ const Stylists = () => {
     const fetchStylists = async () => {
       try {
         setIsLoading(true);
+        console.log("Fetching registered specialists for featured section...");
         
-        // Instead of using an external API, use the mock data
-        // This is a temporary solution until a proper API endpoint is set up
-        const mockStylists = [
-          {
-            id: "1",
-            full_name: "",
-            specialty: "",
-            experience: "",
-            card_image_url: "",
-            avatar_url: "",
-            bio: "",
-            location: ""
-          }
-        ];
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id, full_name, specialty, experience, bio, avatar_url, card_image_url, location')
+          .eq('is_stylist', true)
+          .not('full_name', 'is', null);
         
-        setStylists(mockStylists);
+        if (error) {
+          console.error("Error fetching specialists:", error);
+          throw error;
+        }
+        
+        console.log("Fetched specialists for featured section:", data);
+        
+        // Transform the data to match the expected format
+        const transformedStylists = data?.map(stylist => ({
+          id: stylist.id,
+          full_name: stylist.full_name || "Unnamed Specialist",
+          specialty: stylist.specialty || "Specialist",
+          experience: stylist.experience || "Professional with experience",
+          card_image_url: stylist.card_image_url,
+          avatar_url: stylist.avatar_url,
+          bio: stylist.bio || "Professional specialist with expertise in modern techniques.",
+          location: stylist.location || "Location not specified"
+        })) || [];
+        
+        setStylists(transformedStylists);
       } catch (error) {
-        console.error("Could not fetch stylists:", error);
+        console.error("Could not fetch specialists:", error);
         toast({
           title: "Error",
-          description: "Failed to load stylists. Please try again later.",
+          description: "Failed to load specialists. Please try again later.",
           variant: "destructive",
         });
       } finally {
@@ -139,17 +150,17 @@ const Stylists = () => {
       experience={stylist.experience}
       imageUrl={stylist.card_image_url || stylist.avatar_url}
       bio={stylist.bio}
-      location={stylist.location || "Location not specified"}
+      location={stylist.location}
     />
   );
 
   return (
     <div className="container mx-auto py-12">
       <div className="flex justify-between items-center mb-8">
-        <h2 className="text-3xl font-semibold">Featured Stylists</h2>
+        <h2 className="text-3xl font-semibold">Featured Specialists</h2>
         <Input
           type="text"
-          placeholder="Search stylists..."
+          placeholder="Search specialists..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-1/3"
@@ -163,9 +174,9 @@ const Stylists = () => {
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
-              <DialogTitle>Filter Stylists</DialogTitle>
+              <DialogTitle>Filter Specialists</DialogTitle>
               <DialogDescription>
-                Adjust the filters to find the perfect stylist for you.
+                Adjust the filters to find the perfect specialist for you.
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
@@ -224,14 +235,14 @@ const Stylists = () => {
       <ScrollArea className="rounded-md border p-4">
         {isLoading ? (
           <div className="flex justify-center p-8">
-            <p>Loading stylists...</p>
+            <p>Loading specialists...</p>
           </div>
         ) : (
           <div className="flex gap-6">
             {filteredStylists.length > 0 ? (
               filteredStylists.map(renderStylist)
             ) : (
-              <p>No stylists found matching your criteria.</p>
+              <p>No specialists found matching your criteria.</p>
             )}
           </div>
         )}
