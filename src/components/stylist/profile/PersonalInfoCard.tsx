@@ -1,6 +1,8 @@
 
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface PersonalInfoCardProps {
   isEditing: boolean;
@@ -21,38 +23,40 @@ const PersonalInfoCard = ({
 }: PersonalInfoCardProps) => {
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="pb-3">
         <CardTitle className="text-lg">Personal Information</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 pt-0">
         {isEditing ? (
           <>
-            <div>
-              <label className="block text-sm font-medium mb-1">Full Name</label>
-              <input
+            <div className="space-y-2">
+              <Label htmlFor="fullName" className="text-sm font-medium">Full Name</Label>
+              <Input
+                id="fullName"
                 type="text"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                className="w-full px-3 py-2 border border-border rounded-md"
+                placeholder="Enter your full name"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Email</label>
-              <input
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+              <Input
+                id="email"
                 type="email"
                 value={email}
                 disabled
-                className="w-full px-3 py-2 border border-border rounded-md bg-muted"
+                className="bg-muted text-muted-foreground"
               />
-              <p className="text-xs text-muted-foreground mt-1">Email cannot be changed</p>
+              <p className="text-xs text-muted-foreground">Email cannot be changed</p>
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Phone Number</label>
-              <input
+            <div className="space-y-2">
+              <Label htmlFor="phone" className="text-sm font-medium">Phone Number</Label>
+              <Input
+                id="phone"
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-full px-3 py-2 border border-border rounded-md"
                 placeholder="Your contact number"
               />
             </div>
@@ -61,15 +65,15 @@ const PersonalInfoCard = ({
           <div className="space-y-3">
             <div>
               <h3 className="text-sm font-medium text-muted-foreground">Full Name</h3>
-              <p>{fullName || "Not provided"}</p>
+              <p className="text-foreground">{fullName || "Not provided"}</p>
             </div>
             <div>
               <h3 className="text-sm font-medium text-muted-foreground">Email</h3>
-              <p>{email}</p>
+              <p className="text-foreground">{email}</p>
             </div>
             <div>
               <h3 className="text-sm font-medium text-muted-foreground">Phone Number</h3>
-              <p>{phone || "Not provided"}</p>
+              <p className="text-foreground">{phone || "Not provided"}</p>
             </div>
           </div>
         )}

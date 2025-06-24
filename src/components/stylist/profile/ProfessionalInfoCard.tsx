@@ -1,6 +1,8 @@
 
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface ProfessionalInfoCardProps {
   isEditing: boolean;
@@ -25,29 +27,29 @@ const ProfessionalInfoCard = ({
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="pb-3">
         <CardTitle className="text-lg">Professional Information</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 pt-0">
         {isEditing ? (
           <>
-            <div>
-              <label className="block text-sm font-medium mb-1">Specialty</label>
-              <input
+            <div className="space-y-2">
+              <Label htmlFor="specialty" className="text-sm font-medium">Specialty</Label>
+              <Input
+                id="specialty"
                 type="text"
                 value={specialty}
                 onChange={(e) => setSpecialty(e.target.value)}
-                className="w-full px-3 py-2 border border-border rounded-md"
                 placeholder="e.g. Hair Stylist, Colorist, Barber"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Experience</label>
-              <input
+            <div className="space-y-2">
+              <Label htmlFor="experience" className="text-sm font-medium">Experience</Label>
+              <Input
+                id="experience"
                 type="text"
                 value={experience}
                 onChange={(e) => setExperience(e.target.value)}
-                className="w-full px-3 py-2 border border-border rounded-md"
                 placeholder="Years of experience or qualifications"
               />
             </div>
@@ -56,11 +58,11 @@ const ProfessionalInfoCard = ({
           <div className="space-y-3">
             <div>
               <h3 className="text-sm font-medium text-muted-foreground">Specialty</h3>
-              <p>{specialty || "Not specified"}</p>
+              <p className="text-foreground">{specialty || "Not specified"}</p>
             </div>
             <div>
               <h3 className="text-sm font-medium text-muted-foreground">Experience</h3>
-              <p>{formatExperience(experience)}</p>
+              <p className="text-foreground">{formatExperience(experience)}</p>
             </div>
           </div>
         )}
