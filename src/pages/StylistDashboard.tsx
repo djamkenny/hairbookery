@@ -48,10 +48,10 @@ const StylistDashboard = () => {
   }
   
   return (
-    <main className="container py-4 md:py-6 lg:py-10 px-2 sm:px-4 lg:px-8 overflow-x-hidden">
+    <main className="container py-2 md:py-6 lg:py-10 px-2 sm:px-4 lg:px-8 max-w-full overflow-x-hidden">
       <DashboardHeader isMobile={isMobile} />
       
-      <div className="mb-4 md:mb-6">
+      <div className="mb-3 md:mb-6">
         <StylistDashboardSummary 
           upcomingAppointments={upcomingAppointments}
           totalClients={totalClients}
@@ -60,9 +60,9 @@ const StylistDashboard = () => {
         />
       </div>
       
-      <div className="w-full overflow-hidden">
-        <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="space-y-4 md:space-y-6 w-full">
-          <div className="w-full">
+      <div className="w-full">
+        <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="space-y-3 md:space-y-6 w-full">
+          <div className="w-full px-1">
             <DashboardTabs breakpoint={breakpoint} />
           </div>
           
