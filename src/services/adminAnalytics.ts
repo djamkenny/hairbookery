@@ -39,20 +39,27 @@ export interface ServiceAnalytics {
 export const adminAnalytics = {
   async getUserAnalytics(): Promise<UserAnalytics> {
     try {
-      const { data: users, error } = await supabase
+      // Get all profiles data
+      const { data: profiles, error } = await supabase
         .from('profiles')
         .select('id, is_stylist, created_at');
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching profiles:', error);
+        throw error;
+      }
 
-      const totalUsers = users?.length || 0;
-      const totalClients = users?.filter(u => !u.is_stylist).length || 0;
-      const totalStylists = users?.filter(u => u.is_stylist).length || 0;
+      const totalUsers = profiles?.length || 0;
+      const totalClients = profiles?.filter(p => !p.is_stylist).length || 0;
+      const totalStylists = profiles?.filter(p => p.is_stylist).length || 0;
       
+      // Calculate new users this month
       const thisMonth = new Date();
       thisMonth.setDate(1);
-      const newUsersThisMonth = users?.filter(u => 
-        new Date(u.created_at) >= thisMonth
+      thisMonth.setHours(0, 0, 0, 0);
+      
+      const newUsersThisMonth = profiles?.filter(p => 
+        new Date(p.created_at) >= thisMonth
       ).length || 0;
 
       return {
@@ -62,31 +69,43 @@ export const adminAnalytics = {
         newUsersThisMonth
       };
     } catch (error) {
-      console.error('Error fetching user analytics:', error);
+      console.error('Error in getUserAnalytics:', error);
       return { totalUsers: 0, totalClients: 0, totalStylists: 0, newUsersThisMonth: 0 };
     }
   },
 
   async getBookingAnalytics(): Promise<BookingAnalytics> {
     try {
+      // Get appointments with service pricing data
       const { data: appointments, error } = await supabase
         .from('appointments')
-        .select('id, status, created_at, service_id(price)');
+        .select(`
+          id, 
+          status, 
+          created_at,
+          service_id:services(price)
+        `);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching appointments:', error);
+        throw error;
+      }
 
       const totalBookings = appointments?.length || 0;
       const completedBookings = appointments?.filter(a => a.status === 'completed').length || 0;
       const pendingBookings = appointments?.filter(a => a.status === 'pending').length || 0;
       const canceledBookings = appointments?.filter(a => a.status === 'canceled').length || 0;
 
+      // Calculate bookings this month
       const thisMonth = new Date();
       thisMonth.setDate(1);
+      thisMonth.setHours(0, 0, 0, 0);
+      
       const bookingsThisMonth = appointments?.filter(a => 
         new Date(a.created_at) >= thisMonth
       ).length || 0;
 
-      // Calculate total revenue from completed bookings
+      // Calculate platform revenue (20% of completed bookings)
       const totalRevenue = appointments
         ?.filter(a => a.status === 'completed')
         .reduce((sum, appointment) => {
@@ -103,7 +122,7 @@ export const adminAnalytics = {
         bookingsThisMonth
       };
     } catch (error) {
-      console.error('Error fetching booking analytics:', error);
+      console.error('Error in getBookingAnalytics:', error);
       return { 
         totalBookings: 0, 
         completedBookings: 0, 
@@ -117,45 +136,70 @@ export const adminAnalytics = {
 
   async getStylistAnalytics(): Promise<StylistAnalytics> {
     try {
-      // First get earnings data
+      // Get stylist earnings data
       const { data: earnings, error: earningsError } = await supabase
         .from('specialist_earnings')
         .select('stylist_id, net_amount');
 
-      if (earningsError) throw earningsError;
+      if (earningsError) {
+        console.error('Error fetching earnings:', earningsError);
+        throw earningsError;
+      }
 
-      // Then get stylist profile data separately
+      // Get stylist profile data
       const { data: stylists, error: stylistsError } = await supabase
         .from('profiles')
         .select('id, full_name')
         .eq('is_stylist', true);
 
-      if (stylistsError) throw stylistsError;
+      if (stylistsError) {
+        console.error('Error fetching stylists:', stylistsError);
+        throw stylistsError;
+      }
+
+      // Get appointment counts per stylist
+      const { data: appointments, error: appointmentsError } = await supabase
+        .from('appointments')
+        .select('stylist_id, status')
+        .eq('status', 'completed');
+
+      if (appointmentsError) {
+        console.error('Error fetching appointments:', appointmentsError);
+      }
 
       const totalEarnings = earnings?.reduce((sum, e) => sum + e.net_amount, 0) || 0;
       const averageEarnings = earnings?.length ? totalEarnings / earnings.length : 0;
 
-      // Group by stylist and calculate top performers
+      // Create stylist performance map
       const stylistMap = new Map();
+      
+      // Initialize with stylist data
+      stylists?.forEach(stylist => {
+        stylistMap.set(stylist.id, {
+          name: stylist.full_name || 'Unknown',
+          earnings: 0,
+          bookings: 0
+        });
+      });
+
+      // Add earnings data
       earnings?.forEach(earning => {
-        const stylistId = earning.stylist_id;
-        const stylist = stylists?.find(s => s.id === stylistId);
-        const stylistName = stylist?.full_name || 'Unknown';
-        
-        if (!stylistMap.has(stylistId)) {
-          stylistMap.set(stylistId, {
-            name: stylistName,
-            earnings: 0,
-            bookings: 0
-          });
+        const stylistData = stylistMap.get(earning.stylist_id);
+        if (stylistData) {
+          stylistData.earnings += earning.net_amount;
         }
-        
-        const stylistData = stylistMap.get(stylistId);
-        stylistData.earnings += earning.net_amount;
-        stylistData.bookings += 1;
+      });
+
+      // Add booking counts
+      appointments?.forEach(appointment => {
+        const stylistData = stylistMap.get(appointment.stylist_id);
+        if (stylistData) {
+          stylistData.bookings += 1;
+        }
       });
 
       const topStylists = Array.from(stylistMap.values())
+        .filter(stylist => stylist.earnings > 0 || stylist.bookings > 0)
         .sort((a, b) => b.earnings - a.earnings)
         .slice(0, 5);
 
@@ -165,26 +209,37 @@ export const adminAnalytics = {
         topStylists
       };
     } catch (error) {
-      console.error('Error fetching stylist analytics:', error);
+      console.error('Error in getStylistAnalytics:', error);
       return { totalEarnings: 0, averageEarnings: 0, topStylists: [] };
     }
   },
 
   async getServiceAnalytics(): Promise<ServiceAnalytics> {
     try {
+      // Get all services
       const { data: services, error: servicesError } = await supabase
         .from('services')
         .select('id, name, price');
 
+      if (servicesError) {
+        console.error('Error fetching services:', servicesError);
+        throw servicesError;
+      }
+
+      // Get completed appointments with service data
       const { data: appointments, error: appointmentsError } = await supabase
         .from('appointments')
-        .select('service_id, status');
+        .select('service_id, status')
+        .eq('status', 'completed');
 
-      if (servicesError || appointmentsError) throw servicesError || appointmentsError;
+      if (appointmentsError) {
+        console.error('Error fetching appointments:', appointmentsError);
+        throw appointmentsError;
+      }
 
       const totalServices = services?.length || 0;
 
-      // Calculate popular services
+      // Create service analytics map
       const serviceMap = new Map();
       services?.forEach(service => {
         serviceMap.set(service.id, {
@@ -195,15 +250,17 @@ export const adminAnalytics = {
         });
       });
 
+      // Count bookings and calculate revenue for each service
       appointments?.forEach(appointment => {
         const service = serviceMap.get(appointment.service_id);
-        if (service && appointment.status === 'completed') {
+        if (service) {
           service.bookings += 1;
-          service.revenue += service.price * 0.2; // Platform fee
+          service.revenue += service.price * 0.2; // Platform fee (20%)
         }
       });
 
       const popularServices = Array.from(serviceMap.values())
+        .filter(service => service.bookings > 0)
         .sort((a, b) => b.bookings - a.bookings)
         .slice(0, 5);
 
@@ -212,7 +269,7 @@ export const adminAnalytics = {
         popularServices
       };
     } catch (error) {
-      console.error('Error fetching service analytics:', error);
+      console.error('Error in getServiceAnalytics:', error);
       return { totalServices: 0, popularServices: [] };
     }
   }
