@@ -134,9 +134,9 @@ const LoginForm = () => {
               </Link>
             </div>
             <div>
-              Are you a hair stylist?{" "}
+              Are you a hair specialist?{" "}
               <Link to="/stylist-register" className="text-primary hover:underline">
-                Register as Stylist
+                Register as Specialist
               </Link>
             </div>
           </div>
