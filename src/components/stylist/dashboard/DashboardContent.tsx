@@ -22,6 +22,8 @@ interface DashboardContentProps {
   bio: string;
   setBio: (value: string) => void;
   avatarUrl: string | null;
+  location: string;
+  setLocation: (value: string) => void;
   refreshUserProfile: () => Promise<void>;
 }
 
@@ -39,11 +41,13 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
   bio,
   setBio,
   avatarUrl,
+  location,
+  setLocation,
   refreshUserProfile
 }) => {
   return (
-    <>
-      <TabsContent value="profile" className="w-full mt-4">
+    <div className="w-full">
+      <TabsContent value="profile" className="w-full mt-4 space-y-6">
         <StylistInfoTab 
           user={user}
           fullName={fullName}
@@ -81,7 +85,7 @@ const DashboardContent: React.FC<DashboardContentProps> = ({
       <TabsContent value="settings" className="w-full mt-4">
         <StylistSettingsTab />
       </TabsContent>
-    </>
+    </div>
   );
 };
 

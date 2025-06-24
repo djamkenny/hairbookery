@@ -27,6 +27,8 @@ const StylistDashboard = () => {
     bio,
     setBio,
     avatarUrl,
+    location,
+    setLocation,
     upcomingAppointments,
     totalClients,
     completedAppointments,
@@ -46,19 +48,23 @@ const StylistDashboard = () => {
   }
   
   return (
-    <main className="container py-6 md:py-10 px-4 sm:px-6 lg:px-8 overflow-x-hidden">
+    <main className="container py-4 md:py-6 lg:py-10 px-2 sm:px-4 lg:px-8 overflow-x-hidden">
       <DashboardHeader isMobile={isMobile} />
       
-      <StylistDashboardSummary 
-        upcomingAppointments={upcomingAppointments}
-        totalClients={totalClients}
-        completedAppointments={completedAppointments}
-        rating={rating}
-      />
+      <div className="mb-4 md:mb-6">
+        <StylistDashboardSummary 
+          upcomingAppointments={upcomingAppointments}
+          totalClients={totalClients}
+          completedAppointments={completedAppointments}
+          rating={rating}
+        />
+      </div>
       
-      <div className="mt-6 md:mt-8 w-full overflow-hidden">
-        <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="space-y-6 w-full">
-          <DashboardTabs breakpoint={breakpoint} />
+      <div className="w-full overflow-hidden">
+        <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="space-y-4 md:space-y-6 w-full">
+          <div className="w-full">
+            <DashboardTabs breakpoint={breakpoint} />
+          </div>
           
           <DashboardContent
             user={user}
@@ -74,6 +80,8 @@ const StylistDashboard = () => {
             bio={bio}
             setBio={setBio}
             avatarUrl={avatarUrl}
+            location={location}
+            setLocation={setLocation}
             refreshUserProfile={refreshUserProfile}
           />
         </Tabs>

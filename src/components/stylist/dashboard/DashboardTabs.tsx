@@ -19,17 +19,36 @@ const DashboardTabs: React.FC<DashboardTabsProps> = ({ breakpoint }) => {
     { value: "settings", label: "Settings", icon: Settings },
   ];
 
+  if (isMobile) {
+    return (
+      <div className="w-full overflow-x-auto">
+        <TabsList className="grid grid-cols-2 w-full gap-1 p-1 h-auto">
+          {tabs.map(({ value, label, icon: Icon }) => (
+            <TabsTrigger 
+              key={value}
+              value={value} 
+              className="flex flex-col items-center gap-1 py-3 px-2 text-xs min-h-[60px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            >
+              <Icon className="h-4 w-4" />
+              <span className="text-[10px] leading-tight text-center">{label}</span>
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </div>
+    );
+  }
+
   return (
-    <div className="w-full overflow-x-auto hide-scrollbar">
-      <TabsList className={`grid w-full ${isMobile ? 'grid-cols-3 min-w-[300px]' : 'grid-cols-6'} gap-1 p-1`}>
+    <div className="w-full overflow-x-auto">
+      <TabsList className="grid w-full grid-cols-6 gap-1 p-1">
         {tabs.map(({ value, label, icon: Icon }) => (
           <TabsTrigger 
             key={value}
             value={value} 
-            className={`flex items-center gap-1.5 text-xs whitespace-nowrap ${isMobile ? 'flex-col py-2 px-2 min-w-[90px]' : 'px-3 py-2'}`}
+            className="flex items-center gap-2 px-3 py-2 text-sm whitespace-nowrap"
           >
-            <Icon className={isMobile ? "h-3.5 w-3.5" : "h-4 w-4"} />
-            <span className={isMobile ? "text-[10px] leading-none" : ""}>{label}</span>
+            <Icon className="h-4 w-4" />
+            <span>{label}</span>
           </TabsTrigger>
         ))}
       </TabsList>
