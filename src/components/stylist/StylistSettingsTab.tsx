@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import DeleteAccountDialog from "../profile/DeleteAccountDialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-const StylistSettingsTab = () => {
+const SpecialistSettingsTab = () => {
   const [availability, setAvailability] = useState(true);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [smsNotifications, setSmsNotifications] = useState(true);
@@ -191,4 +191,4 @@ const StylistSettingsTab = () => {
   );
 };
 
-export default StylistSettingsTab;
+export default SpecialistSettingsTab;

@@ -10,13 +10,13 @@ import TermsCheckbox from "@/components/auth/TermsCheckbox";
 import { 
   validateEmail, 
   validatePassword, 
-  createEmptyStylistFormErrors,
-  StylistFormErrors
+  createEmptySpecialistFormErrors,
+  SpecialistFormErrors
 } from "@/utils/stylistFormValidation";
 import PersonalInfoSection from "./stylist-register/PersonalInfoSection";
 import ProfessionalInfoSection from "./stylist-register/ProfessionalInfoSection";
 
-const StylistRegisterForm = () => {
+const SpecialistRegisterForm = () => {
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -28,10 +28,10 @@ const StylistRegisterForm = () => {
   const [location, setLocation] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
-  const [formErrors, setFormErrors] = useState<StylistFormErrors>(createEmptyStylistFormErrors());
+  const [formErrors, setFormErrors] = useState<SpecialistFormErrors>(createEmptySpecialistFormErrors());
 
   const validateForm = () => {
-    const errors = createEmptyStylistFormErrors();
+    const errors = createEmptySpecialistFormErrors();
     let isValid = true;
 
     if (!name.trim()) {
@@ -99,7 +99,7 @@ const StylistRegisterForm = () => {
     setIsSubmitting(true);
     
     try {
-      // Register stylist through supabase auth
+      // Register specialist through supabase auth
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -119,7 +119,7 @@ const StylistRegisterForm = () => {
         throw error;
       }
       
-      toast.success("Stylist account created successfully! Please check your email to verify your account.");
+      toast.success("Specialist account created successfully! Please check your email to verify your account.");
       navigate("/login");
     } catch (error: any) {
       console.error("Registration error:", error);
@@ -139,9 +139,9 @@ const StylistRegisterForm = () => {
     <Card className="animate-slide-up">
       <form onSubmit={handleSubmit}>
         <CardHeader>
-          <CardTitle>Join as a Stylist</CardTitle>
+          <CardTitle>Join as a Specialist</CardTitle>
           <CardDescription>
-            Enter your details to create a stylist account
+            Enter your details to create a specialist account
           </CardDescription>
         </CardHeader>
         
@@ -189,12 +189,12 @@ const StylistRegisterForm = () => {
                 <span>Creating account...</span>
               </div>
             ) : (
-              "Register as a Stylist"
+              "Register as a Specialist"
             )}
           </Button>
           
           <div className="text-center text-sm">
-            Already have a stylist account?{" "}
+            Already have a specialist account?{" "}
             <Link to="/login" className="text-primary hover:underline">
               Sign in
             </Link>
@@ -205,4 +205,4 @@ const StylistRegisterForm = () => {
   );
 };
 
-export default StylistRegisterForm;
+export default SpecialistRegisterForm;

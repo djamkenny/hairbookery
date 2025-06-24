@@ -4,19 +4,19 @@ import { Card, CardContent } from "@/components/ui/card";
 import { CalendarClock, Users, CalendarCheck } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-interface StylistDashboardSummaryProps {
+interface SpecialistDashboardSummaryProps {
   upcomingAppointments: number;
   totalClients: number;
   completedAppointments: number;
   rating: number | null;
 }
 
-const StylistDashboardSummary = ({
+const SpecialistDashboardSummary = ({
   upcomingAppointments = 0,
   totalClients = 0,
   completedAppointments = 0,
   rating = null
-}: StylistDashboardSummaryProps) => {
+}: SpecialistDashboardSummaryProps) => {
   const isMobile = useIsMobile();
 
   return (
@@ -60,4 +60,4 @@ const StylistDashboardSummary = ({
   );
 };
 
-export default StylistDashboardSummary;
+export default SpecialistDashboardSummary;

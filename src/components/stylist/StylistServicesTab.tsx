@@ -6,7 +6,7 @@ import { fetchServices } from "./services/serviceApi";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
-const StylistServicesTab = () => {
+const SpecialistServicesTab = () => {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -45,4 +45,4 @@ const StylistServicesTab = () => {
   );
 };
 
-export default StylistServicesTab;
+export default SpecialistServicesTab;

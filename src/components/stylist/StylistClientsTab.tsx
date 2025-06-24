@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
-const StylistClientsTab = () => {
+const SpecialistClientsTab = () => {
   const [clients, setClients] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -31,7 +31,7 @@ const StylistClientsTab = () => {
         return;
       }
 
-      // Get all appointments for this stylist
+      // Get all appointments for this specialist
       const { data: appointments, error: appointmentsError } = await supabase
         .from('appointments')
         .select('client_id, appointment_date, status')
@@ -204,4 +204,4 @@ const StylistClientsTab = () => {
   );
 };
 
-export default StylistClientsTab;
+export default SpecialistClientsTab;

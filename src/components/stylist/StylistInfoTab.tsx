@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import ProfileForm from "./profile/ProfileForm";
 
-interface StylistInfoTabProps {
+interface SpecialistInfoTabProps {
   user: any;
   fullName: string;
   setFullName: (name: string) => void;
@@ -20,7 +20,7 @@ interface StylistInfoTabProps {
   refreshUserProfile: () => Promise<void>;
 }
 
-const StylistInfoTab = ({
+const SpecialistInfoTab = ({
   user,
   fullName,
   setFullName,
@@ -35,7 +35,7 @@ const StylistInfoTab = ({
   setBio,
   avatarUrl,
   refreshUserProfile
-}: StylistInfoTabProps) => {
+}: SpecialistInfoTabProps) => {
   const [location, setLocation] = useState("");
   
   // Fetch the location from user metadata or profile when component mounts
@@ -97,4 +97,4 @@ const StylistInfoTab = ({
   );
 };
 
-export default StylistInfoTab;
+export default SpecialistInfoTab;

@@ -3,7 +3,7 @@ import React from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { StylistFormErrors } from "@/utils/stylistFormValidation";
+import { SpecialistFormErrors } from "@/utils/stylistFormValidation";
 
 interface ProfessionalInfoSectionProps {
   specialty: string;
@@ -14,7 +14,7 @@ interface ProfessionalInfoSectionProps {
   setLocation: (location: string) => void;
   bio: string;
   setBio: (bio: string) => void;
-  formErrors: StylistFormErrors;
+  formErrors: SpecialistFormErrors;
 }
 
 const ProfessionalInfoSection = ({

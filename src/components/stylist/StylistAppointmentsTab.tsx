@@ -6,7 +6,7 @@ import { useStylistAppointments } from "@/hooks/useStylistAppointments";
 import AppointmentsHeader from "./appointments/AppointmentsHeader";
 import AppointmentsContent from "./appointments/AppointmentsContent";
 
-const StylistAppointmentsTab = () => {
+const SpecialistAppointmentsTab = () => {
   const {
     filteredAppointments,
     loading,
@@ -63,4 +63,4 @@ const StylistAppointmentsTab = () => {
   );
 };
 
-export default StylistAppointmentsTab;
+export default SpecialistAppointmentsTab;

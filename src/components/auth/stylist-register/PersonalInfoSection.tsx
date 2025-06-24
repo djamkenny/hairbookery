@@ -3,7 +3,7 @@ import React from "react";
 import { Label } from "@/components/ui/label";
 import PasswordInput from "@/components/auth/PasswordInput";
 import { Input } from "@/components/ui/input";
-import { StylistFormErrors } from "@/utils/stylistFormValidation";
+import { SpecialistFormErrors } from "@/utils/stylistFormValidation";
 
 interface PersonalInfoSectionProps {
   name: string;
@@ -14,7 +14,7 @@ interface PersonalInfoSectionProps {
   setPassword: (password: string) => void;
   confirmPassword: string;
   setConfirmPassword: (confirmPassword: string) => void;
-  formErrors: StylistFormErrors;
+  formErrors: SpecialistFormErrors;
 }
 
 const PersonalInfoSection = ({

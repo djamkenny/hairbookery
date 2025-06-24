@@ -8,7 +8,7 @@ export function validatePassword(password: string) {
   return password.length >= 8;
 }
 
-export interface StylistFormErrors {
+export interface SpecialistFormErrors {
   name: string;
   email: string;
   password: string;
@@ -20,7 +20,7 @@ export interface StylistFormErrors {
   terms: string;
 }
 
-export function createEmptyStylistFormErrors(): StylistFormErrors {
+export function createEmptySpecialistFormErrors(): SpecialistFormErrors {
   return {
     name: "",
     email: "",
