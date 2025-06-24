@@ -66,17 +66,19 @@ const Reviews = () => {
 					.from("reviews")
 					.select(`
 						*,
-						user_profile:profiles!reviews_user_id_fkey(full_name, avatar_url)
+						user_profile:profiles(full_name, avatar_url)
 					`)
 					.order("created_at", { ascending: false });
 				
 				if (error) {
 					console.error("Error fetching reviews:", error);
+					toast.error("Failed to load reviews");
 				} else if (data) {
 					setReviews(data as Review[]);
 				}
 			} catch (error) {
 				console.error("Error fetching reviews:", error);
+				toast.error("Failed to load reviews");
 			}
 			setLoading(false);
 		};
@@ -115,7 +117,7 @@ const Reviews = () => {
 				])
 				.select(`
 					*,
-					user_profile:profiles!reviews_user_id_fkey(full_name, avatar_url)
+					user_profile:profiles(full_name, avatar_url)
 				`);
 			
 			if (error) {
