@@ -14,10 +14,10 @@ const gradientTextStyle: React.CSSProperties = {
 
 const Reviews = () => {
 	const { user } = useAuth();
-	const { reviews, loading, submitReview, editReview, removeReview } = useReviews();
+	const { reviews, loading, submitReview, editReview, removeReview } = useReviews(); // No stylistId for homepage
 
 	const handleSubmitReview = async (form: { rating: number; comment: string }) => {
-		return await submitReview(form, user?.id);
+		return await submitReview(form, user?.id); // No stylistId for general reviews
 	};
 
 	return (
@@ -32,7 +32,7 @@ const Reviews = () => {
 					</h2>
 					<p className="text-foreground">
 						Don't just take our word for it. Here's what our clients have to say
-						about their experiences with our stylists.
+						about their experiences with our services.
 					</p>
 				</div>
 

@@ -10,13 +10,14 @@ export type Review = {
 	comment: string;
 	created_at: string;
 	updated_at: string;
+	stylist_id?: string | null;
 	user_profile?: {
 		full_name?: string;
 		avatar_url?: string;
 	};
 };
 
-export const useReviews = () => {
+export const useReviews = (stylistId?: string) => {
 	const [reviews, setReviews] = useState<Review[]>([]);
 	const [loading, setLoading] = useState(false);
 
@@ -24,13 +25,23 @@ export const useReviews = () => {
 	const fetchReviews = async () => {
 		setLoading(true);
 		try {
-			const { data, error } = await supabase
+			let query = supabase
 				.from("reviews")
 				.select(`
 					*,
 					user_profile:profiles(full_name, avatar_url)
 				`)
 				.order("created_at", { ascending: false });
+
+			// If stylistId is provided, filter for that stylist
+			if (stylistId) {
+				query = query.eq('stylist_id', stylistId);
+			} else {
+				// For homepage, show general reviews (not tied to specific stylists)
+				query = query.is('stylist_id', null);
+			}
+			
+			const { data, error } = await query;
 			
 			if (error) {
 				console.error("Error fetching reviews:", error);
@@ -47,7 +58,7 @@ export const useReviews = () => {
 
 	useEffect(() => {
 		fetchReviews();
-	}, []);
+	}, [stylistId]);
 
 	const addReview = (newReview: Review) => {
 		setReviews([newReview, ...reviews]);
@@ -65,7 +76,7 @@ export const useReviews = () => {
 		setReviews(reviews.filter(review => review.id !== reviewId));
 	};
 
-	const submitReview = async (form: { rating: number; comment: string }, userId: string) => {
+	const submitReview = async (form: { rating: number; comment: string }, userId: string, targetStylistId?: string) => {
 		if (!form.comment || !userId) {
 			toast.error("Please log in to submit a review");
 			return false;
@@ -80,6 +91,7 @@ export const useReviews = () => {
 						user_id: userId,
 						rating: Number(form.rating),
 						comment: form.comment,
+						stylist_id: targetStylistId || null,
 					},
 				])
 				.select(`
