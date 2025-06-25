@@ -17,7 +17,7 @@ interface ProfileContentProps {
   phone: string;
   setPhone: (phone: string) => void;
   avatarUrl: string | null;
-  refreshUserProfile: () => void;
+  refreshUserProfile: () => Promise<void>;
   upcomingAppointments: Appointment[];
   pastAppointments: Appointment[];
   favoriteSylists: any[];
@@ -68,8 +68,14 @@ const ProfileContent = ({
       <Tabs value={activeTab} className="w-full">
         <TabsContent value="dashboard" className="mt-0">
           <DashboardTab 
+            user={user}
+            avatarUrl={avatarUrl}
             upcomingAppointments={upcomingAppointments}
+            pastAppointments={pastAppointments}
+            favoriteSylists={favoriteSylists}
             loyaltyPoints={loyaltyPoints}
+            handleRescheduleAppointment={handleRescheduleAppointment}
+            handleCancelAppointment={handleCancelAppointment}
           />
         </TabsContent>
         
@@ -111,7 +117,6 @@ const ProfileContent = ({
             setEmailNotifications={setEmailNotifications}
             smsNotifications={smsNotifications}
             setSmsNotifications={setSmsNotifications}
-            user={user}
           />
         </TabsContent>
       </Tabs>

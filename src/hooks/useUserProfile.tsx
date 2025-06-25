@@ -69,7 +69,7 @@ export const useUserProfile = () => {
   }, [navigate]);
 
   // This function will update all profile states with fresh data
-  const refreshUserProfile = async () => {
+  const refreshUserProfile = async (): Promise<void> => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
