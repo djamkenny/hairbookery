@@ -13,13 +13,25 @@ interface RatingComponentProps {
 
 const RatingComponent = ({ specialistId, showSubmissionForm = true }: RatingComponentProps) => {
 	const { user } = useAuth();
-	const { averageRating, totalRatings, userRating, loading, submitRating, fetchUserRating } = useRatings(specialistId);
+	const { averageRating, totalRatings, userRating, loading, submitRating, fetchUserRating, canUserRate } = useRatings(specialistId);
 	const [selectedRating, setSelectedRating] = useState(0);
 	const [hoveredRating, setHoveredRating] = useState(0);
+	const [userCanRate, setUserCanRate] = useState(false);
+	const [checkingEligibility, setCheckingEligibility] = useState(false);
 
 	useEffect(() => {
 		if (user?.id) {
 			fetchUserRating(user.id);
+			
+			// Check if user can rate this specialist
+			const checkEligibility = async () => {
+				setCheckingEligibility(true);
+				const eligible = await canUserRate(user.id);
+				setUserCanRate(eligible);
+				setCheckingEligibility(false);
+			};
+			
+			checkEligibility();
 		}
 	}, [user?.id, specialistId]);
 
@@ -74,25 +86,39 @@ const RatingComponent = ({ specialistId, showSubmissionForm = true }: RatingComp
 				</span>
 			</div>
 
-			{/* Rating Submission Form - Only for logged in users */}
+			{/* Rating Submission Form - Only for eligible users */}
 			{showSubmissionForm && user && (
 				<Card>
 					<CardContent className="p-4">
-						<h4 className="font-medium mb-3">
-							{userRating ? "Update your rating" : "Rate this specialist"}
-						</h4>
-						<div className="space-y-3">
-							<div className="flex gap-1">
-								{renderStars(selectedRating, true, "h-6 w-6")}
+						{checkingEligibility ? (
+							<div className="text-center p-4">
+								<p className="text-sm text-muted-foreground">Checking eligibility...</p>
 							</div>
-							<Button
-								onClick={handleRatingSubmit}
-								disabled={loading || selectedRating === 0}
-								size="sm"
-							>
-								{loading ? "Submitting..." : userRating ? "Update Rating" : "Submit Rating"}
-							</Button>
-						</div>
+						) : userCanRate ? (
+							<div>
+								<h4 className="font-medium mb-3">
+									{userRating ? "Update your rating" : "Rate this specialist"}
+								</h4>
+								<div className="space-y-3">
+									<div className="flex gap-1">
+										{renderStars(selectedRating, true, "h-6 w-6")}
+									</div>
+									<Button
+										onClick={handleRatingSubmit}
+										disabled={loading || selectedRating === 0}
+										size="sm"
+									>
+										{loading ? "Submitting..." : userRating ? "Update Rating" : "Submit Rating"}
+									</Button>
+								</div>
+							</div>
+						) : (
+							<div className="text-center p-4 bg-muted/30 rounded-lg">
+								<p className="text-sm text-muted-foreground">
+									You can only rate specialists after completing a service with them.
+								</p>
+							</div>
+						)}
 					</CardContent>
 				</Card>
 			)}

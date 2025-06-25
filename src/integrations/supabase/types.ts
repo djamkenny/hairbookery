@@ -497,6 +497,33 @@ export type Database = {
           },
         ]
       }
+      specialist_ratings: {
+        Row: {
+          created_at: string
+          id: string
+          rating: number
+          specialist_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          rating: number
+          specialist_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          rating?: number
+          specialist_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       subscribers: {
         Row: {
           cancel_at_period_end: boolean | null

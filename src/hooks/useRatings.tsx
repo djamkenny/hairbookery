@@ -37,7 +37,7 @@ export const useRatings = (specialistId?: string) => {
 				console.error("Error fetching ratings:", error);
 			} else if (data) {
 				console.log("Fetched ratings:", data);
-				setRatings(data as Rating[]);
+				setRatings(data);
 				
 				// Calculate average rating
 				if (data.length > 0) {
@@ -70,10 +70,35 @@ export const useRatings = (specialistId?: string) => {
 			if (error) {
 				console.error("Error fetching user rating:", error);
 			} else if (data) {
-				setUserRating(data as Rating);
+				setUserRating(data);
 			}
 		} catch (error) {
 			console.error("Error fetching user rating:", error);
+		}
+	};
+
+	// Check if user can rate this specialist (has completed appointment)
+	const canUserRate = async (userId: string): Promise<boolean> => {
+		if (!specialistId || !userId) return false;
+		
+		try {
+			const { data, error } = await supabase
+				.from("appointments")
+				.select("id")
+				.eq('client_id', userId)
+				.eq('stylist_id', specialistId)
+				.eq('status', 'completed')
+				.limit(1);
+			
+			if (error) {
+				console.error("Error checking user eligibility:", error);
+				return false;
+			}
+			
+			return data && data.length > 0;
+		} catch (error) {
+			console.error("Error checking user eligibility:", error);
+			return false;
 		}
 	};
 
@@ -84,6 +109,13 @@ export const useRatings = (specialistId?: string) => {
 	const submitRating = async (rating: number, userId: string) => {
 		if (!specialistId || !userId) {
 			toast.error("Please log in to submit a rating");
+			return false;
+		}
+		
+		// Check if user can rate this specialist
+		const eligible = await canUserRate(userId);
+		if (!eligible) {
+			toast.error("You can only rate specialists after completing a service with them");
 			return false;
 		}
 		
@@ -113,7 +145,7 @@ export const useRatings = (specialistId?: string) => {
 					toast.error("Failed to update rating");
 					return false;
 				} else {
-					setUserRating(data as Rating);
+					setUserRating(data);
 					toast.success("Rating updated successfully!");
 					fetchRatings(); // Refresh ratings
 					return true;
@@ -137,7 +169,7 @@ export const useRatings = (specialistId?: string) => {
 					toast.error("Failed to submit rating");
 					return false;
 				} else {
-					setUserRating(data as Rating);
+					setUserRating(data);
 					toast.success("Rating submitted successfully!");
 					fetchRatings(); // Refresh ratings
 					return true;
@@ -160,5 +192,6 @@ export const useRatings = (specialistId?: string) => {
 		loading,
 		submitRating,
 		fetchUserRating,
+		canUserRate,
 	};
 };
