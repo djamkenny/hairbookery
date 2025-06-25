@@ -33,32 +33,32 @@ interface StylistCardProps {
 
 const StylistCard = ({ id, name, specialty, experience, imageUrl, bio, location }: StylistCardProps) => {
   return (
-    <Card className="w-[350px] shadow-md hover:shadow-lg transition-shadow duration-300">
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold">{name}</CardTitle>
-        <CardDescription>{specialty}</CardDescription>
-      </CardHeader>
-      <CardContent className="grid gap-4">
-        <Avatar className="w-24 h-24 rounded-full overflow-hidden border-2 border-muted-foreground">
+    <Card className="w-full max-w-sm mx-auto shadow-md hover:shadow-lg transition-shadow duration-300">
+      <CardHeader className="text-center pb-4">
+        <Avatar className="w-20 h-20 mx-auto mb-3 border-2 border-muted-foreground">
           {imageUrl ? (
             <AvatarImage src={imageUrl} alt={name} className="object-cover" />
           ) : (
-            <AvatarFallback>{name.substring(0, 2).toUpperCase()}</AvatarFallback>
+            <AvatarFallback className="text-lg font-semibold">
+              {name.substring(0, 2).toUpperCase()}
+            </AvatarFallback>
           )}
         </Avatar>
-        <div className="text-sm space-y-1">
-          <div className="flex items-center gap-2">
-            <BriefcaseIcon className="h-4 w-4 text-muted-foreground" />
-            <span>{experience}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <MapPinIcon className="h-4 w-4 text-muted-foreground" />
-            <span>{location}</span>
-          </div>
-          <p className="text-muted-foreground line-clamp-3">{bio}</p>
+        <CardTitle className="text-lg font-semibold text-center">{name}</CardTitle>
+        <CardDescription className="text-center">{specialty}</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="flex items-center gap-2 text-sm">
+          <BriefcaseIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+          <span className="truncate">{experience}</span>
         </div>
-        <Link to={`/stylist/${id}`}>
-          <Button className="w-full">View Profile</Button>
+        <div className="flex items-center gap-2 text-sm">
+          <MapPinIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+          <span className="truncate">{location}</span>
+        </div>
+        <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed">{bio}</p>
+        <Link to={`/stylist/${id}`} className="block">
+          <Button className="w-full mt-4">View Profile</Button>
         </Link>
       </CardContent>
     </Card>
@@ -155,98 +155,103 @@ const Stylists = () => {
   );
 
   return (
-    <div className="container mx-auto py-12">
-      <div className="flex justify-between items-center mb-8">
-        <h2 className="text-3xl font-semibold">Featured Specialists</h2>
-        <Input
-          type="text"
-          placeholder="Search specialists..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-1/3"
-        />
-        <Dialog open={isFilterDialogOpen} onOpenChange={setIsFilterDialogOpen}>
-          <DialogTrigger asChild>
-            <Button variant="outline">
-              <StarIcon className="mr-2 h-4 w-4" />
-              Filter
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Filter Specialists</DialogTitle>
-              <DialogDescription>
-                Adjust the filters to find the perfect specialist for you.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <label
-                  htmlFor="specialty"
-                  className="text-sm font-medium leading-none"
-                >
-                  Specialty
-                </label>
-                <Input
-                  id="specialty"
-                  value={filterSpecialty}
-                  onChange={(e) => setFilterSpecialty(e.target.value)}
-                  placeholder="e.g., Hair Coloring"
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid gap-2">
-                <label
-                  htmlFor="experience"
-                  className="text-sm font-medium leading-none"
-                >
-                  Experience (Years)
-                </label>
-                <div className="flex items-center space-x-2">
+    <div className="container mx-auto py-8 px-4">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
+        <h2 className="text-2xl md:text-3xl font-semibold">Featured Specialists</h2>
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+          <Input
+            type="text"
+            placeholder="Search specialists..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full sm:w-64"
+          />
+          <Dialog open={isFilterDialogOpen} onOpenChange={setIsFilterDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="w-full sm:w-auto">
+                <StarIcon className="mr-2 h-4 w-4" />
+                Filter
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Filter Specialists</DialogTitle>
+                <DialogDescription>
+                  Adjust the filters to find the perfect specialist for you.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <label
+                    htmlFor="specialty"
+                    className="text-sm font-medium leading-none"
+                  >
+                    Specialty
+                  </label>
                   <Input
-                    type="number"
-                    id="experience-min"
-                    value={filterExperience[0]}
-                    onChange={(e) => setFilterExperience([Number(e.target.value), filterExperience[1]])}
-                    placeholder="Min"
-                    className="w-24"
-                  />
-                  <span>-</span>
-                  <Input
-                    type="number"
-                    id="experience-max"
-                    value={filterExperience[1]}
-                    onChange={(e) => setFilterExperience([filterExperience[0], Number(e.target.value)])}
-                    placeholder="Max"
-                    className="w-24"
+                    id="specialty"
+                    value={filterSpecialty}
+                    onChange={(e) => setFilterSpecialty(e.target.value)}
+                    placeholder="e.g., Hair Coloring"
+                    className="col-span-3"
                   />
                 </div>
-                <Slider
-                  defaultValue={filterExperience}
-                  max={20}
-                  step={1}
-                  onValueChange={(value) => setFilterExperience(value)}
-                />
+                <div className="grid gap-2">
+                  <label
+                    htmlFor="experience"
+                    className="text-sm font-medium leading-none"
+                  >
+                    Experience (Years)
+                  </label>
+                  <div className="flex items-center space-x-2">
+                    <Input
+                      type="number"
+                      id="experience-min"
+                      value={filterExperience[0]}
+                      onChange={(e) => setFilterExperience([Number(e.target.value), filterExperience[1]])}
+                      placeholder="Min"
+                      className="w-24"
+                    />
+                    <span>-</span>
+                    <Input
+                      type="number"
+                      id="experience-max"
+                      value={filterExperience[1]}
+                      onChange={(e) => setFilterExperience([filterExperience[0], Number(e.target.value)])}
+                      placeholder="Max"
+                      className="w-24"
+                    />
+                  </div>
+                  <Slider
+                    defaultValue={filterExperience}
+                    max={20}
+                    step={1}
+                    onValueChange={(value) => setFilterExperience(value)}
+                  />
+                </div>
               </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
-      <ScrollArea className="rounded-md border p-4">
+      
+      <div className="w-full">
         {isLoading ? (
           <div className="flex justify-center p-8">
             <p>Loading specialists...</p>
           </div>
         ) : (
-          <div className="flex gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredStylists.length > 0 ? (
               filteredStylists.map(renderStylist)
             ) : (
-              <p>No specialists found matching your criteria.</p>
+              <div className="col-span-full text-center p-8">
+                <p>No specialists found matching your criteria.</p>
+              </div>
             )}
           </div>
         )}
-      </ScrollArea>
+      </div>
     </div>
   );
 };
