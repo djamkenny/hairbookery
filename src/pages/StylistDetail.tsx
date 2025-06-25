@@ -3,15 +3,14 @@ import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { CalendarIcon, ClockIcon, StarIcon, MapPin } from "lucide-react";
+import { CalendarIcon, ClockIcon, MapPin } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { ServiceGallery } from "@/components/stylist/services/ServiceGallery";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Service } from "@/components/stylist/services/types";
-import ReviewCard from "@/components/ui/ReviewCard";
-import { useReviews } from "@/hooks/useReviews";
+import RatingComponent from "@/components/specialist/RatingComponent";
 
 interface SpecialistProfile {
   id: string;
@@ -29,11 +28,7 @@ const SpecialistDetail = () => {
   const { id } = useParams();
   const [specialist, setSpecialist] = useState<SpecialistProfile | null>(null);
   const [services, setServices] = useState<Service[]>([]);
-  const [reviewStats, setReviewStats] = useState({ averageRating: 0, totalReviews: 0 });
   const [loading, setLoading] = useState(true);
-  
-  // Use the useReviews hook with stylistId to get stylist-specific reviews
-  const { reviews, loading: reviewsLoading } = useReviews(id);
   
   useEffect(() => {
     const fetchSpecialistAndServices = async () => {
@@ -101,20 +96,6 @@ const SpecialistDetail = () => {
     
     fetchSpecialistAndServices();
   }, [id]);
-
-  // Calculate review statistics when reviews change
-  useEffect(() => {
-    if (reviews.length > 0) {
-      const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
-      const averageRating = totalRating / reviews.length;
-      setReviewStats({
-        averageRating: Math.round(averageRating * 10) / 10,
-        totalReviews: reviews.length
-      });
-    } else {
-      setReviewStats({ averageRating: 0, totalReviews: 0 });
-    }
-  }, [reviews]);
   
   if (loading) {
     return (
@@ -189,14 +170,9 @@ const SpecialistDetail = () => {
                       </div>
                     )}
                     
-                    <div className="flex items-center gap-2 mb-6">
-                      <StarIcon className="h-5 w-5 text-yellow-400 fill-current" />
-                      <span className="text-sm text-muted-foreground">
-                        {reviewStats.totalReviews > 0 
-                          ? `${reviewStats.averageRating} (${reviewStats.totalReviews} review${reviewStats.totalReviews > 1 ? 's' : ''})`
-                          : "No reviews yet"
-                        }
-                      </span>
+                    {/* Rating Component */}
+                    <div className="mb-6">
+                      <RatingComponent specialistId={id!} showSubmissionForm={false} />
                     </div>
                     
                     <Link to={`/booking?stylist=${id}`}>
@@ -224,32 +200,10 @@ const SpecialistDetail = () => {
                 <ServiceGallery services={services} />
               </div>
 
-              {/* Reviews Section */}
+              {/* Client Rating Section */}
               <div className="animate-fade-in">
-                <h2 className="text-xl font-semibold mb-6">Client Reviews</h2>
-                {reviewsLoading ? (
-                  <div className="text-center p-8">
-                    <p className="text-muted-foreground">Loading reviews...</p>
-                  </div>
-                ) : reviews.length > 0 ? (
-                  <div className="space-y-4">
-                    {reviews.map((review) => (
-                      <ReviewCard
-                        key={review.id}
-                        name={review.user_profile?.full_name || "Anonymous Client"}
-                        date={new Date(review.created_at).toLocaleDateString()}
-                        rating={review.rating}
-                        comment={review.comment}
-                        image={review.user_profile?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(review.user_profile?.full_name || "Anonymous")}`}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center p-8 bg-muted/30 rounded-lg">
-                    <p className="text-muted-foreground">No reviews yet for this specialist.</p>
-                    <p className="text-sm text-muted-foreground mt-2">Be the first to leave a review after your appointment!</p>
-                  </div>
-                )}
+                <h2 className="text-xl font-semibold mb-6">Rate This Specialist</h2>
+                <RatingComponent specialistId={id!} />
               </div>
             </div>
           </div>
