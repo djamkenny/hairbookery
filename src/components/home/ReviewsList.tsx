@@ -21,6 +21,8 @@ const ReviewsList = ({ reviews, loading, user, onEdit, onDelete }: ReviewsListPr
 		comment: "",
 	});
 
+	console.log("ReviewsList rendering with:", { reviewsCount: reviews.length, loading });
+
 	const handleEditChange = (
 		e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
 	) => {

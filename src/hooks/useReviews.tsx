@@ -25,6 +25,8 @@ export const useReviews = (stylistId?: string) => {
 	const fetchReviews = async () => {
 		setLoading(true);
 		try {
+			console.log("Fetching reviews for stylistId:", stylistId);
+			
 			let query = supabase
 				.from("reviews")
 				.select(`
@@ -36,9 +38,11 @@ export const useReviews = (stylistId?: string) => {
 			// If stylistId is provided, filter for that stylist
 			if (stylistId) {
 				query = query.eq('stylist_id', stylistId);
+				console.log("Filtering reviews for specific stylist:", stylistId);
 			} else {
 				// For homepage, show general reviews (not tied to specific stylists)
 				query = query.is('stylist_id', null);
+				console.log("Fetching general reviews for homepage");
 			}
 			
 			const { data, error } = await query;
@@ -47,6 +51,7 @@ export const useReviews = (stylistId?: string) => {
 				console.error("Error fetching reviews:", error);
 				console.log("Reviews fetch error details:", error);
 			} else if (data) {
+				console.log("Fetched reviews:", data);
 				setReviews(data as Review[]);
 			}
 		} catch (error) {
@@ -84,6 +89,8 @@ export const useReviews = (stylistId?: string) => {
 		
 		setLoading(true);
 		try {
+			console.log("Submitting review:", { form, userId, targetStylistId });
+			
 			const { data, error } = await supabase
 				.from("reviews")
 				.insert([
@@ -104,6 +111,7 @@ export const useReviews = (stylistId?: string) => {
 				toast.error("Failed to submit review");
 				return false;
 			} else if (data && data.length > 0) {
+				console.log("Review submitted successfully:", data[0]);
 				addReview(data[0] as Review);
 				toast.success("Review submitted successfully!");
 				return true;
