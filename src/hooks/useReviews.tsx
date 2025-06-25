@@ -31,7 +31,7 @@ export const useReviews = (stylistId?: string) => {
 				.from("reviews")
 				.select(`
 					*,
-					user_profile:profiles(full_name, avatar_url)
+					user_profile:profiles!reviews_user_id_fkey(full_name, avatar_url)
 				`)
 				.order("created_at", { ascending: false });
 
@@ -103,7 +103,7 @@ export const useReviews = (stylistId?: string) => {
 				])
 				.select(`
 					*,
-					user_profile:profiles(full_name, avatar_url)
+					user_profile:profiles!reviews_user_id_fkey(full_name, avatar_url)
 				`);
 			
 			if (error) {
