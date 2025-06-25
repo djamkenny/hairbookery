@@ -57,11 +57,12 @@ const Reviews = () => {
 		return () => subscription.unsubscribe();
 	}, []);
 
-	// Fetch reviews from Supabase on mount
+	// Fetch reviews from Supabase on mount - NO authentication required for viewing
 	useEffect(() => {
 		const fetchReviews = async () => {
 			setLoading(true);
 			try {
+				// Create a temporary client without authentication requirements for public data
 				const { data, error } = await supabase
 					.from("reviews")
 					.select(`
@@ -72,18 +73,22 @@ const Reviews = () => {
 				
 				if (error) {
 					console.error("Error fetching reviews:", error);
-					toast.error("Failed to load reviews");
+					// Don't show error toast for public viewing, just log it
+					console.log("Reviews fetch error details:", error);
 				} else if (data) {
 					setReviews(data as Review[]);
 				}
 			} catch (error) {
 				console.error("Error fetching reviews:", error);
-				toast.error("Failed to load reviews");
+				// Don't show error toast for public viewing
+				console.log("Reviews fetch catch error:", error);
 			}
 			setLoading(false);
 		};
+		
+		// Always fetch reviews regardless of authentication status
 		fetchReviews();
-	}, []);
+	}, []); // Remove user dependency to ensure reviews load for everyone
 
 	const handleChange = (
 		e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -259,7 +264,7 @@ const Reviews = () => {
 					</form>
 				)}
 
-				{/* Reviews Display */}
+				{/* Reviews Display - Always visible to everyone */}
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 					{loading && reviews.length === 0 ? (
 						<div className="col-span-2 text-center text-lg">
