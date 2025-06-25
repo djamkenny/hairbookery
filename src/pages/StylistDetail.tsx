@@ -10,6 +10,7 @@ import { ServiceGallery } from "@/components/stylist/services/ServiceGallery";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Service } from "@/components/stylist/services/types";
+import ReviewCard from "@/components/ui/ReviewCard";
 
 interface SpecialistProfile {
   id: string;
@@ -23,10 +24,23 @@ interface SpecialistProfile {
   phone: string | null;
 }
 
+interface StylistReview {
+  id: string;
+  rating: number;
+  comment: string;
+  created_at: string;
+  user_profile?: {
+    full_name?: string;
+    avatar_url?: string;
+  };
+}
+
 const SpecialistDetail = () => {
   const { id } = useParams();
   const [specialist, setSpecialist] = useState<SpecialistProfile | null>(null);
   const [services, setServices] = useState<Service[]>([]);
+  const [reviews, setReviews] = useState<StylistReview[]>([]);
+  const [reviewStats, setReviewStats] = useState({ averageRating: 0, totalReviews: 0 });
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
@@ -83,6 +97,35 @@ const SpecialistDetail = () => {
             image_urls: service.image_urls || []
           }));
           setServices(formattedServices);
+        }
+
+        // Fetch reviews for this specialist from appointments
+        const { data: reviewsData, error: reviewsError } = await supabase
+          .from('reviews')
+          .select(`
+            id,
+            rating,
+            comment,
+            created_at,
+            user_profile:profiles(full_name, avatar_url)
+          `)
+          .eq('stylist_id', id)
+          .order('created_at', { ascending: false });
+
+        if (reviewsError) {
+          console.error("Error fetching reviews:", reviewsError);
+        } else if (reviewsData) {
+          setReviews(reviewsData);
+          
+          // Calculate review statistics
+          if (reviewsData.length > 0) {
+            const totalRating = reviewsData.reduce((sum, review) => sum + review.rating, 0);
+            const averageRating = totalRating / reviewsData.length;
+            setReviewStats({
+              averageRating: Math.round(averageRating * 10) / 10,
+              totalReviews: reviewsData.length
+            });
+          }
         }
         
       } catch (error) {
@@ -171,7 +214,12 @@ const SpecialistDetail = () => {
                     
                     <div className="flex items-center gap-2 mb-6">
                       <StarIcon className="h-5 w-5 text-yellow-400 fill-current" />
-                      <span className="text-sm text-muted-foreground">4.9 (128 reviews)</span>
+                      <span className="text-sm text-muted-foreground">
+                        {reviewStats.totalReviews > 0 
+                          ? `${reviewStats.averageRating} (${reviewStats.totalReviews} review${reviewStats.totalReviews > 1 ? 's' : ''})`
+                          : "No reviews yet"
+                        }
+                      </span>
                     </div>
                     
                     <Link to={`/booking?stylist=${id}`}>
@@ -197,6 +245,30 @@ const SpecialistDetail = () => {
               <div className="animate-fade-in">
                 <h2 className="text-xl font-semibold mb-6">Services & Portfolio</h2>
                 <ServiceGallery services={services} />
+              </div>
+
+              {/* Reviews Section */}
+              <div className="animate-fade-in">
+                <h2 className="text-xl font-semibold mb-6">Client Reviews</h2>
+                {reviews.length > 0 ? (
+                  <div className="space-y-4">
+                    {reviews.map((review) => (
+                      <ReviewCard
+                        key={review.id}
+                        name={review.user_profile?.full_name || "Anonymous Client"}
+                        date={new Date(review.created_at).toLocaleDateString()}
+                        rating={review.rating}
+                        comment={review.comment}
+                        image={review.user_profile?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(review.user_profile?.full_name || "Anonymous")}`}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center p-8 bg-muted/30 rounded-lg">
+                    <p className="text-muted-foreground">No reviews yet for this specialist.</p>
+                    <p className="text-sm text-muted-foreground mt-2">Be the first to leave a review after your appointment!</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
