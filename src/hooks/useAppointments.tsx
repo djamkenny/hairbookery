@@ -9,6 +9,12 @@ export const useAppointments = (userId: string | undefined) => {
   const [loading, setLoading] = useState(false);
   const [upcomingAppointments, setUpcomingAppointments] = useState<Appointment[]>([]);
   const [pastAppointments, setPastAppointments] = useState<Appointment[]>([]);
+  const [showRatingDialog, setShowRatingDialog] = useState(false);
+  const [ratingDialogData, setRatingDialogData] = useState<{
+    specialistId: string;
+    specialistName: string;
+    serviceName: string;
+  } | null>(null);
   
   // Function to fetch appointments
   const fetchAppointments = async (userId: string) => {
@@ -131,6 +137,36 @@ export const useAppointments = (userId: string | undefined) => {
           }, 
           (payload) => {
             console.log("Client appointment changed:", payload);
+            
+            // Show rating dialog when appointment is completed
+            if (payload.eventType === 'UPDATE' && payload.new.status === 'completed') {
+              // Fetch stylist and service details for the rating dialog
+              const fetchRatingDialogData = async () => {
+                const { data: stylistData } = await supabase
+                  .from('profiles')
+                  .select('full_name')
+                  .eq('id', payload.new.stylist_id)
+                  .single();
+                
+                const { data: serviceData } = await supabase
+                  .from('services')
+                  .select('name')
+                  .eq('id', payload.new.service_id)
+                  .single();
+                
+                if (stylistData && serviceData) {
+                  setRatingDialogData({
+                    specialistId: payload.new.stylist_id,
+                    specialistName: stylistData.full_name || 'Specialist',
+                    serviceName: serviceData.name || 'Service'
+                  });
+                  setShowRatingDialog(true);
+                }
+              };
+              
+              fetchRatingDialogData();
+            }
+            
             // Refetch appointments when there's a change
             fetchAppointments(userId);
             
@@ -189,11 +225,19 @@ export const useAppointments = (userId: string | undefined) => {
     toast.info(`Redirecting to reschedule appointment #${id}`);
   };
 
+  const closeRatingDialog = () => {
+    setShowRatingDialog(false);
+    setRatingDialogData(null);
+  };
+
   return {
     loading,
     upcomingAppointments,
     pastAppointments,
     handleCancelAppointment,
-    handleRescheduleAppointment
+    handleRescheduleAppointment,
+    showRatingDialog,
+    ratingDialogData,
+    closeRatingDialog
   };
 };

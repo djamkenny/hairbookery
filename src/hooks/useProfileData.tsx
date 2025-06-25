@@ -1,57 +1,49 @@
 
-import { useState } from "react";
-import { useUserProfile } from "./useUserProfile";
-import { useAppointments } from "./useAppointments";
-import { useNotificationSettings } from "./useNotificationSettings";
-import { useFavorites } from "./useFavorites";
-import { useLoyaltyPoints } from "./useLoyaltyPoints";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useUserProfile } from "@/hooks/useUserProfile";
+import { useAppointments } from "@/hooks/useAppointments";
+import { useFavorites } from "@/hooks/useFavorites";
+import { useLoyaltyPoints } from "@/hooks/useLoyaltyPoints";
+import { useNotificationSettings } from "@/hooks/useNotificationSettings";
 
 export const useProfileData = () => {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("dashboard");
   
-  // Get user profile data
   const {
-    loading,
-    user,
     fullName,
     setFullName,
     email,
     phone,
     setPhone,
     avatarUrl,
-    setAvatarUrl,
-    refreshUserProfile
+    refreshUserProfile,
+    loading: profileLoading
   } = useUserProfile();
-  
-  // Get appointments data
+
   const {
+    loading: appointmentsLoading,
     upcomingAppointments,
     pastAppointments,
     handleCancelAppointment,
-    handleRescheduleAppointment
+    handleRescheduleAppointment,
+    showRatingDialog,
+    ratingDialogData,
+    closeRatingDialog
   } = useAppointments(user?.id);
+
+  const { favoriteSylists, removeFavoriteStylist } = useFavorites();
+  const { loyaltyPoints } = useLoyaltyPoints();
   
-  // Get notification settings
   const {
     emailNotifications,
     setEmailNotifications,
     smsNotifications,
     setSmsNotifications
   } = useNotificationSettings();
-  
-  // Get favorites data
-  const {
-    favoriteSylists,
-    removeFavoriteStylist,
-    addFavoriteStylist,
-    refreshFavorites
-  } = useFavorites();
 
-  // Get loyalty points data
-  const {
-    loyaltyPoints,
-    refreshLoyaltyPoints
-  } = useLoyaltyPoints();
+  const loading = profileLoading || appointmentsLoading;
 
   return {
     activeTab,
@@ -68,7 +60,6 @@ export const useProfileData = () => {
     phone,
     setPhone,
     avatarUrl,
-    setAvatarUrl,
     refreshUserProfile,
     upcomingAppointments,
     pastAppointments,
@@ -77,8 +68,8 @@ export const useProfileData = () => {
     handleCancelAppointment,
     handleRescheduleAppointment,
     removeFavoriteStylist,
-    addFavoriteStylist,
-    refreshFavorites,
-    refreshLoyaltyPoints
+    showRatingDialog,
+    ratingDialogData,
+    closeRatingDialog
   };
 };

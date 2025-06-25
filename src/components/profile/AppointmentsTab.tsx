@@ -3,19 +3,30 @@ import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Appointment } from "@/types/appointment";
 import AppointmentsList from "./appointments/AppointmentsList";
+import { RatingDialog } from "@/components/ui/rating-dialog";
 
 interface AppointmentsTabProps {
   upcomingAppointments: Appointment[];
   pastAppointments: Appointment[];
   handleRescheduleAppointment: (id: string) => void;
   handleCancelAppointment: (id: string) => void;
+  showRatingDialog: boolean;
+  ratingDialogData: {
+    specialistId: string;
+    specialistName: string;
+    serviceName: string;
+  } | null;
+  closeRatingDialog: () => void;
 }
 
 const AppointmentsTab = ({ 
   upcomingAppointments, 
   pastAppointments, 
   handleRescheduleAppointment, 
-  handleCancelAppointment 
+  handleCancelAppointment,
+  showRatingDialog,
+  ratingDialogData,
+  closeRatingDialog
 }: AppointmentsTabProps) => {
   return (
     <div className="space-y-4 md:space-y-6">
@@ -43,6 +54,17 @@ const AppointmentsTab = ({
           />
         </TabsContent>
       </Tabs>
+
+      {/* Rating Dialog */}
+      {showRatingDialog && ratingDialogData && (
+        <RatingDialog
+          isOpen={showRatingDialog}
+          onClose={closeRatingDialog}
+          specialistId={ratingDialogData.specialistId}
+          specialistName={ratingDialogData.specialistName}
+          serviceName={ratingDialogData.serviceName}
+        />
+      )}
     </div>
   );
 };

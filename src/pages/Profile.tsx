@@ -31,7 +31,10 @@ const Profile = () => {
     loyaltyPoints,
     handleCancelAppointment,
     handleRescheduleAppointment,
-    removeFavoriteStylist
+    removeFavoriteStylist,
+    showRatingDialog,
+    ratingDialogData,
+    closeRatingDialog
   } = useProfileData();
   
   const isMobile = useIsMobile();
@@ -83,6 +86,9 @@ const Profile = () => {
               smsNotifications={smsNotifications}
               setSmsNotifications={setSmsNotifications}
               removeFavoriteStylist={removeFavoriteStylist}
+              showRatingDialog={showRatingDialog}
+              ratingDialogData={ratingDialogData}
+              closeRatingDialog={closeRatingDialog}
             />
           </div>
         </div>

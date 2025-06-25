@@ -1,11 +1,11 @@
 
 import React from "react";
-import DashboardTab from "@/components/profile/DashboardTab";
-import AppointmentsTab from "@/components/profile/AppointmentsTab";
-import PersonalInfoTab from "@/components/profile/PersonalInfoTab";
-import FavoritesTab from "@/components/profile/FavoritesTab";
-import SettingsTab from "@/components/profile/SettingsTab";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
+import PersonalInfoTab from "./PersonalInfoTab";
+import AppointmentsTab from "./AppointmentsTab";
+import FavoritesTab from "./FavoritesTab";
+import SettingsTab from "./SettingsTab";
+import DashboardTab from "./DashboardTab";
 import { Appointment } from "@/types/appointment";
 
 interface ProfileContentProps {
@@ -17,7 +17,7 @@ interface ProfileContentProps {
   phone: string;
   setPhone: (phone: string) => void;
   avatarUrl: string | null;
-  refreshUserProfile: () => Promise<void>;
+  refreshUserProfile: () => void;
   upcomingAppointments: Appointment[];
   pastAppointments: Appointment[];
   favoriteSylists: any[];
@@ -25,10 +25,17 @@ interface ProfileContentProps {
   handleRescheduleAppointment: (id: string) => void;
   handleCancelAppointment: (id: string) => void;
   emailNotifications: boolean;
-  setEmailNotifications: (value: boolean) => void;
+  setEmailNotifications: (enabled: boolean) => void;
   smsNotifications: boolean;
-  setSmsNotifications: (value: boolean) => void;
-  removeFavoriteStylist: (id: string) => void;
+  setSmsNotifications: (enabled: boolean) => void;
+  removeFavoriteStylist: (stylistId: string) => void;
+  showRatingDialog: boolean;
+  ratingDialogData: {
+    specialistId: string;
+    specialistName: string;
+    serviceName: string;
+  } | null;
+  closeRatingDialog: () => void;
 }
 
 const ProfileContent = ({
@@ -51,62 +58,63 @@ const ProfileContent = ({
   setEmailNotifications,
   smsNotifications,
   setSmsNotifications,
-  removeFavoriteStylist
+  removeFavoriteStylist,
+  showRatingDialog,
+  ratingDialogData,
+  closeRatingDialog
 }: ProfileContentProps) => {
-  const isMobile = useIsMobile();
-  
   return (
-    <div className={`${isMobile ? "w-full" : "lg:col-span-3"} animate-slide-in space-y-6`}>
-      {activeTab === "dashboard" && (
-        <DashboardTab 
-          user={user}
-          avatarUrl={avatarUrl}
-          upcomingAppointments={upcomingAppointments}
-          pastAppointments={pastAppointments}
-          favoriteSylists={favoriteSylists}
-          loyaltyPoints={loyaltyPoints}
-          handleRescheduleAppointment={handleRescheduleAppointment}
-          handleCancelAppointment={handleCancelAppointment}
-        />
-      )}
-      
-      {activeTab === "appointments" && (
-        <AppointmentsTab 
-          upcomingAppointments={upcomingAppointments}
-          pastAppointments={pastAppointments}
-          handleRescheduleAppointment={handleRescheduleAppointment}
-          handleCancelAppointment={handleCancelAppointment}
-        />
-      )}
-      
-      {activeTab === "profile" && (
-        <PersonalInfoTab 
-          user={user}
-          fullName={fullName}
-          setFullName={setFullName}
-          email={email}
-          phone={phone}
-          setPhone={setPhone}
-          avatarUrl={avatarUrl}
-          refreshUserProfile={refreshUserProfile}
-        />
-      )}
-      
-      {activeTab === "favorites" && (
-        <FavoritesTab 
-          favoriteSylists={favoriteSylists}
-          removeFavoriteStylist={removeFavoriteStylist}
-        />
-      )}
-      
-      {activeTab === "settings" && (
-        <SettingsTab 
-          emailNotifications={emailNotifications}
-          setEmailNotifications={setEmailNotifications}
-          smsNotifications={smsNotifications}
-          setSmsNotifications={setSmsNotifications}
-        />
-      )}
+    <div className="lg:col-span-3">
+      <Tabs value={activeTab} className="w-full">
+        <TabsContent value="dashboard" className="mt-0">
+          <DashboardTab 
+            upcomingAppointments={upcomingAppointments}
+            loyaltyPoints={loyaltyPoints}
+          />
+        </TabsContent>
+        
+        <TabsContent value="appointments" className="mt-0">
+          <AppointmentsTab 
+            upcomingAppointments={upcomingAppointments}
+            pastAppointments={pastAppointments}
+            handleRescheduleAppointment={handleRescheduleAppointment}
+            handleCancelAppointment={handleCancelAppointment}
+            showRatingDialog={showRatingDialog}
+            ratingDialogData={ratingDialogData}
+            closeRatingDialog={closeRatingDialog}
+          />
+        </TabsContent>
+        
+        <TabsContent value="personal-info" className="mt-0">
+          <PersonalInfoTab
+            user={user}
+            fullName={fullName}
+            setFullName={setFullName}
+            email={email}
+            phone={phone}
+            setPhone={setPhone}
+            avatarUrl={avatarUrl}
+            refreshUserProfile={refreshUserProfile}
+          />
+        </TabsContent>
+        
+        <TabsContent value="favorites" className="mt-0">
+          <FavoritesTab 
+            favoriteSylists={favoriteSylists}
+            removeFavoriteStylist={removeFavoriteStylist}
+          />
+        </TabsContent>
+        
+        <TabsContent value="settings" className="mt-0">
+          <SettingsTab
+            emailNotifications={emailNotifications}
+            setEmailNotifications={setEmailNotifications}
+            smsNotifications={smsNotifications}
+            setSmsNotifications={setSmsNotifications}
+            user={user}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
