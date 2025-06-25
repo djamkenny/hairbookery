@@ -199,12 +199,6 @@ const SpecialistDetail = () => {
                 <h2 className="text-xl font-semibold mb-6">Services & Portfolio</h2>
                 <ServiceGallery services={services} />
               </div>
-
-              {/* Client Rating Section */}
-              <div className="animate-fade-in">
-                <h2 className="text-xl font-semibold mb-6">Rate This Specialist</h2>
-                <RatingComponent specialistId={id!} />
-              </div>
             </div>
           </div>
         </div>
