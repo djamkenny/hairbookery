@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -99,33 +98,41 @@ const SpecialistDetail = () => {
           setServices(formattedServices);
         }
 
-        // Fetch reviews for this specialist from appointments
+        // Fetch reviews for this specialist - using separate queries to avoid type issues
         const { data: reviewsData, error: reviewsError } = await supabase
           .from('reviews')
-          .select(`
-            id,
-            rating,
-            comment,
-            created_at,
-            user_profile:profiles(full_name, avatar_url)
-          `)
+          .select('id, rating, comment, created_at, user_id')
           .eq('stylist_id', id)
           .order('created_at', { ascending: false });
 
         if (reviewsError) {
           console.error("Error fetching reviews:", reviewsError);
-        } else if (reviewsData) {
-          setReviews(reviewsData);
+        } else if (reviewsData && reviewsData.length > 0) {
+          // Fetch user profiles for reviews separately
+          const userIds = reviewsData.map(review => review.user_id);
+          const { data: profilesData } = await supabase
+            .from('profiles')
+            .select('id, full_name, avatar_url')
+            .in('id', userIds);
+
+          // Combine reviews with user profiles
+          const reviewsWithProfiles = reviewsData.map(review => ({
+            id: review.id,
+            rating: review.rating,
+            comment: review.comment,
+            created_at: review.created_at,
+            user_profile: profilesData?.find(profile => profile.id === review.user_id)
+          }));
+
+          setReviews(reviewsWithProfiles);
           
           // Calculate review statistics
-          if (reviewsData.length > 0) {
-            const totalRating = reviewsData.reduce((sum, review) => sum + review.rating, 0);
-            const averageRating = totalRating / reviewsData.length;
-            setReviewStats({
-              averageRating: Math.round(averageRating * 10) / 10,
-              totalReviews: reviewsData.length
-            });
-          }
+          const totalRating = reviewsData.reduce((sum, review) => sum + review.rating, 0);
+          const averageRating = totalRating / reviewsData.length;
+          setReviewStats({
+            averageRating: Math.round(averageRating * 10) / 10,
+            totalReviews: reviewsData.length
+          });
         }
         
       } catch (error) {

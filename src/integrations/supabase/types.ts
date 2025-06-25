@@ -365,6 +365,7 @@ export type Database = {
           created_at: string | null
           id: string
           rating: number
+          stylist_id: string | null
           updated_at: string | null
           user_id: string
         }
@@ -373,6 +374,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           rating: number
+          stylist_id?: string | null
           updated_at?: string | null
           user_id: string
         }
@@ -381,10 +383,18 @@ export type Database = {
           created_at?: string | null
           id?: string
           rating?: number
+          stylist_id?: string | null
           updated_at?: string | null
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "reviews_stylist_id_fkey"
+            columns: ["stylist_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "reviews_user_id_fkey"
             columns: ["user_id"]
