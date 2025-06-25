@@ -53,20 +53,21 @@ const AppointmentRow: React.FC<AppointmentRowProps> = ({
 
   return (
     <TableRow key={appointment.id}>
-      <TableCell className="font-medium">{appointment.client}</TableCell>
-      <TableCell>{appointment.service}</TableCell>
-      <TableCell>{appointment.date}</TableCell>
-      <TableCell>{appointment.time}</TableCell>
+      <TableCell className="font-medium text-xs md:text-sm">{appointment.client}</TableCell>
+      <TableCell className="text-xs md:text-sm">{appointment.service}</TableCell>
+      <TableCell className="text-xs md:text-sm">{appointment.date}</TableCell>
+      <TableCell className="text-xs md:text-sm">{appointment.time}</TableCell>
       <TableCell>
-        <Badge variant={getBadgeVariant(appointment.status)}>
+        <Badge variant={getBadgeVariant(appointment.status)} className="text-xs">
           {getStatusLabel(appointment.status)}
         </Badge>
       </TableCell>
       <TableCell>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
           <Button 
             variant="outline" 
             size="sm"
+            className="text-xs px-2 py-1 h-7"
             onClick={() => onViewDetails && onViewDetails(appointment)}
           >
             Details
@@ -74,6 +75,7 @@ const AppointmentRow: React.FC<AppointmentRowProps> = ({
           {appointment.status === "pending" && (
             <Button 
               size="sm"
+              className="text-xs px-2 py-1 h-7"
               onClick={() => onUpdateStatus(appointment.id, "confirmed", appointment.client_id)}
             >
               Confirm
@@ -82,13 +84,15 @@ const AppointmentRow: React.FC<AppointmentRowProps> = ({
           {appointment.status === "confirmed" && (
             <Button 
               size="sm"
+              className="text-xs px-2 py-1 h-7"
               onClick={handleCompleteAppointment}
               disabled={isCompleting}
             >
               {isCompleting ? (
                 <>
                   <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-                  Processing
+                  <span className="hidden sm:inline">Processing</span>
+                  <span className="sm:hidden">...</span>
                 </>
               ) : (
                 "Complete"

@@ -61,10 +61,11 @@ const AppointmentActions: React.FC<AppointmentActionsProps> = ({
   };
 
   return (
-    <>
-      <div className="flex space-x-2">
+    <div className="space-y-3">
+      <div className="flex flex-col sm:flex-row gap-2">
         {status === "pending" && onUpdateStatus && (
           <Button 
+            className="w-full sm:w-auto"
             onClick={() => {
               onUpdateStatus(appointmentId, "confirmed", clientId);
               onClose();
@@ -75,6 +76,7 @@ const AppointmentActions: React.FC<AppointmentActionsProps> = ({
         )}
         {status === "confirmed" && onUpdateStatus && (
           <Button 
+            className="w-full sm:w-auto"
             onClick={handleCompleteAppointment}
             disabled={isCompleting}
           >
@@ -84,27 +86,27 @@ const AppointmentActions: React.FC<AppointmentActionsProps> = ({
                 Processing...
               </>
             ) : (
-              "Complete & Process Payment"
+              "Complete"
             )}
           </Button>
         )}
         {(status === "pending" || status === "confirmed") && onCancelAppointment && (
           <AlertDialog open={isCancelAlertOpen} onOpenChange={setIsCancelAlertOpen}>
             <AlertDialogTrigger asChild>
-              <Button variant="destructive">
+              <Button variant="destructive" className="w-full sm:w-auto">
                 Cancel
               </Button>
             </AlertDialogTrigger>
-            <AlertDialogContent>
+            <AlertDialogContent className="mx-4 max-w-md">
               <AlertDialogHeader>
                 <AlertDialogTitle>Cancel Appointment</AlertDialogTitle>
                 <AlertDialogDescription>
                   Are you sure you want to cancel this appointment? This action cannot be undone.
                 </AlertDialogDescription>
               </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>No, keep appointment</AlertDialogCancel>
-                <AlertDialogAction onClick={handleCancelAppointment}>
+              <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+                <AlertDialogCancel className="w-full sm:w-auto">No, keep appointment</AlertDialogCancel>
+                <AlertDialogAction onClick={handleCancelAppointment} className="w-full sm:w-auto">
                   Yes, cancel appointment
                 </AlertDialogAction>
               </AlertDialogFooter>
@@ -112,8 +114,8 @@ const AppointmentActions: React.FC<AppointmentActionsProps> = ({
           </AlertDialog>
         )}
       </div>
-      <Button variant="outline" onClick={onClose}>Close</Button>
-    </>
+      <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">Close</Button>
+    </div>
   );
 };
 
