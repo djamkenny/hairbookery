@@ -14,25 +14,59 @@ const ResetPassword = () => {
 
   useEffect(() => {
     const checkSession = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
+      console.log("Checking session for password reset...");
       
-      if (error) {
-        console.error("Error checking session:", error);
-        toast.error("Invalid or expired reset link");
-        navigate("/forgot-password");
-        return;
-      }
+      // Check if we have the necessary URL parameters
+      const accessToken = searchParams.get('access_token');
+      const refreshToken = searchParams.get('refresh_token');
+      const type = searchParams.get('type');
       
-      if (session) {
-        setIsValidToken(true);
+      console.log("URL params:", { accessToken: !!accessToken, refreshToken: !!refreshToken, type });
+      
+      if (type === 'recovery' && accessToken && refreshToken) {
+        try {
+          // Set the session with the tokens from the URL
+          const { data, error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+          
+          if (error) {
+            console.error("Error setting session:", error);
+            toast.error("Invalid or expired reset link");
+            navigate("/forgot-password");
+            return;
+          }
+          
+          console.log("Session set successfully:", data);
+          setIsValidToken(true);
+        } catch (error) {
+          console.error("Error in session setup:", error);
+          toast.error("Invalid or expired reset link");
+          navigate("/forgot-password");
+        }
       } else {
-        toast.error("Invalid or expired reset link");
-        navigate("/forgot-password");
+        // Fallback: check current session
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error("Error checking session:", error);
+          toast.error("Invalid or expired reset link");
+          navigate("/forgot-password");
+          return;
+        }
+        
+        if (session) {
+          setIsValidToken(true);
+        } else {
+          toast.error("Invalid or expired reset link");
+          navigate("/forgot-password");
+        }
       }
     };
 
     checkSession();
-  }, [navigate]);
+  }, [navigate, searchParams]);
 
   if (isValidToken === null) {
     return (
