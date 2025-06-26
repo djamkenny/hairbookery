@@ -9,6 +9,8 @@ import Index from "./pages/Index";
 import Booking from "./pages/Booking";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import StylistRegister from "./pages/StylistRegister";
 import Profile from "./pages/Profile";
 import StylistDashboard from "./pages/StylistDashboard";
@@ -40,6 +42,8 @@ const App = () => (
               <Route path="/return" element={<PaymentReturn />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/stylist-register" element={<StylistRegister />} />
               <Route path="/profile" element={
                 <ProtectedRoute requireStylist={false}>
