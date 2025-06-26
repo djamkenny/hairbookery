@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,8 +24,8 @@ const ForgotPasswordForm = () => {
     setIsSubmitting(true);
     
     try {
-      // Use the current origin to build the redirect URL
-      const redirectUrl = `${window.location.origin}/reset-password`;
+      // Use the explicit site URL for password reset
+      const redirectUrl = "https://hairbookery.lovable.app/reset-password";
       console.log("Sending password reset to:", email, "with redirect:", redirectUrl);
       
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
