@@ -44,7 +44,7 @@ const ResetPassword = () => {
             if (error) {
               console.error("Error setting session:", error);
               toast.error("Invalid or expired reset link");
-              navigate("/forgot-password");
+              navigate("/reset-password");
               return;
             }
             
