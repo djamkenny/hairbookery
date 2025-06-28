@@ -1,9 +1,9 @@
-
 import React from "react";
 import { Clock, Check, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ServiceCardProps {
   title: string;
@@ -31,12 +31,6 @@ const ServiceCard = ({
     ? description.substring(0, 120) + "..." 
     : description;
 
-  const handleViewDetail = () => {
-    if (onViewDetail) {
-      onViewDetail();
-    }
-  };
-
   const ServiceDetailDialog = () => (
     <Dialog>
       <DialogTrigger asChild>
@@ -49,46 +43,63 @@ const ServiceCard = ({
           View Detail
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle className="text-xl">{title}</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div className="aspect-[4/3] overflow-hidden rounded-lg">
-            <img
-              src={image}
-              alt={title}
-              className="h-full w-full object-cover"
-            />
-          </div>
-          
-          <div className="flex justify-between items-center">
-            <span className="text-2xl font-bold text-primary">{price}</span>
-            <div className="flex items-center text-muted-foreground">
-              <Clock className="h-4 w-4 mr-1" />
-              <span>{duration}</span>
+      <DialogContent className="max-w-3xl max-h-[85vh] p-0">
+        <ScrollArea className="max-h-[85vh]">
+          <div className="p-6">
+            <DialogHeader className="mb-6">
+              <DialogTitle className="text-2xl font-semibold">{title}</DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-6">
+              <div className="aspect-[4/3] overflow-hidden rounded-lg shadow-sm">
+                <img
+                  src={image}
+                  alt={title}
+                  className="h-full w-full object-cover"
+                />
+              </div>
+              
+              <div className="flex justify-between items-center p-4 bg-muted/30 rounded-lg">
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground mb-1">Price</p>
+                  <span className="text-3xl font-bold text-primary">{price}</span>
+                </div>
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground mb-1">Duration</p>
+                  <div className="flex items-center justify-center text-lg font-medium">
+                    <Clock className="h-5 w-5 mr-2 text-muted-foreground" />
+                    <span>{duration}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="space-y-3">
+                <h4 className="text-lg font-semibold">Service Description</h4>
+                <p className="text-muted-foreground leading-relaxed text-base">{description}</p>
+              </div>
+              
+              {features.length > 0 && (
+                <div className="space-y-4">
+                  <h4 className="text-lg font-semibold">What's Included</h4>
+                  <div className="grid gap-3">
+                    {features.map((feature, index) => (
+                      <div key={index} className="flex items-start gap-3 p-3 bg-muted/20 rounded-lg">
+                        <Check className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                        <span className="text-sm leading-relaxed">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              <div className="pt-4 border-t">
+                <p className="text-sm text-muted-foreground text-center">
+                  Ready to book this service? Click "Book a Service" to get started.
+                </p>
+              </div>
             </div>
           </div>
-          
-          <div>
-            <h4 className="font-medium mb-2">Description</h4>
-            <p className="text-muted-foreground leading-relaxed">{description}</p>
-          </div>
-          
-          {features.length > 0 && (
-            <div>
-              <h4 className="font-medium mb-3">What's included:</h4>
-              <ul className="space-y-2">
-                {features.map((feature, index) => (
-                  <li key={index} className="flex items-center text-sm">
-                    <Check className="h-4 w-4 mr-3 text-primary flex-shrink-0" />
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
