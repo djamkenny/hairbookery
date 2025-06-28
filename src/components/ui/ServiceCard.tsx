@@ -53,7 +53,7 @@ const ServiceCard = ({
             </DialogHeader>
             
             <div className="space-y-6">
-              <div className="aspect-[3/2] overflow-hidden rounded-lg shadow-sm">
+              <div className="aspect-[4/2] overflow-hidden rounded-lg shadow-sm">
                 <img
                   src={image}
                   alt={title}
