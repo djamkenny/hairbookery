@@ -1,7 +1,8 @@
 
 import React from "react";
-import { Clock, Check } from "lucide-react";
+import { Clock, Check, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 interface ServiceCardProps {
   title: string;
@@ -11,6 +12,7 @@ interface ServiceCardProps {
   image: string;
   features?: string[];
   className?: string;
+  onViewDetail?: () => void;
 }
 
 const ServiceCard = ({ 
@@ -20,8 +22,14 @@ const ServiceCard = ({
   duration, 
   image,
   features = [],
-  className
+  className,
+  onViewDetail
 }: ServiceCardProps) => {
+  // Limit description to 120 characters
+  const truncatedDescription = description.length > 120 
+    ? description.substring(0, 120) + "..." 
+    : description;
+
   return (
     <div className={cn(
       "group relative overflow-hidden rounded-lg border border-border/30 bg-card shadow-sm transition-all duration-300 hover:shadow-md hover:border-border hover-scale",
@@ -43,7 +51,7 @@ const ServiceCard = ({
         </div>
         
         <p className="text-muted-foreground mb-4 text-xs md:text-sm leading-relaxed">
-          {description}
+          {truncatedDescription}
         </p>
         
         {features.length > 0 && (
@@ -65,9 +73,23 @@ const ServiceCard = ({
           </div>
         )}
         
-        <div className="flex items-center text-muted-foreground text-xs">
-          <Clock className="h-3 w-3 mr-1 flex-shrink-0" />
-          <span>{duration}</span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center text-muted-foreground text-xs">
+            <Clock className="h-3 w-3 mr-1 flex-shrink-0" />
+            <span>{duration}</span>
+          </div>
+          
+          {onViewDetail && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={onViewDetail}
+              className="text-xs"
+            >
+              <Eye className="h-3 w-3 mr-1" />
+              View Detail
+            </Button>
+          )}
         </div>
       </div>
     </div>

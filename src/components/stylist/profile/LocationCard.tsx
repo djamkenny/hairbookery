@@ -56,7 +56,7 @@ const LocationCard = ({
               <div className="flex items-center gap-3 text-muted-foreground">
                 <MapPinIcon className="h-5 w-5 flex-shrink-0" />
                 <p className="text-sm">
-                  No location provided yet. Add your salon or workshop address.
+                  Location not provided yet. Add your salon or workshop address.
                 </p>
               </div>
             )}

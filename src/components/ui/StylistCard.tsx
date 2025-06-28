@@ -16,6 +16,11 @@ interface StylistCardProps {
 }
 
 const StylistCard = ({ id, name, role, bio, image, location, className }: StylistCardProps) => {
+  // Limit bio to 100 characters
+  const truncatedBio = bio.length > 100 
+    ? bio.substring(0, 100) + "..." 
+    : bio;
+
   return (
     <Card className={`group hover:shadow-lg transition-all duration-300 ${className}`}>
       <div className="aspect-square overflow-hidden rounded-t-lg">
@@ -28,14 +33,14 @@ const StylistCard = ({ id, name, role, bio, image, location, className }: Stylis
       <CardContent className="p-4">
         <h3 className="text-lg font-semibold mb-1">{name}</h3>
         <p className="text-primary text-sm mb-2">{role}</p>
-        <p className="text-muted-foreground text-xs mb-3 line-clamp-2">{bio}</p>
+        <p className="text-muted-foreground text-xs mb-3 line-clamp-2">{truncatedBio}</p>
         
-        {location && (
-          <div className="flex items-start gap-1 mb-3">
-            <MapPin className="h-3 w-3 text-muted-foreground mt-0.5 flex-shrink-0" />
-            <span className="text-xs text-muted-foreground line-clamp-1">{location}</span>
-          </div>
-        )}
+        <div className="flex items-start gap-1 mb-3">
+          <MapPin className="h-3 w-3 text-muted-foreground mt-0.5 flex-shrink-0" />
+          <span className="text-xs text-muted-foreground line-clamp-1">
+            {location || "Location not specified"}
+          </span>
+        </div>
         
         <div className="flex gap-2">
           <Link to={`/stylist/${id}`} className="flex-1">

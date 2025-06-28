@@ -21,12 +21,21 @@ const ReviewsList = ({ reviews, loading, user, onEdit, onDelete }: ReviewsListPr
 		comment: "",
 	});
 
+	const maxCommentLength = 500;
+
 	console.log("ReviewsList rendering with:", { reviewsCount: reviews.length, loading });
 
 	const handleEditChange = (
 		e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
 	) => {
-		setEditForm({ ...editForm, [e.target.name]: e.target.value });
+		const { name, value } = e.target;
+		
+		// Limit comment length
+		if (name === "comment" && value.length > maxCommentLength) {
+			return;
+		}
+		
+		setEditForm({ ...editForm, [name]: value });
 	};
 
 	const handleEdit = (review: Review) => {
@@ -89,13 +98,18 @@ const ReviewsList = ({ reviews, loading, user, onEdit, onDelete }: ReviewsListPr
 										</option>
 									))}
 								</select>
-								<Textarea
-									name="comment"
-									value={editForm.comment}
-									onChange={handleEditChange}
-									rows={4}
-									className="w-full text-black bg-white border border-gray-300"
-								/>
+								<div className="space-y-2">
+									<Textarea
+										name="comment"
+										value={editForm.comment}
+										onChange={handleEditChange}
+										rows={4}
+										className="w-full text-black bg-white border border-gray-300"
+									/>
+									<div className="text-right text-xs text-muted-foreground">
+										{editForm.comment.length}/{maxCommentLength} characters
+									</div>
+								</div>
 								<div className="flex gap-2">
 									<Button
 										size="sm"

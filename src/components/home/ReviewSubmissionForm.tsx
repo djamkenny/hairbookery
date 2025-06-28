@@ -14,10 +14,19 @@ const ReviewSubmissionForm = ({ onSubmit, loading }: ReviewSubmissionFormProps) 
 		comment: "",
 	});
 
+	const maxCommentLength = 500;
+
 	const handleChange = (
 		e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
 	) => {
-		setForm({ ...form, [e.target.name]: e.target.value });
+		const { name, value } = e.target;
+		
+		// Limit comment length
+		if (name === "comment" && value.length > maxCommentLength) {
+			return;
+		}
+		
+		setForm({ ...form, [name]: value });
 	};
 
 	const handleSubmit = async (e: React.FormEvent) => {
@@ -47,15 +56,20 @@ const ReviewSubmissionForm = ({ onSubmit, loading }: ReviewSubmissionFormProps) 
 					</option>
 				))}
 			</select>
-			<Textarea
-				name="comment"
-				placeholder="Share your experience..."
-				value={form.comment}
-				onChange={handleChange}
-				required
-				rows={4}
-				className="w-full text-black placeholder:text-gray-500 bg-white border border-gray-300"
-			/>
+			<div className="space-y-2">
+				<Textarea
+					name="comment"
+					placeholder="Share your experience..."
+					value={form.comment}
+					onChange={handleChange}
+					required
+					rows={4}
+					className="w-full text-black placeholder:text-gray-500 bg-white border border-gray-300"
+				/>
+				<div className="text-right text-xs text-muted-foreground">
+					{form.comment.length}/{maxCommentLength} characters
+				</div>
+			</div>
 			<Button
 				type="submit"
 				className="w-full"
