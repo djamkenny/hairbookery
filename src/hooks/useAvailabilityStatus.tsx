@@ -36,7 +36,8 @@ export const useAvailabilityStatus = (stylistId: string | undefined, checkDate?:
 
         if (error) throw error;
         
-        setAvailabilityStatus(data);
+        // Properly type cast the response data
+        setAvailabilityStatus(data as AvailabilityStatus);
       } catch (err: any) {
         console.error("Error fetching availability status:", err);
         setError(err.message);
@@ -66,7 +67,7 @@ export const useAvailabilityStatus = (stylistId: string | undefined, checkDate?:
           });
 
           if (error) throw error;
-          setAvailabilityStatus(data);
+          setAvailabilityStatus(data as AvailabilityStatus);
         } catch (err: any) {
           setError(err.message);
         } finally {

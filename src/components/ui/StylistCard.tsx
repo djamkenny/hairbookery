@@ -4,7 +4,6 @@ import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MapPin, Calendar } from "lucide-react";
-import AvailabilityBadge from "./AvailabilityBadge";
 import { useAvailabilityStatus } from "@/hooks/useAvailabilityStatus";
 
 interface StylistCardProps {
@@ -25,6 +24,34 @@ const StylistCard = ({ id, name, role, bio, image, location, className }: Stylis
     ? bio.substring(0, 100) + "..." 
     : bio;
 
+  const getAvailabilityText = () => {
+    if (loading) return "";
+    if (!availabilityStatus) return "";
+    
+    switch (availabilityStatus.status) {
+      case 'available':
+        return "Available";
+      case 'full':
+        return "Not Available";
+      case 'unavailable':
+      default:
+        return "Not Available";
+    }
+  };
+
+  const getAvailabilityColor = () => {
+    if (loading || !availabilityStatus) return "text-muted-foreground";
+    
+    switch (availabilityStatus.status) {
+      case 'available':
+        return "text-green-600";
+      case 'full':
+      case 'unavailable':
+      default:
+        return "text-red-600";
+    }
+  };
+
   return (
     <Card className={`group hover:shadow-lg transition-all duration-300 ${className}`}>
       <div className="aspect-square overflow-hidden rounded-t-lg">
@@ -41,11 +68,9 @@ const StylistCard = ({ id, name, role, bio, image, location, className }: Stylis
             <p className="text-primary text-sm mb-2">{role}</p>
           </div>
           {!loading && availabilityStatus && (
-            <AvailabilityBadge 
-              status={availabilityStatus.status}
-              slotsRemaining={availabilityStatus.slots_remaining}
-              dailyLimit={availabilityStatus.daily_limit}
-            />
+            <span className={`text-xs font-medium ${getAvailabilityColor()}`}>
+              {getAvailabilityText()}
+            </span>
           )}
         </div>
         

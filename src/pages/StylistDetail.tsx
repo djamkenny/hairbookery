@@ -11,6 +11,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Service } from "@/components/stylist/services/types";
 import RatingComponent from "@/components/specialist/RatingComponent";
+import AvailabilityBadge from "@/components/ui/AvailabilityBadge";
+import { useAvailabilityStatus } from "@/hooks/useAvailabilityStatus";
 
 interface SpecialistProfile {
   id: string;
@@ -29,6 +31,7 @@ const SpecialistDetail = () => {
   const [specialist, setSpecialist] = useState<SpecialistProfile | null>(null);
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
+  const { availabilityStatus, loading: availabilityLoading } = useAvailabilityStatus(id);
   
   useEffect(() => {
     const fetchSpecialistAndServices = async () => {
@@ -170,15 +173,29 @@ const SpecialistDetail = () => {
                       </div>
                     )}
                     
+                    {/* Detailed Availability Badge */}
+                    {!availabilityLoading && availabilityStatus && (
+                      <div className="mb-6">
+                        <AvailabilityBadge 
+                          status={availabilityStatus.status}
+                          slotsRemaining={availabilityStatus.slots_remaining}
+                          dailyLimit={availabilityStatus.daily_limit}
+                        />
+                      </div>
+                    )}
+                    
                     {/* Rating Component */}
                     <div className="mb-6">
                       <RatingComponent specialistId={id!} showSubmissionForm={false} />
                     </div>
                     
                     <Link to={`/booking?stylist=${id}`}>
-                      <Button className="w-full mb-3">
+                      <Button 
+                        className="w-full mb-3"
+                        disabled={availabilityStatus?.status === 'unavailable'}
+                      >
                         <CalendarIcon className="h-4 w-4 mr-2" />
-                        Book Appointment
+                        {availabilityStatus?.status === 'full' ? 'Fully Booked Today' : 'Book Appointment'}
                       </Button>
                     </Link>
                   </CardContent>

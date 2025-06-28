@@ -35,6 +35,34 @@ interface StylistCardProps {
 const StylistCard = ({ id, name, specialty, experience, imageUrl, bio, location }: StylistCardProps) => {
   const { availabilityStatus, loading } = useAvailabilityStatus(id);
   
+  const getAvailabilityText = () => {
+    if (loading) return "";
+    if (!availabilityStatus) return "";
+    
+    switch (availabilityStatus.status) {
+      case 'available':
+        return "Available";
+      case 'full':
+        return "Not Available";
+      case 'unavailable':
+      default:
+        return "Not Available";
+    }
+  };
+
+  const getAvailabilityColor = () => {
+    if (loading || !availabilityStatus) return "text-muted-foreground";
+    
+    switch (availabilityStatus.status) {
+      case 'available':
+        return "text-green-600";
+      case 'full':
+      case 'unavailable':
+      default:
+        return "text-red-600";
+    }
+  };
+  
   return (
     <Card className="w-full max-w-sm mx-auto shadow-md hover:shadow-lg transition-shadow duration-300">
       <CardHeader className="text-center pb-4">
@@ -50,11 +78,9 @@ const StylistCard = ({ id, name, specialty, experience, imageUrl, bio, location 
           </Avatar>
           {!loading && availabilityStatus && (
             <div className="flex justify-center mt-2">
-              <AvailabilityBadge 
-                status={availabilityStatus.status}
-                slotsRemaining={availabilityStatus.slots_remaining}
-                dailyLimit={availabilityStatus.daily_limit}
-              />
+              <span className={`text-xs font-medium ${getAvailabilityColor()}`}>
+                {getAvailabilityText()}
+              </span>
             </div>
           )}
         </div>
