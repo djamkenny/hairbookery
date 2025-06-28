@@ -1,4 +1,5 @@
 
+
 import React from "react";
 import { Clock, Check, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -52,7 +53,7 @@ const ServiceCard = ({
             </DialogHeader>
             
             <div className="space-y-6">
-              <div className="aspect-[4/3] overflow-hidden rounded-lg shadow-sm">
+              <div className="aspect-[3/2] overflow-hidden rounded-lg shadow-sm">
                 <img
                   src={image}
                   alt={title}
@@ -143,3 +144,4 @@ const ServiceCard = ({
 };
 
 export default ServiceCard;
+
