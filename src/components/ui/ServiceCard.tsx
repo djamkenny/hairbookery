@@ -3,6 +3,7 @@ import React from "react";
 import { Clock, Check, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 interface ServiceCardProps {
   title: string;
@@ -29,6 +30,68 @@ const ServiceCard = ({
   const truncatedDescription = description.length > 120 
     ? description.substring(0, 120) + "..." 
     : description;
+
+  const handleViewDetail = () => {
+    if (onViewDetail) {
+      onViewDetail();
+    }
+  };
+
+  const ServiceDetailDialog = () => (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="text-xs"
+        >
+          <Eye className="h-3 w-3 mr-1" />
+          View Detail
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="text-xl">{title}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="aspect-[4/3] overflow-hidden rounded-lg">
+            <img
+              src={image}
+              alt={title}
+              className="h-full w-full object-cover"
+            />
+          </div>
+          
+          <div className="flex justify-between items-center">
+            <span className="text-2xl font-bold text-primary">{price}</span>
+            <div className="flex items-center text-muted-foreground">
+              <Clock className="h-4 w-4 mr-1" />
+              <span>{duration}</span>
+            </div>
+          </div>
+          
+          <div>
+            <h4 className="font-medium mb-2">Description</h4>
+            <p className="text-muted-foreground leading-relaxed">{description}</p>
+          </div>
+          
+          {features.length > 0 && (
+            <div>
+              <h4 className="font-medium mb-3">What's included:</h4>
+              <ul className="space-y-2">
+                {features.map((feature, index) => (
+                  <li key={index} className="flex items-center text-sm">
+                    <Check className="h-4 w-4 mr-3 text-primary flex-shrink-0" />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
 
   return (
     <div className={cn(
@@ -79,17 +142,7 @@ const ServiceCard = ({
             <span>{duration}</span>
           </div>
           
-          {onViewDetail && (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={onViewDetail}
-              className="text-xs"
-            >
-              <Eye className="h-3 w-3 mr-1" />
-              View Detail
-            </Button>
-          )}
+          <ServiceDetailDialog />
         </div>
       </div>
     </div>
