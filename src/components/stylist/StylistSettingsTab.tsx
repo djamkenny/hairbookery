@@ -1,32 +1,146 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import DeleteAccountDialog from "../profile/DeleteAccountDialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-const SpecialistSettingsTab = () => {
+const StylistSettingsTab = () => {
   const [availability, setAvailability] = useState(true);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [smsNotifications, setSmsNotifications] = useState(true);
   const [bookingMode, setBookingMode] = useState("auto");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState<any>(null);
   const isMobile = useIsMobile();
 
-  const handleSaveAvailability = () => {
-    toast.success(`Your availability is now ${availability ? 'Active' : 'Inactive'}`);
+  // Load user data and settings on component mount
+  useEffect(() => {
+    const loadUserSettings = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          setUser(user);
+          
+          // Load settings from user metadata or profiles table
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+            
+          if (profileData) {
+            // Load settings from profile if available
+            const metadata = user.user_metadata || {};
+            setAvailability(metadata.availability !== false); // default to true
+            setEmailNotifications(metadata.email_notifications !== false);
+            setSmsNotifications(metadata.sms_notifications !== false);
+            setBookingMode(metadata.booking_mode || "auto");
+          }
+        }
+      } catch (error) {
+        console.error("Error loading user settings:", error);
+      }
+    };
+    
+    loadUserSettings();
+  }, []);
+
+  const handleSaveAvailability = async () => {
+    if (!user) return;
+    
+    try {
+      setLoading(true);
+      
+      // Update user metadata
+      const { error } = await supabase.auth.updateUser({
+        data: {
+          ...user.user_metadata,
+          availability: availability
+        }
+      });
+      
+      if (error) throw error;
+      
+      toast.success(`Your availability is now ${availability ? 'Active' : 'Inactive'}`);
+    } catch (error: any) {
+      console.error("Error updating availability:", error);
+      toast.error("Failed to update availability: " + error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSaveNotifications = () => {
-    toast.success("Notification preferences updated");
+  const handleSaveNotifications = async () => {
+    if (!user) return;
+    
+    try {
+      setLoading(true);
+      
+      // Update user metadata
+      const { error } = await supabase.auth.updateUser({
+        data: {
+          ...user.user_metadata,
+          email_notifications: emailNotifications,
+          sms_notifications: smsNotifications
+        }
+      });
+      
+      if (error) throw error;
+      
+      toast.success("Notification preferences updated successfully");
+    } catch (error: any) {
+      console.error("Error updating notifications:", error);
+      toast.error("Failed to update notification preferences: " + error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSaveBookingMode = () => {
-    toast.success(`Booking mode changed to: ${bookingMode === "auto" ? "Automatic" : "Manual"}`);
+  const handleSaveBookingMode = async () => {
+    if (!user) return;
+    
+    try {
+      setLoading(true);
+      
+      // Update user metadata
+      const { error } = await supabase.auth.updateUser({
+        data: {
+          ...user.user_metadata,
+          booking_mode: bookingMode
+        }
+      });
+      
+      if (error) throw error;
+      
+      toast.success(`Booking mode changed to: ${bookingMode === "auto" ? "Automatic" : "Manual"}`);
+    } catch (error: any) {
+      console.error("Error updating booking mode:", error);
+      toast.error("Failed to update booking mode: " + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleChangePassword = () => {
+    // Redirect to password reset
+    toast.info("Password reset email will be sent to your registered email address");
+    
+    supabase.auth.resetPasswordForEmail(user?.email || '', {
+      redirectTo: `${window.location.origin}/reset-password`
+    }).then(({ error }) => {
+      if (error) {
+        toast.error("Failed to send password reset email: " + error.message);
+      } else {
+        toast.success("Password reset email sent! Check your inbox.");
+      }
+    });
   };
 
   return (
@@ -48,6 +162,7 @@ const SpecialistSettingsTab = () => {
                 id="availability" 
                 checked={availability}
                 onCheckedChange={setAvailability}
+                disabled={loading}
               />
             </div>
             <p className="text-sm text-muted-foreground">
@@ -58,8 +173,9 @@ const SpecialistSettingsTab = () => {
             <Button 
               onClick={handleSaveAvailability}
               className="self-end"
+              disabled={loading}
             >
-              Save Changes
+              {loading ? "Saving..." : "Save Changes"}
             </Button>
           </div>
         </CardContent>
@@ -85,6 +201,7 @@ const SpecialistSettingsTab = () => {
                 id="email-notifications" 
                 checked={emailNotifications}
                 onCheckedChange={setEmailNotifications}
+                disabled={loading}
               />
             </div>
             
@@ -99,14 +216,16 @@ const SpecialistSettingsTab = () => {
                 id="sms-notifications" 
                 checked={smsNotifications}
                 onCheckedChange={setSmsNotifications}
+                disabled={loading}
               />
             </div>
             
             <Button 
               onClick={handleSaveNotifications}
               className="self-end"
+              disabled={loading}
             >
-              Save Changes
+              {loading ? "Saving..." : "Save Changes"}
             </Button>
           </div>
         </CardContent>
@@ -125,9 +244,10 @@ const SpecialistSettingsTab = () => {
               value={bookingMode} 
               onValueChange={setBookingMode}
               className="flex flex-col space-y-3"
+              disabled={loading}
             >
               <div className="flex items-start space-x-3">
-                <RadioGroupItem value="auto" id="auto" />
+                <RadioGroupItem value="auto" id="auto" disabled={loading} />
                 <div className="flex flex-col">
                   <Label htmlFor="auto" className={`${isMobile ? 'text-sm' : 'text-base'} font-medium`}>Automatic Approval</Label>
                   <p className="text-sm text-muted-foreground mt-1">
@@ -137,7 +257,7 @@ const SpecialistSettingsTab = () => {
               </div>
               
               <div className="flex items-start space-x-3">
-                <RadioGroupItem value="manual" id="manual" />
+                <RadioGroupItem value="manual" id="manual" disabled={loading} />
                 <div className="flex flex-col">
                   <Label htmlFor="manual" className={`${isMobile ? 'text-sm' : 'text-base'} font-medium`}>Manual Approval</Label>
                   <p className="text-sm text-muted-foreground mt-1">
@@ -150,9 +270,36 @@ const SpecialistSettingsTab = () => {
             <Button 
               onClick={handleSaveBookingMode}
               className="self-end"
+              disabled={loading}
             >
-              Save Changes
+              {loading ? "Saving..." : "Save Changes"}
             </Button>
+          </div>
+        </CardContent>
+      </Card>
+      
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle>Account Security</CardTitle>
+          <CardDescription>
+            Manage your account security settings
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col space-y-4">
+            <div>
+              <h3 className={`${isMobile ? 'text-sm' : 'text-base'} font-medium mb-1`}>Change Password</h3>
+              <p className="text-sm text-muted-foreground mb-3">
+                Send a password reset link to your email address
+              </p>
+              <Button 
+                variant="outline" 
+                onClick={handleChangePassword}
+                disabled={loading}
+              >
+                {loading ? "Sending..." : "Reset Password"}
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -175,6 +322,7 @@ const SpecialistSettingsTab = () => {
                 variant="outline" 
                 className="text-destructive hover:bg-destructive/10"
                 onClick={() => setDeleteDialogOpen(true)}
+                disabled={loading}
               >
                 Delete Account
               </Button>
@@ -191,4 +339,4 @@ const SpecialistSettingsTab = () => {
   );
 };
 
-export default SpecialistSettingsTab;
+export default StylistSettingsTab;
