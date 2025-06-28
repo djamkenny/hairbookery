@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Clock, Check, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -127,25 +128,6 @@ const ServiceCard = ({
         <p className="text-muted-foreground mb-4 text-xs md:text-sm leading-relaxed">
           {truncatedDescription}
         </p>
-        
-        {features.length > 0 && (
-          <div className="mb-4">
-            <h4 className="text-xs md:text-sm font-medium mb-2 text-foreground">What's included:</h4>
-            <ul className="space-y-1">
-              {features.slice(0, 3).map((feature, index) => (
-                <li key={index} className="flex items-center text-xs text-muted-foreground">
-                  <Check className="h-3 w-3 mr-2 text-primary flex-shrink-0" />
-                  <span className="truncate">{feature}</span>
-                </li>
-              ))}
-              {features.length > 3 && (
-                <li className="text-xs text-muted-foreground pl-5">
-                  +{features.length - 3} more features
-                </li>
-              )}
-            </ul>
-          </div>
-        )}
         
         <div className="flex items-center justify-between">
           <div className="flex items-center text-muted-foreground text-xs">
