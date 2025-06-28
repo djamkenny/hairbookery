@@ -4,6 +4,8 @@ import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MapPin, Calendar } from "lucide-react";
+import AvailabilityBadge from "./AvailabilityBadge";
+import { useAvailabilityStatus } from "@/hooks/useAvailabilityStatus";
 
 interface StylistCardProps {
   id: string;
@@ -16,6 +18,8 @@ interface StylistCardProps {
 }
 
 const StylistCard = ({ id, name, role, bio, image, location, className }: StylistCardProps) => {
+  const { availabilityStatus, loading } = useAvailabilityStatus(id);
+  
   // Limit bio to 100 characters
   const truncatedBio = bio.length > 100 
     ? bio.substring(0, 100) + "..." 
@@ -31,8 +35,20 @@ const StylistCard = ({ id, name, role, bio, image, location, className }: Stylis
         />
       </div>
       <CardContent className="p-4">
-        <h3 className="text-lg font-semibold mb-1">{name}</h3>
-        <p className="text-primary text-sm mb-2">{role}</p>
+        <div className="flex items-start justify-between mb-2">
+          <div>
+            <h3 className="text-lg font-semibold mb-1">{name}</h3>
+            <p className="text-primary text-sm mb-2">{role}</p>
+          </div>
+          {!loading && availabilityStatus && (
+            <AvailabilityBadge 
+              status={availabilityStatus.status}
+              slotsRemaining={availabilityStatus.slots_remaining}
+              dailyLimit={availabilityStatus.daily_limit}
+            />
+          )}
+        </div>
+        
         <p className="text-muted-foreground text-xs mb-3 line-clamp-2">{truncatedBio}</p>
         
         <div className="flex items-start gap-1 mb-3">
@@ -49,9 +65,13 @@ const StylistCard = ({ id, name, role, bio, image, location, className }: Stylis
             </Button>
           </Link>
           <Link to={`/booking?stylist=${id}`} className="flex-1">
-            <Button size="sm" className="w-full text-xs">
+            <Button 
+              size="sm" 
+              className="w-full text-xs"
+              disabled={availabilityStatus?.status === 'unavailable'}
+            >
               <Calendar className="h-3 w-3 mr-1" />
-              Book Now
+              {availabilityStatus?.status === 'full' ? 'Fully Booked' : 'Book Now'}
             </Button>
           </Link>
         </div>

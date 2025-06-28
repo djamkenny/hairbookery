@@ -269,10 +269,13 @@ export type Database = {
       }
       profiles: {
         Row: {
+          availability: boolean | null
+          availability_status: string | null
           avatar_url: string | null
           bio: string | null
           card_image_url: string | null
           created_at: string
+          daily_appointment_limit: number | null
           email: string | null
           experience: string | null
           full_name: string | null
@@ -284,10 +287,13 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          availability?: boolean | null
+          availability_status?: string | null
           avatar_url?: string | null
           bio?: string | null
           card_image_url?: string | null
           created_at?: string
+          daily_appointment_limit?: number | null
           email?: string | null
           experience?: string | null
           full_name?: string | null
@@ -299,10 +305,13 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          availability?: boolean | null
+          availability_status?: string | null
           avatar_url?: string | null
           bio?: string | null
           card_image_url?: string | null
           created_at?: string
+          daily_appointment_limit?: number | null
           email?: string | null
           experience?: string | null
           full_name?: string | null
@@ -634,6 +643,10 @@ export type Database = {
       }
       check_service_permissions: {
         Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      check_stylist_availability: {
+        Args: { stylist_uuid: string; check_date?: string }
         Returns: Json
       }
       create_admin_user: {

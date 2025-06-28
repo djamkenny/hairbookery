@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +12,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 const StylistSettingsTab = () => {
   const [availability, setAvailability] = useState(true);
+  const [dailyAppointmentLimit, setDailyAppointmentLimit] = useState(10);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [smsNotifications, setSmsNotifications] = useState(true);
   const [bookingMode, setBookingMode] = useState("auto");
@@ -28,7 +29,7 @@ const StylistSettingsTab = () => {
         if (user) {
           setUser(user);
           
-          // Load settings from user metadata or profiles table
+          // Load settings from profiles table
           const { data: profileData } = await supabase
             .from('profiles')
             .select('*')
@@ -36,9 +37,10 @@ const StylistSettingsTab = () => {
             .single();
             
           if (profileData) {
-            // Load settings from profile if available
+            setAvailability(profileData.availability !== false);
+            setDailyAppointmentLimit(profileData.daily_appointment_limit || 10);
+            // Load other settings from user metadata
             const metadata = user.user_metadata || {};
-            setAvailability(metadata.availability !== false); // default to true
             setEmailNotifications(metadata.email_notifications !== false);
             setSmsNotifications(metadata.sms_notifications !== false);
             setBookingMode(metadata.booking_mode || "auto");
@@ -58,17 +60,30 @@ const StylistSettingsTab = () => {
     try {
       setLoading(true);
       
-      // Update user metadata
-      const { error } = await supabase.auth.updateUser({
+      // Update profiles table
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          availability: availability,
+          daily_appointment_limit: dailyAppointmentLimit,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+      
+      if (profileError) throw profileError;
+      
+      // Also update user metadata for consistency
+      const { error: userError } = await supabase.auth.updateUser({
         data: {
           ...user.user_metadata,
-          availability: availability
+          availability: availability,
+          daily_appointment_limit: dailyAppointmentLimit
         }
       });
       
-      if (error) throw error;
+      if (userError) throw userError;
       
-      toast.success(`Your availability is now ${availability ? 'Active' : 'Inactive'}`);
+      toast.success(`Availability settings updated successfully`);
     } catch (error: any) {
       console.error("Error updating availability:", error);
       toast.error("Failed to update availability: " + error.message);
@@ -149,13 +164,13 @@ const StylistSettingsTab = () => {
       
       <Card className="w-full">
         <CardHeader>
-          <CardTitle>Availability</CardTitle>
+          <CardTitle>Availability & Capacity</CardTitle>
           <CardDescription>
-            Toggle your availability to control whether clients can book appointments with you
+            Manage your availability and daily appointment limits
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col space-y-4">
+          <div className="flex flex-col space-y-6">
             <div className="flex items-center justify-between">
               <Label htmlFor="availability" className={`${isMobile ? 'text-sm' : 'text-base'} mr-2`}>Available for bookings</Label>
               <Switch 
@@ -165,9 +180,29 @@ const StylistSettingsTab = () => {
                 disabled={loading}
               />
             </div>
+            
+            <div className="space-y-3">
+              <Label htmlFor="daily-limit" className={`${isMobile ? 'text-sm' : 'text-base'}`}>
+                Daily Appointment Limit
+              </Label>
+              <Input
+                id="daily-limit"
+                type="number"
+                min="1"
+                max="50"
+                value={dailyAppointmentLimit}
+                onChange={(e) => setDailyAppointmentLimit(parseInt(e.target.value) || 1)}
+                disabled={loading}
+                className="w-32"
+              />
+              <p className="text-sm text-muted-foreground">
+                Maximum number of appointments you can accept per day
+              </p>
+            </div>
+            
             <p className="text-sm text-muted-foreground">
               {availability 
-                ? "You're currently available for new bookings" 
+                ? `You're currently available for up to ${dailyAppointmentLimit} appointments per day` 
                 : "You're currently not available for new bookings"}
             </p>
             <Button 

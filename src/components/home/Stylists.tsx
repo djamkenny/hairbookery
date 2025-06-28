@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
@@ -20,6 +19,8 @@ import { Slider } from "@/components/ui/slider"
 import { useToast } from "@/hooks/use-toast"
 import { MapPinIcon, BriefcaseIcon, StarIcon } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
+import AvailabilityBadge from "@/components/ui/AvailabilityBadge";
+import { useAvailabilityStatus } from "@/hooks/useAvailabilityStatus";
 
 interface StylistCardProps {
   id: string;
@@ -32,18 +33,31 @@ interface StylistCardProps {
 }
 
 const StylistCard = ({ id, name, specialty, experience, imageUrl, bio, location }: StylistCardProps) => {
+  const { availabilityStatus, loading } = useAvailabilityStatus(id);
+  
   return (
     <Card className="w-full max-w-sm mx-auto shadow-md hover:shadow-lg transition-shadow duration-300">
       <CardHeader className="text-center pb-4">
-        <Avatar className="w-20 h-20 mx-auto mb-3 border-2 border-muted-foreground">
-          {imageUrl ? (
-            <AvatarImage src={imageUrl} alt={name} className="object-cover" />
-          ) : (
-            <AvatarFallback className="text-lg font-semibold">
-              {name.substring(0, 2).toUpperCase()}
-            </AvatarFallback>
+        <div className="relative">
+          <Avatar className="w-20 h-20 mx-auto mb-3 border-2 border-muted-foreground">
+            {imageUrl ? (
+              <AvatarImage src={imageUrl} alt={name} className="object-cover" />
+            ) : (
+              <AvatarFallback className="text-lg font-semibold">
+                {name.substring(0, 2).toUpperCase()}
+              </AvatarFallback>
+            )}
+          </Avatar>
+          {!loading && availabilityStatus && (
+            <div className="flex justify-center mt-2">
+              <AvailabilityBadge 
+                status={availabilityStatus.status}
+                slotsRemaining={availabilityStatus.slots_remaining}
+                dailyLimit={availabilityStatus.daily_limit}
+              />
+            </div>
           )}
-        </Avatar>
+        </div>
         <CardTitle className="text-lg font-semibold text-center">{name}</CardTitle>
         <CardDescription className="text-center">{specialty}</CardDescription>
       </CardHeader>
@@ -58,7 +72,12 @@ const StylistCard = ({ id, name, specialty, experience, imageUrl, bio, location 
         </div>
         <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed">{bio}</p>
         <Link to={`/stylist/${id}`} className="block">
-          <Button className="w-full mt-4">View Profile</Button>
+          <Button 
+            className="w-full mt-4"
+            disabled={availabilityStatus?.status === 'unavailable'}
+          >
+            {availabilityStatus?.status === 'full' ? 'View Profile (Fully Booked)' : 'View Profile'}
+          </Button>
         </Link>
       </CardContent>
     </Card>
