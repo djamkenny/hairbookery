@@ -1,143 +1,161 @@
 
 import React from "react";
-import { useStylistAnalytics } from "@/hooks/useStylistAnalytics";
-import { useStylistRevenue } from "@/hooks/useStylistRevenue";
-import { supabase } from "@/integrations/supabase/client";
-import ServicePopularityChart from "./ServicePopularityChart";
-import MonthlyTrendsChart from "./MonthlyTrendsChart";
-import AnalyticsOverview from "./AnalyticsOverview";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const AnalyticsTab = () => {
-  const [userId, setUserId] = React.useState<string | undefined>();
-  
-  React.useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUserId(user?.id);
-    };
-    getUser();
-  }, []);
+  const isMobile = useIsMobile();
 
-  const {
-    serviceStats,
-    monthlyStats,
-    totalBookings,
-    totalRevenue,
-    loading: analyticsLoading,
-    error: analyticsError
-  } = useStylistAnalytics();
+  // Mock data for Most Popular Services
+  const servicesData = [
+    { name: "Haircut", count: 18 },
+    { name: "Coloring", count: 12 },
+    { name: "Styling", count: 8 },
+    { name: "Treatment", count: 6 }
+  ];
 
-  const {
-    revenueSummary,
-    loading: revenueLoading
-  } = useStylistRevenue(userId);
-
-  // Find most popular service
-  const topServiceEntry =
-    serviceStats && serviceStats.length > 0
-      ? serviceStats[0]
-      : null;
-
-  // Revenue formatting helper (cedis)
-  const formatRevenue = (amount: number) =>
-    new Intl.NumberFormat('en-GH', {
-      style: 'currency',
-      currency: 'GHS'
-    }).format(amount);
-
-  // Use revenue from revenue service if available, otherwise use analytics revenue
-  const displayRevenue = revenueSummary.total_revenue > 0 ? revenueSummary.total_revenue : totalRevenue;
+  // Mock data for Monthly Booking Trends
+  const monthlyData = [
+    { month: "Jan", bookings: 15 },
+    { month: "Feb", bookings: 22 },
+    { month: "Mar", bookings: 18 },
+    { month: "Apr", bookings: 28 },
+    { month: "May", bookings: 24 },
+    { month: "Jun", bookings: 32 }
+  ];
 
   return (
-    <div className="space-y-4 md:space-y-6 px-2 md:px-0">
-      <AnalyticsOverview
-        totalBookings={totalBookings}
-        totalRevenue={displayRevenue}
-        topService={topServiceEntry?.serviceName}
-        topServiceCount={topServiceEntry?.bookingCount}
-      />
-
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 md:gap-6">
-        <ServicePopularityChart data={serviceStats} />
-        <MonthlyTrendsChart data={monthlyStats} />
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl md:text-2xl font-semibold">Analytics Overview</h2>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base md:text-lg">Service Performance Details</CardTitle>
-        </CardHeader>
-        <CardContent className="p-3 md:p-6">
-          {serviceStats.length === 0 ? (
-            <div className="text-center text-muted-foreground py-6">
-              No service performance data yet.
+      {/* Charts Grid - Stack on mobile, side by side on desktop */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Most Popular Services Chart */}
+        <Card className="w-full">
+          <CardHeader className="pb-2">
+            <CardTitle className={`${isMobile ? 'text-lg' : 'text-xl'}`}>
+              Most Popular Services
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-3 md:p-6">
+            <div className={`${isMobile ? 'h-[250px]' : 'h-[300px]'} w-full`}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={servicesData}
+                  margin={{
+                    top: 10,
+                    right: isMobile ? 5 : 20,
+                    left: isMobile ? -10 : 10,
+                    bottom: isMobile ? 20 : 10
+                  }}
+                  barCategoryGap={isMobile ? "20%" : "30%"}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis 
+                    dataKey="name" 
+                    tick={{ 
+                      fontSize: isMobile ? 10 : 12, 
+                      fill: "hsl(var(--muted-foreground))" 
+                    }}
+                    axisLine={false}
+                    tickLine={false}
+                    angle={isMobile ? -45 : 0}
+                    textAnchor={isMobile ? "end" : "middle"}
+                    height={isMobile ? 60 : 40}
+                  />
+                  <YAxis 
+                    tick={{ 
+                      fontSize: isMobile ? 10 : 12, 
+                      fill: "hsl(var(--muted-foreground))" 
+                    }}
+                    axisLine={false}
+                    tickLine={false}
+                    width={isMobile ? 20 : 40}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "hsl(var(--background))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: "8px",
+                      fontSize: isMobile ? "12px" : "14px",
+                      padding: isMobile ? "8px" : "12px"
+                    }}
+                  />
+                  <Bar 
+                    dataKey="count" 
+                    fill="hsl(var(--primary))" 
+                    radius={[4, 4, 0, 0]}
+                    barSize={isMobile ? 30 : 40}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
-          ) : (
-            <div className="overflow-x-auto -mx-3 md:mx-0">
-              <div className="min-w-[300px] px-3 md:px-0">
-                <table className="w-full divide-y divide-gray-200 text-xs md:text-sm">
-                  <thead>
-                    <tr className="text-left">
-                      <th className="px-2 md:px-4 py-2 font-semibold">Service</th>
-                      <th className="px-2 md:px-4 py-2 font-semibold">Bookings</th>
-                      <th className="px-2 md:px-4 py-2 font-semibold">Total Revenue</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {serviceStats.map((service) => (
-                      <tr key={service.serviceName} className="border-b last:border-0">
-                        <td className="px-2 md:px-4 py-2 truncate max-w-[120px] md:max-w-none">{service.serviceName}</td>
-                        <td className="px-2 md:px-4 py-2">{service.bookingCount}</td>
-                        <td className="px-2 md:px-4 py-2">
-                          {formatRevenue(service.totalRevenue)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base md:text-lg">Monthly Revenue & Bookings</CardTitle>
-        </CardHeader>
-        <CardContent className="p-3 md:p-6">
-          {monthlyStats.length === 0 ? (
-            <div className="text-center text-muted-foreground py-6">
-              No monthly data yet.
+        {/* Monthly Booking Trends Chart */}
+        <Card className="w-full">
+          <CardHeader className="pb-2">
+            <CardTitle className={`${isMobile ? 'text-lg' : 'text-xl'}`}>
+              Monthly Booking Trends
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-3 md:p-6">
+            <div className={`${isMobile ? 'h-[250px]' : 'h-[300px]'} w-full`}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={monthlyData}
+                  margin={{
+                    top: 10,
+                    right: isMobile ? 5 : 20,
+                    left: isMobile ? -10 : 10,
+                    bottom: 10
+                  }}
+                  barCategoryGap={isMobile ? "20%" : "30%"}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis 
+                    dataKey="month" 
+                    tick={{ 
+                      fontSize: isMobile ? 10 : 12, 
+                      fill: "hsl(var(--muted-foreground))" 
+                    }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis 
+                    tick={{ 
+                      fontSize: isMobile ? 10 : 12, 
+                      fill: "hsl(var(--muted-foreground))" 
+                    }}
+                    axisLine={false}
+                    tickLine={false}
+                    width={isMobile ? 20 : 40}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "hsl(var(--background))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: "8px",
+                      fontSize: isMobile ? "12px" : "14px",
+                      padding: isMobile ? "8px" : "12px"
+                    }}
+                  />
+                  <Bar 
+                    dataKey="bookings" 
+                    fill="hsl(var(--primary))" 
+                    radius={[4, 4, 0, 0]}
+                    barSize={isMobile ? 30 : 40}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
-          ) : (
-            <div className="overflow-x-auto -mx-3 md:mx-0">
-              <div className="min-w-[300px] px-3 md:px-0">
-                <table className="w-full divide-y divide-gray-200 text-xs md:text-sm">
-                  <thead>
-                    <tr className="text-left">
-                      <th className="px-2 md:px-4 py-2 font-semibold">Month</th>
-                      <th className="px-2 md:px-4 py-2 font-semibold">Bookings</th>
-                      <th className="px-2 md:px-4 py-2 font-semibold">Revenue</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {monthlyStats.map((month) => (
-                      <tr key={month.month} className="border-b last:border-0">
-                        <td className="px-2 md:px-4 py-2">{month.month}</td>
-                        <td className="px-2 md:px-4 py-2">{month.bookings}</td>
-                        <td className="px-2 md:px-4 py-2">
-                          {formatRevenue(month.revenue)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
