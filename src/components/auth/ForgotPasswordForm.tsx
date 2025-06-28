@@ -25,7 +25,7 @@ const ForgotPasswordForm = () => {
     
     try {
       // Use the explicit site URL for password reset
-      const redirectUrl = "https://knlbookery.lovable.app/reset-password";
+      const redirectUrl = "https://preview--knlbookery.lovable.app/reset-password";
       console.log("Sending password reset to:", email, "with redirect:", redirectUrl);
       
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
