@@ -103,12 +103,6 @@ const DataTables: React.FC<DataTablesProps> = ({ users, appointments, payments, 
                     <TableHead>Type</TableHead>
                     <TableHead>Phone</TableHead>
                     <TableHead>Location</TableHead>
-                    <TableHead>Specialty</TableHead>
-                    <TableHead>Experience</TableHead>
-                    <TableHead>Bio</TableHead>
-                    <TableHead>Avatar URL</TableHead>
-                    <TableHead>Availability</TableHead>
-                    <TableHead>Availability Status</TableHead>
                     <TableHead>Joined</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -126,12 +120,6 @@ const DataTables: React.FC<DataTablesProps> = ({ users, appointments, payments, 
                       </TableCell>
                       <TableCell className="text-sm">{user.phone || '-'}</TableCell>
                       <TableCell className="text-sm">{user.location || '-'}</TableCell>
-                      <TableCell className="text-sm">{user.specialty || '-'}</TableCell>
-                      <TableCell className="text-sm">{user.experience || '-'}</TableCell>
-                      <TableCell className="text-sm">{user.bio || '-'}</TableCell>
-                      <TableCell className="text-sm">{user.avatar_url || '-'}</TableCell>
-                      <TableCell className="text-sm">{user.availability ? 'Yes' : 'No'}</TableCell>
-                      <TableCell className="text-sm">{user.availability_status || '-'}</TableCell>
                       <TableCell>
                         {format(new Date(user.created_at), 'MMM dd, yyyy')}
                       </TableCell>
