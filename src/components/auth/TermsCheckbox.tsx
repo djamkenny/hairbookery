@@ -11,13 +11,13 @@ interface TermsCheckboxProps {
 
 const TermsCheckbox = ({ checked, onCheckedChange, error }: TermsCheckboxProps) => {
   return (
-    <div className="flex items-start space-x-2 pt-2">
+    <div className="flex items-start space-x-1.5 pt-1.5">
       <Checkbox
         id="terms"
         checked={checked}
         onCheckedChange={(checked) => onCheckedChange(checked as boolean)}
       />
-      <div className="grid gap-1.5 leading-none">
+      <div className="grid gap-1 leading-none">
         <label
           htmlFor="terms"
           className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
