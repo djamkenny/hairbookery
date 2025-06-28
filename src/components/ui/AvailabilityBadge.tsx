@@ -25,14 +25,16 @@ const AvailabilityBadge = ({
           text: slotsRemaining && dailyLimit 
             ? `Available (${slotsRemaining}/${dailyLimit} slots)`
             : 'Available',
-          color: 'text-green-600'
+          color: 'text-green-600',
+          bgColor: 'bg-green-100 text-green-800'
         };
       case 'full':
         return {
           variant: 'destructive' as const,
           icon: XCircle,
           text: 'Fully Booked Today',
-          color: 'text-red-600'
+          color: 'text-red-600',
+          bgColor: 'bg-red-100 text-red-800'
         };
       case 'unavailable':
       default:
@@ -40,7 +42,8 @@ const AvailabilityBadge = ({
           variant: 'secondary' as const,
           icon: Clock,
           text: 'Currently Unavailable',
-          color: 'text-gray-600'
+          color: 'text-gray-600',
+          bgColor: 'bg-gray-100 text-gray-800'
         };
     }
   };
@@ -49,10 +52,10 @@ const AvailabilityBadge = ({
   const Icon = config.icon;
 
   return (
-    <Badge variant={config.variant} className={`flex items-center gap-1 ${className}`}>
-      <Icon className="h-3 w-3" />
-      <span className="text-xs">{config.text}</span>
-    </Badge>
+    <div className={`inline-flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium ${config.bgColor} ${className}`}>
+      <Icon className="h-4 w-4" />
+      <span>{config.text}</span>
+    </div>
   );
 };
 

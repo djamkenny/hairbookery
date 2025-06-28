@@ -140,58 +140,59 @@ const SpecialistDetail = () => {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       
-      <main className="flex-grow py-20">
+      <main className="flex-grow py-8 sm:py-12 lg:py-20">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
             {/* Specialist Image and Basic Info */}
-            <div className="md:col-span-1">
-              <div className="sticky top-24 space-y-6">
+            <div className="lg:col-span-1">
+              <div className="sticky top-24 space-y-4 lg:space-y-6">
                 <div className="rounded-lg overflow-hidden shadow-md animate-fade-in">
                   <img 
                     src={specialist.avatar_url || "https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=761&q=80"} 
                     alt={specialist.full_name}
-                    className="w-full h-80 object-cover"
+                    className="w-full h-64 sm:h-80 object-cover"
                   />
                 </div>
                 
                 <Card className="animate-fade-in">
-                  <CardContent className="p-6">
-                    <h1 className="text-2xl font-semibold mb-2">{specialist.full_name}</h1>
-                    <p className="text-primary text-lg mb-4">{specialist.specialty}</p>
+                  <CardContent className="p-4 lg:p-6">
+                    <h1 className="text-xl lg:text-2xl font-semibold mb-2">{specialist.full_name}</h1>
+                    <p className="text-primary text-base lg:text-lg mb-4">{specialist.specialty}</p>
                     
                     {specialist.location && (
                       <div className="flex items-start gap-2 mb-4">
-                        <MapPin className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
+                        <MapPin className="h-4 w-4 lg:h-5 lg:w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
                         <span className="text-sm text-muted-foreground">{specialist.location}</span>
                       </div>
                     )}
                     
                     {specialist.experience && (
                       <div className="flex items-center gap-2 mb-4">
-                        <ClockIcon className="h-5 w-5 text-muted-foreground" />
+                        <ClockIcon className="h-4 w-4 lg:h-5 lg:w-5 text-muted-foreground" />
                         <span className="text-sm text-muted-foreground">{specialist.experience}</span>
                       </div>
                     )}
                     
                     {/* Detailed Availability Badge */}
                     {!availabilityLoading && availabilityStatus && (
-                      <div className="mb-6">
+                      <div className="mb-4 lg:mb-6">
                         <AvailabilityBadge 
                           status={availabilityStatus.status}
                           slotsRemaining={availabilityStatus.slots_remaining}
                           dailyLimit={availabilityStatus.daily_limit}
+                          className="w-full justify-center sm:w-auto sm:justify-start"
                         />
                       </div>
                     )}
                     
                     {/* Rating Component */}
-                    <div className="mb-6">
+                    <div className="mb-4 lg:mb-6">
                       <RatingComponent specialistId={id!} showSubmissionForm={false} />
                     </div>
                     
                     <Link to={`/booking?stylist=${id}`}>
                       <Button 
-                        className="w-full mb-3"
+                        className="w-full mb-3 text-sm lg:text-base"
                         disabled={availabilityStatus?.status === 'unavailable'}
                       >
                         <CalendarIcon className="h-4 w-4 mr-2" />
@@ -204,16 +205,16 @@ const SpecialistDetail = () => {
             </div>
             
             {/* Specialist Details and Services */}
-            <div className="md:col-span-2 space-y-8">
+            <div className="lg:col-span-2 space-y-6 lg:space-y-8">
               <div className="animate-fade-in">
-                <h2 className="text-xl font-semibold mb-4">About</h2>
-                <p className="text-muted-foreground leading-relaxed">
+                <h2 className="text-lg lg:text-xl font-semibold mb-4">About</h2>
+                <p className="text-muted-foreground leading-relaxed text-sm lg:text-base">
                   {specialist.bio || "Professional specialist with years of experience in the industry."}
                 </p>
               </div>
               
               <div className="animate-fade-in">
-                <h2 className="text-xl font-semibold mb-6">Services & Portfolio</h2>
+                <h2 className="text-lg lg:text-xl font-semibold mb-4 lg:mb-6">Services & Portfolio</h2>
                 <ServiceGallery services={services} />
               </div>
             </div>
