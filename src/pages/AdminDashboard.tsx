@@ -15,7 +15,13 @@ import {
   Database
 } from "lucide-react";
 import { adminAuth } from "@/services/adminAuth";
-import { adminAnalytics, UserAnalytics, BookingAnalytics, StylistAnalytics, ServiceAnalytics } from "@/services/adminAnalytics";
+import { 
+  adminAnalytics, 
+  UserAnalytics, 
+  BookingAnalytics, 
+  StylistAnalytics, 
+  ServiceAnalytics 
+} from "@/services/admin";
 import { adminDataService, DetailedUser, DetailedAppointment, DetailedPayment } from "@/services/adminData";
 import DataTables from "@/components/admin/DataTables";
 import RevenueHistory from "@/components/admin/RevenueHistory";
