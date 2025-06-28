@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export interface DetailedUser {
@@ -43,22 +44,23 @@ export interface DetailedPayment {
 export const adminDataService = {
   async getAllUsers(): Promise<DetailedUser[]> {
     try {
-      console.log('Fetching ALL users from profiles table (both stylists and clients)...');
+      console.log('Fetching ALL users from both profiles and auth.users...');
       
-      const { data: profiles, error } = await supabase
+      // First, get all profiles (both stylists and clients)
+      const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching users:', error);
-        throw error;
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+        throw profilesError;
       }
 
       console.log('Profiles data found:', profiles?.length || 0);
       console.log('Sample profiles:', profiles?.slice(0, 3) || []);
 
-      // Also fetch from auth.users to get additional user data if available
+      // Also fetch from auth.users to get users who might not have profiles yet
       const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
       
       if (authError) {
@@ -67,22 +69,20 @@ export const adminDataService = {
 
       console.log('Auth users found:', authUsers?.users?.length || 0);
 
-      // Create a map of auth users for additional data
-      const authUserMap = new Map();
-      authUsers?.users?.forEach(user => {
-        authUserMap.set(user.id, user);
-      });
+      // Create a map of profile users
+      const profileUserMap = new Map();
+      const allUsers: DetailedUser[] = [];
 
-      // Combine profile data with auth data
-      const allUsers = profiles?.map(profile => {
-        const authUser = authUserMap.get(profile.id);
-        return {
+      // Add all profiles first
+      profiles?.forEach(profile => {
+        profileUserMap.set(profile.id, true);
+        allUsers.push({
           id: profile.id,
-          full_name: profile.full_name || authUser?.user_metadata?.full_name || authUser?.email?.split('@')[0] || 'Unknown User',
-          email: profile.email || authUser?.email || 'No email',
+          full_name: profile.full_name || 'Unknown User',
+          email: profile.email || 'No email',
           is_stylist: profile.is_stylist || false,
           created_at: profile.created_at,
-          phone: profile.phone || authUser?.user_metadata?.phone,
+          phone: profile.phone,
           location: profile.location,
           specialty: profile.specialty,
           experience: profile.experience,
@@ -90,12 +90,12 @@ export const adminDataService = {
           avatar_url: profile.avatar_url,
           availability: profile.availability,
           availability_status: profile.availability_status
-        };
-      }) || [];
+        });
+      });
 
-      // Add any auth users that don't have profiles yet
+      // Add auth users that don't have profiles yet
       authUsers?.users?.forEach(authUser => {
-        if (!allUsers.find(user => user.id === authUser.id)) {
+        if (!profileUserMap.has(authUser.id)) {
           allUsers.push({
             id: authUser.id,
             full_name: authUser.user_metadata?.full_name || authUser.email?.split('@')[0] || 'Unknown User',
@@ -103,7 +103,7 @@ export const adminDataService = {
             is_stylist: authUser.user_metadata?.is_stylist || false,
             created_at: authUser.created_at,
             phone: authUser.user_metadata?.phone,
-            location: undefined,
+            location: authUser.user_metadata?.location,
             specialty: authUser.user_metadata?.specialty,
             experience: authUser.user_metadata?.experience,
             bio: authUser.user_metadata?.bio,
@@ -113,6 +113,39 @@ export const adminDataService = {
           });
         }
       });
+
+      // Also check for users who have made appointments but don't have profiles
+      const { data: appointments, error: appointmentsError } = await supabase
+        .from('appointments')
+        .select('client_id');
+
+      if (!appointmentsError && appointments) {
+        const uniqueClientIds = [...new Set(appointments.map(a => a.client_id))];
+        console.log('Unique client IDs from appointments:', uniqueClientIds.length);
+
+        for (const clientId of uniqueClientIds) {
+          // Check if this client is already in our list
+          const existingUser = allUsers.find(user => user.id === clientId);
+          if (!existingUser) {
+            // Add as a client user
+            allUsers.push({
+              id: clientId,
+              full_name: 'Client User',
+              email: 'No email available',
+              is_stylist: false,
+              created_at: new Date().toISOString(),
+              phone: undefined,
+              location: undefined,
+              specialty: undefined,
+              experience: undefined,
+              bio: undefined,
+              avatar_url: undefined,
+              availability: undefined,
+              availability_status: undefined
+            });
+          }
+        }
+      }
 
       console.log('Total users combined:', allUsers.length);
       console.log('Stylists:', allUsers.filter(u => u.is_stylist).length);

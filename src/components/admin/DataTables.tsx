@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -11,6 +10,14 @@ interface User {
   email: string;
   is_stylist: boolean;
   created_at: string;
+  phone?: string;
+  location?: string;
+  specialty?: string;
+  experience?: string;
+  bio?: string;
+  avatar_url?: string;
+  availability?: boolean;
+  availability_status?: string;
 }
 
 interface Appointment {
@@ -96,6 +103,11 @@ const DataTables: React.FC<DataTablesProps> = ({ users, appointments, payments, 
                     <TableHead>Phone</TableHead>
                     <TableHead>Location</TableHead>
                     <TableHead>Specialty</TableHead>
+                    <TableHead>Experience</TableHead>
+                    <TableHead>Bio</TableHead>
+                    <TableHead>Avatar URL</TableHead>
+                    <TableHead>Availability</TableHead>
+                    <TableHead>Availability Status</TableHead>
                     <TableHead>Joined</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -114,6 +126,11 @@ const DataTables: React.FC<DataTablesProps> = ({ users, appointments, payments, 
                       <TableCell className="text-sm">{user.phone || '-'}</TableCell>
                       <TableCell className="text-sm">{user.location || '-'}</TableCell>
                       <TableCell className="text-sm">{user.specialty || '-'}</TableCell>
+                      <TableCell className="text-sm">{user.experience || '-'}</TableCell>
+                      <TableCell className="text-sm">{user.bio || '-'}</TableCell>
+                      <TableCell className="text-sm">{user.avatar_url || '-'}</TableCell>
+                      <TableCell className="text-sm">{user.availability ? 'Yes' : 'No'}</TableCell>
+                      <TableCell className="text-sm">{user.availability_status || '-'}</TableCell>
                       <TableCell>
                         {format(new Date(user.created_at), 'MMM dd, yyyy')}
                       </TableCell>
