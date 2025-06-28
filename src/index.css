@@ -312,6 +312,9 @@
   input, select, textarea {
     @apply py-2 px-3 text-base;
   }
+
+  button, a, input, select, textarea {
+      min-height: 15px;
 }
 
 @media screen and (max-width: 768px) {
