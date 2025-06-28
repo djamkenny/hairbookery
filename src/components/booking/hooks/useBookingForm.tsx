@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -17,16 +18,26 @@ export const useBookingForm = () => {
   
   // Data state
   const [loading, setLoading] = useState(true);
-  const [services, setServices] = useState<any[]>([]);
+  const [allServices, setAllServices] = useState<any[]>([]);
   const [stylists, setStylists] = useState<any[]>([]);
   const [currentUser, setCurrentUser] = useState<any>(null);
   
   // Step state
   const [step, setStep] = useState(1);
 
+  // Get URL parameters for pre-selection
+  const [searchParams] = useSearchParams();
+  const preSelectedStylistId = searchParams.get('stylist');
+
   // Derived state
-  const selectedService = services.find(s => s.id === service);
   const selectedStylist = stylists.find(s => s.id === stylist);
+  
+  // Filter services based on selected stylist
+  const services = stylist 
+    ? allServices.filter(s => s.stylist_id === stylist)
+    : allServices;
+  
+  const selectedService = services.find(s => s.id === service);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -54,13 +65,13 @@ export const useBookingForm = () => {
           }
         }
         
-        // Fetch services
+        // Fetch all services
         const { data: servicesData, error: servicesError } = await supabase
           .from('services')
           .select('*');
           
         if (servicesError) throw servicesError;
-        setServices(servicesData || []);
+        setAllServices(servicesData || []);
         
         // Fetch stylists (users who are stylists)
         const { data: stylistsData, error: stylistsError } = await supabase
@@ -71,22 +82,34 @@ export const useBookingForm = () => {
         if (stylistsError) throw stylistsError;
         setStylists(stylistsData || []);
 
+        // Pre-select stylist if provided in URL
+        if (preSelectedStylistId && stylistsData) {
+          const matchingStylist = stylistsData.find(s => s.id === preSelectedStylistId);
+          if (matchingStylist) {
+            setStylist(preSelectedStylistId);
+            toast.success(`${matchingStylist.full_name} has been pre-selected for you!`);
+          }
+        }
+
         // Check for similar booking data from localStorage
         const similarBookingData = localStorage.getItem('similarBooking');
         if (similarBookingData) {
           try {
             const bookingData = JSON.parse(similarBookingData);
             
-            // Find and pre-select service if it matches
-            const matchingService = servicesData?.find(s => s.name === bookingData.service);
-            if (matchingService) {
-              setService(matchingService.id);
-            }
-            
-            // Find and pre-select stylist if it matches
-            const matchingStylist = stylistsData?.find(s => s.full_name === bookingData.stylist);
-            if (matchingStylist) {
-              setStylist(matchingStylist.id);
+            // Only pre-fill if no stylist was pre-selected from URL
+            if (!preSelectedStylistId) {
+              // Find and pre-select service if it matches
+              const matchingService = servicesData?.find(s => s.name === bookingData.service);
+              if (matchingService) {
+                setService(matchingService.id);
+              }
+              
+              // Find and pre-select stylist if it matches
+              const matchingStylist = stylistsData?.find(s => s.full_name === bookingData.stylist);
+              if (matchingStylist) {
+                setStylist(matchingStylist.id);
+              }
             }
             
             // Set notes
@@ -97,7 +120,9 @@ export const useBookingForm = () => {
             // Clear the localStorage data
             localStorage.removeItem('similarBooking');
             
-            toast.success("Pre-filled with similar appointment details!");
+            if (!preSelectedStylistId) {
+              toast.success("Pre-filled with similar appointment details!");
+            }
           } catch (error) {
             console.error("Error parsing similar booking data:", error);
             localStorage.removeItem('similarBooking');
@@ -113,7 +138,17 @@ export const useBookingForm = () => {
     };
     
     fetchData();
-  }, []);
+  }, [preSelectedStylistId]);
+
+  // Reset service selection when stylist changes
+  useEffect(() => {
+    if (stylist && service) {
+      const currentService = allServices.find(s => s.id === service);
+      if (currentService && currentService.stylist_id !== stylist) {
+        setService('');
+      }
+    }
+  }, [stylist, service, allServices]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -196,7 +231,7 @@ export const useBookingForm = () => {
     
     // Data state
     loading,
-    services,
+    services, // This now returns filtered services based on selected stylist
     stylists,
     currentUser,
     
