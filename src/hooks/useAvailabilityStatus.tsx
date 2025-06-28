@@ -27,6 +27,30 @@ export const useAvailabilityStatus = (stylistId: string | undefined, checkDate?:
         setLoading(true);
         setError(null);
 
+        // First check the stylist's basic availability setting
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('availability, availability_status, daily_appointment_limit')
+          .eq('id', stylistId)
+          .eq('is_stylist', true)
+          .single();
+
+        if (profileError) {
+          console.error("Error fetching profile:", profileError);
+          throw profileError;
+        }
+
+        // If stylist has availability turned off, return unavailable immediately
+        if (!profileData?.availability) {
+          setAvailabilityStatus({
+            available: false,
+            status: 'unavailable',
+            reason: 'Stylist is currently unavailable'
+          });
+          return;
+        }
+
+        // If availability is on, check detailed availability via RPC
         const dateToCheck = checkDate ? checkDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
         
         const { data, error } = await supabase.rpc('check_stylist_availability', {
@@ -54,27 +78,53 @@ export const useAvailabilityStatus = (stylistId: string | undefined, checkDate?:
     fetchAvailability();
   }, [stylistId, checkDate]);
 
-  return { availabilityStatus, loading, error, refetch: () => {
+  const refetch = async () => {
     if (stylistId) {
-      const fetchAvailability = async () => {
-        try {
-          setLoading(true);
-          const dateToCheck = checkDate ? checkDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
-          
-          const { data, error } = await supabase.rpc('check_stylist_availability', {
-            stylist_uuid: stylistId,
-            check_date: dateToCheck
-          });
+      try {
+        setLoading(true);
+        
+        // First check the stylist's basic availability setting
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('availability, availability_status, daily_appointment_limit')
+          .eq('id', stylistId)
+          .eq('is_stylist', true)
+          .single();
 
-          if (error) throw error;
-          setAvailabilityStatus(data as unknown as AvailabilityStatus);
-        } catch (err: any) {
-          setError(err.message);
-        } finally {
-          setLoading(false);
+        if (profileError) throw profileError;
+
+        // If stylist has availability turned off, return unavailable immediately
+        if (!profileData?.availability) {
+          setAvailabilityStatus({
+            available: false,
+            status: 'unavailable',
+            reason: 'Stylist is currently unavailable'
+          });
+          return;
         }
-      };
-      fetchAvailability();
+
+        // If availability is on, check detailed availability via RPC
+        const dateToCheck = checkDate ? checkDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+        
+        const { data, error } = await supabase.rpc('check_stylist_availability', {
+          stylist_uuid: stylistId,
+          check_date: dateToCheck
+        });
+
+        if (error) throw error;
+        setAvailabilityStatus(data as unknown as AvailabilityStatus);
+      } catch (err: any) {
+        setError(err.message);
+        setAvailabilityStatus({
+          available: false,
+          status: 'unavailable',
+          reason: 'Unable to check availability'
+        });
+      } finally {
+        setLoading(false);
+      }
     }
-  }};
+  };
+
+  return { availabilityStatus, loading, error, refetch };
 };

@@ -1,5 +1,4 @@
-
-import React from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,7 +16,16 @@ interface StylistCardProps {
 }
 
 const StylistCard = ({ id, name, role, bio, image, location, className }: StylistCardProps) => {
-  const { availabilityStatus, loading } = useAvailabilityStatus(id);
+  const { availabilityStatus, loading, refetch } = useAvailabilityStatus(id);
+  
+  // Refresh availability status every 30 seconds to keep it current
+  useEffect(() => {
+    const interval = setInterval(() => {
+      refetch();
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [refetch]);
   
   // Limit bio to 100 characters
   const truncatedBio = bio.length > 100 
@@ -32,7 +40,7 @@ const StylistCard = ({ id, name, role, bio, image, location, className }: Stylis
       case 'available':
         return "Available";
       case 'full':
-        return "Not Available";
+        return "Fully Booked";
       case 'unavailable':
       default:
         return "Not Available";
@@ -46,6 +54,7 @@ const StylistCard = ({ id, name, role, bio, image, location, className }: Stylis
       case 'available':
         return "text-green-600";
       case 'full':
+        return "text-orange-600";
       case 'unavailable':
       default:
         return "text-red-600";
@@ -93,10 +102,14 @@ const StylistCard = ({ id, name, role, bio, image, location, className }: Stylis
             <Button 
               size="sm" 
               className="w-full text-xs"
-              disabled={availabilityStatus?.status === 'unavailable'}
+              disabled={!availabilityStatus?.available || availabilityStatus?.status === 'unavailable'}
             >
               <Calendar className="h-3 w-3 mr-1" />
-              {availabilityStatus?.status === 'full' ? 'Fully Booked' : 'Book Now'}
+              {availabilityStatus?.status === 'unavailable' 
+                ? 'Not Available' 
+                : availabilityStatus?.status === 'full' 
+                ? 'Fully Booked' 
+                : 'Book Now'}
             </Button>
           </Link>
         </div>
