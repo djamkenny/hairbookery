@@ -3,8 +3,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Appointment } from "@/types/appointment";
 import { format } from "date-fns";
 
-// FIX: Remove attempt to join payments inside appointments query (causes error)
-
 export const fetchStylistAppointments = async (): Promise<Appointment[]> => {
   try {
     // Get the authenticated user
@@ -61,6 +59,7 @@ export const fetchStylistAppointments = async (): Promise<Appointment[]> => {
 
     // Get all unique client IDs from the appointments
     const clientIds = [...new Set(data.map((appointment: any) => appointment.client_id))];
+    
     // Fetch client profiles in a separate query
     const { data: clientProfiles, error: clientError } = await supabase
       .from('profiles')
@@ -77,6 +76,9 @@ export const fetchStylistAppointments = async (): Promise<Appointment[]> => {
       return map;
     }, {} as Record<string, any>);
 
+    console.log("Client profiles found:", clientProfiles?.length || 0);
+    console.log("Client profile map:", clientProfileMap);
+
     // Format the appointments data with client info from the map and attach payment amount
     const formattedAppointments = data.map((appointment: any) => {
       const clientProfile = clientProfileMap[appointment.client_id] || {};
@@ -84,9 +86,14 @@ export const fetchStylistAppointments = async (): Promise<Appointment[]> => {
       const paymentEntry = paymentsMap[appointment.id];
       const amount = paymentEntry?.amount ?? 0;
 
+      // Get the actual client name from the profile or fall back to "Unknown Client"
+      const clientName = clientProfile.full_name || "Unknown Client";
+      
+      console.log(`Appointment ${appointment.id}: client_id=${appointment.client_id}, clientName=${clientName}`);
+
       return {
         id: appointment.id,
-        client: clientProfile.full_name || "Client",
+        client: clientName, // Use the actual client name here
         service: appointment.services?.name || "Service",
         date: format(new Date(appointment.appointment_date), "MMMM dd, yyyy"),
         time: appointment.appointment_time,
@@ -100,11 +107,10 @@ export const fetchStylistAppointments = async (): Promise<Appointment[]> => {
       };
     });
 
-    console.log("Formatted appointments:", formattedAppointments);
+    console.log("Formatted appointments with client names:", formattedAppointments);
     return formattedAppointments;
   } catch (error) {
     console.error("Error in fetchStylistAppointments:", error);
     throw error;
   }
 };
-
