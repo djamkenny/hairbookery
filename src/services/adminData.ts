@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export interface DetailedUser {
@@ -32,57 +33,29 @@ export interface DetailedPayment {
 export const adminDataService = {
   async getAllUsers(): Promise<DetailedUser[]> {
     try {
-      console.log('Fetching all users from profiles table...');
+      console.log('Fetching all users...');
       
-      // Get from profiles table
-      const { data: profilesData, error: profilesError } = await supabase
+      const { data: profiles, error } = await supabase
         .from('profiles')
         .select('id, full_name, email, is_stylist, created_at')
         .order('created_at', { ascending: false });
 
-      if (profilesError) {
-        console.error('Error fetching from profiles:', profilesError);
-        return [];
+      if (error) {
+        console.error('Error fetching users:', error);
+        throw error;
       }
 
-      console.log('Profiles data:', profilesData);
+      console.log('Users fetched:', profiles?.length || 0);
 
-      // Transform and return profile data
-      const result = profilesData?.map(profile => ({
+      return profiles?.map(profile => ({
         id: profile.id,
         full_name: profile.full_name || 'Unknown',
         email: profile.email || 'No email',
         is_stylist: profile.is_stylist || false,
         created_at: profile.created_at
       })) || [];
-
-      console.log('Total users found:', result.length);
-      
-      return result;
     } catch (error) {
       console.error('Error in getAllUsers:', error);
-      
-      // Fallback: try a simpler query
-      try {
-        const { data: fallbackData, error: fallbackError } = await supabase
-          .from('profiles')
-          .select('*');
-          
-        console.log('Fallback query result:', fallbackData?.length || 0, 'users');
-        
-        if (fallbackData) {
-          return fallbackData.map(profile => ({
-            id: profile.id,
-            full_name: profile.full_name || 'Unknown',
-            email: profile.email || 'No email',
-            is_stylist: profile.is_stylist || false,
-            created_at: profile.created_at
-          }));
-        }
-      } catch (fallbackError) {
-        console.error('Fallback query also failed:', fallbackError);
-      }
-      
       return [];
     }
   },
@@ -91,77 +64,39 @@ export const adminDataService = {
     try {
       console.log('Fetching all appointments...');
       
-      // First get all appointments
-      const { data: appointments, error: appointmentsError } = await supabase
+      const { data: appointments, error } = await supabase
         .from('appointments')
-        .select('*')
+        .select(`
+          id,
+          order_id,
+          appointment_date,
+          appointment_time,
+          status,
+          created_at,
+          client:profiles!appointments_client_id_fkey(full_name),
+          stylist:profiles!appointments_stylist_id_fkey(full_name),
+          service:services!appointments_service_id_fkey(name)
+        `)
         .order('created_at', { ascending: false });
 
-      if (appointmentsError) {
-        console.error('Error fetching appointments:', appointmentsError);
-        return [];
+      if (error) {
+        console.error('Error fetching appointments:', error);
+        throw error;
       }
 
-      console.log('Raw appointments found:', appointments?.length || 0);
+      console.log('Appointments fetched:', appointments?.length || 0);
 
-      if (!appointments || appointments.length === 0) {
-        return [];
-      }
-
-      // Get all unique user IDs from appointments
-      const userIds = [...new Set([
-        ...appointments.map(apt => apt.client_id),
-        ...appointments.map(apt => apt.stylist_id)
-      ])].filter(Boolean);
-
-      // Get all unique service IDs
-      const serviceIds = [...new Set(appointments.map(apt => apt.service_id))].filter(Boolean);
-
-      console.log('Fetching profiles for user IDs:', userIds.length);
-      console.log('Fetching services for service IDs:', serviceIds.length);
-
-      // Fetch user profiles
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('id, full_name')
-        .in('id', userIds);
-
-      if (profilesError) {
-        console.error('Error fetching profiles:', profilesError);
-      }
-
-      // Fetch services
-      const { data: services, error: servicesError } = await supabase
-        .from('services')
-        .select('id, name')
-        .in('id', serviceIds);
-
-      if (servicesError) {
-        console.error('Error fetching services:', servicesError);
-      }
-
-      // Create lookup maps
-      const profilesMap = new Map(profiles?.map(p => [p.id, p.full_name]) || []);
-      const servicesMap = new Map(services?.map(s => [s.id, s.name]) || []);
-
-      console.log('Profiles map size:', profilesMap.size);
-      console.log('Services map size:', servicesMap.size);
-
-      // Combine data
-      const result = appointments.map(appointment => ({
+      return appointments?.map(appointment => ({
         id: appointment.id,
         order_id: appointment.order_id || 'N/A',
-        client_name: profilesMap.get(appointment.client_id) || 'Unknown',
-        stylist_name: profilesMap.get(appointment.stylist_id) || 'Unknown',
-        service_name: servicesMap.get(appointment.service_id) || 'Unknown',
+        client_name: appointment.client?.full_name || 'Unknown',
+        stylist_name: appointment.stylist?.full_name || 'Unknown',
+        service_name: appointment.service?.name || 'Unknown',
         appointment_date: appointment.appointment_date,
         appointment_time: appointment.appointment_time,
         status: appointment.status,
         created_at: appointment.created_at
-      }));
-
-      console.log('Processed appointments:', result.length);
-      return result;
+      })) || [];
     } catch (error) {
       console.error('Error in getAllAppointments:', error);
       return [];
@@ -172,69 +107,33 @@ export const adminDataService = {
     try {
       console.log('Fetching all payments...');
       
-      // First get all payments
-      const { data: payments, error: paymentsError } = await supabase
+      const { data: payments, error } = await supabase
         .from('payments')
-        .select('*')
+        .select(`
+          id,
+          amount,
+          status,
+          created_at,
+          user:profiles!payments_user_id_fkey(full_name),
+          service:services!payments_service_id_fkey(name)
+        `)
         .order('created_at', { ascending: false });
 
-      if (paymentsError) {
-        console.error('Error fetching payments:', paymentsError);
-        return [];
+      if (error) {
+        console.error('Error fetching payments:', error);
+        throw error;
       }
 
-      console.log('Raw payments found:', payments?.length || 0);
+      console.log('Payments fetched:', payments?.length || 0);
 
-      if (!payments || payments.length === 0) {
-        return [];
-      }
-
-      // Get unique user IDs and service IDs
-      const userIds = [...new Set(payments.map(p => p.user_id))].filter(Boolean);
-      const serviceIds = [...new Set(payments.map(p => p.service_id))].filter(Boolean);
-
-      console.log('Fetching profiles for payment user IDs:', userIds.length);
-      console.log('Fetching services for payment service IDs:', serviceIds.length);
-
-      // Fetch user profiles
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('id, full_name')
-        .in('id', userIds);
-
-      if (profilesError) {
-        console.error('Error fetching profiles for payments:', profilesError);
-      }
-
-      // Fetch services
-      const { data: services, error: servicesError } = await supabase
-        .from('services')
-        .select('id, name')
-        .in('id', serviceIds);
-
-      if (servicesError) {
-        console.error('Error fetching services for payments:', servicesError);
-      }
-
-      // Create lookup maps
-      const profilesMap = new Map(profiles?.map(p => [p.id, p.full_name]) || []);
-      const servicesMap = new Map(services?.map(s => [s.id, s.name]) || []);
-
-      console.log('Payment profiles map size:', profilesMap.size);
-      console.log('Payment services map size:', servicesMap.size);
-
-      // Combine data
-      const result = payments.map(payment => ({
+      return payments?.map(payment => ({
         id: payment.id,
         amount: payment.amount,
         status: payment.status,
-        user_name: profilesMap.get(payment.user_id) || 'Unknown',
-        service_name: servicesMap.get(payment.service_id) || 'Unknown',
+        user_name: payment.user?.full_name || 'Unknown',
+        service_name: payment.service?.name || 'Unknown',
         created_at: payment.created_at
-      }));
-
-      console.log('Processed payments:', result.length);
-      return result;
+      })) || [];
     } catch (error) {
       console.error('Error in getAllPayments:', error);
       return [];

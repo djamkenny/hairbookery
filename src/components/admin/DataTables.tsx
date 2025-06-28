@@ -53,7 +53,7 @@ const DataTables: React.FC<DataTablesProps> = ({ users, appointments, payments, 
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {[...Array(3)].map((_, j) => (
+                {[...Array(5)].map((_, j) => (
                   <div key={j} className="h-4 bg-gray-200 rounded"></div>
                 ))}
               </div>
@@ -79,128 +79,146 @@ const DataTables: React.FC<DataTablesProps> = ({ users, appointments, payments, 
       {/* Users Table */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">All Users</CardTitle>
+          <CardTitle className="text-lg">All Users ({users.length})</CardTitle>
           <CardDescription>Complete list of registered users</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Joined</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {users.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell className="font-medium">
-                      {user.full_name || 'No name'}
-                    </TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>
-                      <Badge variant={user.is_stylist ? "default" : "secondary"}>
-                        {user.is_stylist ? 'Stylist' : 'Client'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {format(new Date(user.created_at), 'MMM dd, yyyy')}
-                    </TableCell>
+          {users.length > 0 ? (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Joined</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+                <TableBody>
+                  {users.map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell className="font-medium">
+                        {user.full_name || 'No name'}
+                      </TableCell>
+                      <TableCell>{user.email}</TableCell>
+                      <TableCell>
+                        <Badge variant={user.is_stylist ? "default" : "secondary"}>
+                          {user.is_stylist ? 'Stylist' : 'Client'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {format(new Date(user.created_at), 'MMM dd, yyyy')}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">No users found</p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
       {/* Appointments Table */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">All Appointments</CardTitle>
+          <CardTitle className="text-lg">All Appointments ({appointments.length})</CardTitle>
           <CardDescription>Complete list of appointments</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Order ID</TableHead>
-                  <TableHead>Client</TableHead>
-                  <TableHead>Stylist</TableHead>
-                  <TableHead>Service</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Time</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {appointments.map((appointment) => (
-                  <TableRow key={appointment.id}>
-                    <TableCell className="font-mono text-sm">
-                      {appointment.order_id || 'N/A'}
-                    </TableCell>
-                    <TableCell>{appointment.client_name || 'Unknown'}</TableCell>
-                    <TableCell>{appointment.stylist_name || 'Unknown'}</TableCell>
-                    <TableCell>{appointment.service_name || 'Unknown'}</TableCell>
-                    <TableCell>
-                      {format(new Date(appointment.appointment_date), 'MMM dd, yyyy')}
-                    </TableCell>
-                    <TableCell>{appointment.appointment_time}</TableCell>
-                    <TableCell>
-                      <Badge className={getStatusBadge(appointment.status)}>
-                        {appointment.status}
-                      </Badge>
-                    </TableCell>
+          {appointments.length > 0 ? (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Order ID</TableHead>
+                    <TableHead>Client</TableHead>
+                    <TableHead>Stylist</TableHead>
+                    <TableHead>Service</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Time</TableHead>
+                    <TableHead>Status</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+                <TableBody>
+                  {appointments.map((appointment) => (
+                    <TableRow key={appointment.id}>
+                      <TableCell className="font-mono text-sm">
+                        {appointment.order_id}
+                      </TableCell>
+                      <TableCell>{appointment.client_name}</TableCell>
+                      <TableCell>{appointment.stylist_name}</TableCell>
+                      <TableCell>{appointment.service_name}</TableCell>
+                      <TableCell>
+                        {format(new Date(appointment.appointment_date), 'MMM dd, yyyy')}
+                      </TableCell>
+                      <TableCell>{appointment.appointment_time}</TableCell>
+                      <TableCell>
+                        <Badge className={getStatusBadge(appointment.status)}>
+                          {appointment.status}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">No appointments found</p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
       {/* Payments Table */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">All Payments</CardTitle>
+          <CardTitle className="text-lg">All Payments ({payments.length})</CardTitle>
           <CardDescription>Complete list of payment transactions</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>User</TableHead>
-                  <TableHead>Service</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Date</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {payments.map((payment) => (
-                  <TableRow key={payment.id}>
-                    <TableCell className="font-medium">
-                      GH₵{(payment.amount / 100).toFixed(2)}
-                    </TableCell>
-                    <TableCell>{payment.user_name || 'Unknown'}</TableCell>
-                    <TableCell>{payment.service_name || 'Unknown'}</TableCell>
-                    <TableCell>
-                      <Badge className={getStatusBadge(payment.status)}>
-                        {payment.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {format(new Date(payment.created_at), 'MMM dd, yyyy')}
-                    </TableCell>
+          {payments.length > 0 ? (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Amount</TableHead>
+                    <TableHead>User</TableHead>
+                    <TableHead>Service</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Date</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+                <TableBody>
+                  {payments.map((payment) => (
+                    <TableRow key={payment.id}>
+                      <TableCell className="font-medium">
+                        GH₵{(payment.amount / 100).toFixed(2)}
+                      </TableCell>
+                      <TableCell>{payment.user_name}</TableCell>
+                      <TableCell>{payment.service_name}</TableCell>
+                      <TableCell>
+                        <Badge className={getStatusBadge(payment.status)}>
+                          {payment.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {format(new Date(payment.created_at), 'MMM dd, yyyy')}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">No payments found</p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

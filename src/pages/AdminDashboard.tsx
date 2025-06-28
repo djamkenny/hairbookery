@@ -32,6 +32,7 @@ const AdminDashboard = () => {
   const [payments, setPayments] = useState<DetailedPayment[]>([]);
   const [loading, setLoading] = useState(true);
   const [dataLoading, setDataLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     // Check authentication
@@ -40,49 +41,55 @@ const AdminDashboard = () => {
       return;
     }
 
-    // Load analytics data
-    loadAnalytics();
-    loadDetailedData();
+    // Load all data
+    loadAllData();
   }, [navigate]);
 
-  const loadAnalytics = async () => {
+  const loadAllData = async () => {
     try {
       setLoading(true);
-      const [users, bookings, stylists, services] = await Promise.all([
+      setDataLoading(true);
+      setError(null);
+
+      console.log('Loading all admin dashboard data...');
+
+      // Load analytics and detailed data in parallel
+      const [
+        usersAnalytics,
+        bookingsAnalytics,
+        stylistsAnalytics,
+        servicesAnalytics,
+        usersData,
+        appointmentsData,
+        paymentsData
+      ] = await Promise.all([
         adminAnalytics.getUserAnalytics(),
         adminAnalytics.getBookingAnalytics(),
         adminAnalytics.getStylistAnalytics(),
-        adminAnalytics.getServiceAnalytics()
-      ]);
-
-      setUserAnalytics(users);
-      setBookingAnalytics(bookings);
-      setStylistAnalytics(stylists);
-      setServiceAnalytics(services);
-    } catch (error) {
-      console.error('Error loading analytics:', error);
-      toast.error('Failed to load analytics data');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadDetailedData = async () => {
-    try {
-      setDataLoading(true);
-      const [usersData, appointmentsData, paymentsData] = await Promise.all([
+        adminAnalytics.getServiceAnalytics(),
         adminDataService.getAllUsers(),
         adminDataService.getAllAppointments(),
         adminDataService.getAllPayments()
       ]);
 
+      // Set analytics data
+      setUserAnalytics(usersAnalytics);
+      setBookingAnalytics(bookingsAnalytics);
+      setStylistAnalytics(stylistsAnalytics);
+      setServiceAnalytics(servicesAnalytics);
+
+      // Set detailed data
       setUsers(usersData);
       setAppointments(appointmentsData);
       setPayments(paymentsData);
+
+      console.log('All data loaded successfully');
     } catch (error) {
-      console.error('Error loading detailed data:', error);
-      toast.error('Failed to load detailed data');
+      console.error('Error loading admin dashboard data:', error);
+      setError('Failed to load dashboard data. Please try refreshing the page.');
+      toast.error('Failed to load dashboard data');
     } finally {
+      setLoading(false);
       setDataLoading(false);
     }
   };
@@ -100,7 +107,20 @@ const AdminDashboard = () => {
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-lg">Loading analytics...</p>
+          <p className="text-lg">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="text-center">
+          <p className="text-lg text-red-600 mb-4">{error}</p>
+          <Button onClick={loadAllData}>
+            Try Again
+          </Button>
         </div>
       </div>
     );
@@ -155,7 +175,9 @@ const AdminDashboard = () => {
                   <Users className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent className="p-3 sm:p-6 pt-0">
-                  <div className="text-lg sm:text-2xl font-bold">{userAnalytics?.totalUsers || 0}</div>
+                  <div className="text-lg sm:text-2xl font-bold">
+                    {userAnalytics?.totalUsers || 0}
+                  </div>
                   <p className="text-xs text-muted-foreground">
                     {userAnalytics?.newUsersThisMonth || 0} new this month
                   </p>
@@ -168,7 +190,9 @@ const AdminDashboard = () => {
                   <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent className="p-3 sm:p-6 pt-0">
-                  <div className="text-lg sm:text-2xl font-bold">{bookingAnalytics?.totalBookings || 0}</div>
+                  <div className="text-lg sm:text-2xl font-bold">
+                    {bookingAnalytics?.totalBookings || 0}
+                  </div>
                   <p className="text-xs text-muted-foreground">
                     {bookingAnalytics?.bookingsThisMonth || 0} this month
                   </p>
@@ -185,7 +209,7 @@ const AdminDashboard = () => {
                     GH₵{bookingAnalytics?.totalRevenue?.toFixed(2) || '0.00'}
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    From booking fees (20%)
+                    From platform fees
                   </p>
                 </CardContent>
               </Card>
@@ -196,7 +220,9 @@ const AdminDashboard = () => {
                   <Scissors className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent className="p-3 sm:p-6 pt-0">
-                  <div className="text-lg sm:text-2xl font-bold">{userAnalytics?.totalStylists || 0}</div>
+                  <div className="text-lg sm:text-2xl font-bold">
+                    {userAnalytics?.totalStylists || 0}
+                  </div>
                   <p className="text-xs text-muted-foreground">
                     Total stylists registered
                   </p>
@@ -271,19 +297,21 @@ const AdminDashboard = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3 sm:space-y-4">
-                    {stylistAnalytics?.topStylists?.map((stylist, index) => (
-                      <div key={index} className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2 min-w-0">
-                          <Star className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500 flex-shrink-0" />
-                          <span className="text-sm font-medium truncate">{stylist.name}</span>
+                    {stylistAnalytics?.topStylists && stylistAnalytics.topStylists.length > 0 ? (
+                      stylistAnalytics.topStylists.map((stylist, index) => (
+                        <div key={index} className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2 min-w-0">
+                            <Star className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500 flex-shrink-0" />
+                            <span className="text-sm font-medium truncate">{stylist.name}</span>
+                          </div>
+                          <div className="text-right flex-shrink-0">
+                            <p className="text-sm font-medium">GH₵{stylist.earnings.toFixed(2)}</p>
+                            <p className="text-xs text-muted-foreground">{stylist.bookings} bookings</p>
+                          </div>
                         </div>
-                        <div className="text-right flex-shrink-0">
-                          <p className="text-sm font-medium">GH₵{stylist.earnings.toFixed(2)}</p>
-                          <p className="text-xs text-muted-foreground">{stylist.bookings} bookings</p>
-                        </div>
-                      </div>
-                    )) || (
-                      <p className="text-sm text-muted-foreground">No data available</p>
+                      ))
+                    ) : (
+                      <p className="text-sm text-muted-foreground">No stylist data available yet</p>
                     )}
                   </div>
                 </CardContent>
@@ -297,21 +325,23 @@ const AdminDashboard = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3 sm:space-y-4">
-                    {serviceAnalytics?.popularServices?.map((service, index) => (
-                      <div key={index} className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2 min-w-0">
-                          <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
-                          <span className="text-sm font-medium truncate">{service.name}</span>
+                    {serviceAnalytics?.popularServices && serviceAnalytics.popularServices.length > 0 ? (
+                      serviceAnalytics.popularServices.map((service, index) => (
+                        <div key={index} className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2 min-w-0">
+                            <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
+                            <span className="text-sm font-medium truncate">{service.name}</span>
+                          </div>
+                          <div className="text-right flex-shrink-0">
+                            <p className="text-sm font-medium">{service.bookings} bookings</p>
+                            <p className="text-xs text-muted-foreground">
+                              GH₵{service.revenue.toFixed(2)} revenue
+                            </p>
+                          </div>
                         </div>
-                        <div className="text-right flex-shrink-0">
-                          <p className="text-sm font-medium">{service.bookings} bookings</p>
-                          <p className="text-xs text-muted-foreground">
-                            GH₵{service.revenue.toFixed(2)} revenue
-                          </p>
-                        </div>
-                      </div>
-                    )) || (
-                      <p className="text-sm text-muted-foreground">No data available</p>
+                      ))
+                    ) : (
+                      <p className="text-sm text-muted-foreground">No service data available yet</p>
                     )}
                   </div>
                 </CardContent>
@@ -328,7 +358,10 @@ const AdminDashboard = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
                   <div className="text-center">
                     <p className="text-xl sm:text-2xl font-bold text-primary">
-                      {((bookingAnalytics?.completedBookings || 0) / (bookingAnalytics?.totalBookings || 1) * 100).toFixed(1)}%
+                      {bookingAnalytics?.totalBookings ? 
+                        ((bookingAnalytics.completedBookings / bookingAnalytics.totalBookings) * 100).toFixed(1) 
+                        : '0.0'
+                      }%
                     </p>
                     <p className="text-sm text-muted-foreground">Success Rate</p>
                   </div>
