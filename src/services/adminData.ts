@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface DetailedUser {
@@ -41,6 +40,21 @@ export interface DetailedPayment {
   description?: string;
 }
 
+interface AuthUser {
+  id: string;
+  email?: string;
+  created_at: string;
+  user_metadata?: {
+    full_name?: string;
+    is_stylist?: boolean;
+    phone?: string;
+    location?: string;
+    specialty?: string;
+    experience?: string;
+    bio?: string;
+  };
+}
+
 export const adminDataService = {
   async getAllUsers(): Promise<DetailedUser[]> {
     try {
@@ -61,13 +75,14 @@ export const adminDataService = {
       console.log('Sample profiles:', profiles?.slice(0, 3) || []);
 
       // Also fetch from auth.users to get users who might not have profiles yet
-      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+      const { data: authData, error: authError } = await supabase.auth.admin.listUsers();
       
       if (authError) {
         console.error('Error fetching auth users:', authError);
       }
 
-      console.log('Auth users found:', authUsers?.users?.length || 0);
+      const authUsers: AuthUser[] = authData?.users || [];
+      console.log('Auth users found:', authUsers.length);
 
       // Create a map of profile users
       const profileUserMap = new Map();
@@ -94,7 +109,7 @@ export const adminDataService = {
       });
 
       // Add auth users that don't have profiles yet
-      authUsers?.users?.forEach(authUser => {
+      authUsers.forEach(authUser => {
         if (!profileUserMap.has(authUser.id)) {
           allUsers.push({
             id: authUser.id,

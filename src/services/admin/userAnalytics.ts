@@ -8,6 +8,13 @@ export interface UserAnalytics {
   newUsersThisMonth: number;
 }
 
+interface AuthUser {
+  id: string;
+  email?: string;
+  created_at: string;
+  user_metadata?: any;
+}
+
 export const userAnalyticsService = {
   async getUserAnalytics(): Promise<UserAnalytics> {
     try {
@@ -24,14 +31,16 @@ export const userAnalyticsService = {
       }
 
       // Also get auth users count for complete picture
-      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+      const { data: authData, error: authError } = await supabase.auth.admin.listUsers();
       
       if (authError) {
         console.error('Error fetching auth users:', authError);
       }
 
+      const authUsers: AuthUser[] = authData?.users || [];
+
       console.log('Profiles found for analytics:', profiles?.length || 0);
-      console.log('Auth users found:', authUsers?.users?.length || 0);
+      console.log('Auth users found:', authUsers.length);
 
       // Get unique client IDs from appointments
       const { data: appointments, error: appointmentsError } = await supabase
@@ -46,7 +55,7 @@ export const userAnalyticsService = {
       console.log('Unique client IDs from appointments:', uniqueClientIds.size);
 
       // Use the higher count between profiles and auth users
-      const totalUsers = Math.max(profiles?.length || 0, authUsers?.users?.length || 0);
+      const totalUsers = Math.max(profiles?.length || 0, authUsers.length);
       const totalStylists = profiles?.filter(p => p.is_stylist).length || 0;
       
       // Count actual clients (non-stylists from profiles + unique clients from appointments)
@@ -65,9 +74,9 @@ export const userAnalyticsService = {
         new Date(p.created_at) >= thisMonth
       ).length || 0;
 
-      const newUsersFromAuth = authUsers?.users?.filter(u => 
+      const newUsersFromAuth = authUsers.filter(u => 
         new Date(u.created_at) >= thisMonth
-      ).length || 0;
+      ).length;
 
       const newUsersThisMonth = Math.max(newUsersFromProfiles, newUsersFromAuth);
 
