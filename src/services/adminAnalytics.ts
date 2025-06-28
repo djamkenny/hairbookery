@@ -39,7 +39,7 @@ export interface ServiceAnalytics {
 export const adminAnalytics = {
   async getUserAnalytics(): Promise<UserAnalytics> {
     try {
-      console.log('Fetching user analytics...');
+      console.log('Fetching comprehensive user analytics...');
       
       // Get all profiles
       const { data: profiles, error: profilesError } = await supabase
@@ -51,11 +51,36 @@ export const adminAnalytics = {
         throw profilesError;
       }
 
-      console.log('Profiles fetched:', profiles?.length || 0);
+      console.log('Profiles found:', profiles?.length || 0);
+
+      // Get unique client IDs from appointments to count actual clients
+      const { data: appointments, error: appointmentsError } = await supabase
+        .from('appointments')
+        .select('client_id');
+
+      if (appointmentsError) {
+        console.error('Error fetching appointments for client count:', appointmentsError);
+      }
+
+      const uniqueClientIds = new Set(appointments?.map(a => a.client_id) || []);
+      console.log('Unique client IDs from appointments:', uniqueClientIds.size);
 
       const totalUsers = profiles?.length || 0;
       const totalStylists = profiles?.filter(p => p.is_stylist).length || 0;
-      const totalClients = totalUsers - totalStylists;
+      
+      // Count clients from profiles (non-stylists) + clients who have appointments but no profile
+      const profileClients = profiles?.filter(p => !p.is_stylist).length || 0;
+      const appointmentClients = uniqueClientIds.size;
+      
+      // Find clients who have appointments but no profile
+      const profileIds = new Set(profiles?.map(p => p.id) || []);
+      const clientsWithoutProfile = Array.from(uniqueClientIds).filter(id => !profileIds.has(id)).length;
+      
+      console.log('Profile clients:', profileClients);
+      console.log('Appointment clients:', appointmentClients);
+      console.log('Missing clients (no profile):', clientsWithoutProfile);
+      
+      const totalClients = Math.max(profileClients, appointmentClients);
 
       // Calculate new users this month
       const thisMonth = new Date();
@@ -73,7 +98,7 @@ export const adminAnalytics = {
         newUsersThisMonth
       };
 
-      console.log('User Analytics Result:', result);
+      console.log('Comprehensive User Analytics Result:', result);
       return result;
     } catch (error) {
       console.error('Error in getUserAnalytics:', error);
@@ -83,7 +108,7 @@ export const adminAnalytics = {
 
   async getBookingAnalytics(): Promise<BookingAnalytics> {
     try {
-      console.log('Fetching booking analytics...');
+      console.log('Fetching comprehensive booking analytics...');
       
       // Get all appointments
       const { data: appointments, error: appointmentsError } = await supabase
@@ -95,7 +120,16 @@ export const adminAnalytics = {
         throw appointmentsError;
       }
 
-      // Get platform revenue from specialist_earnings (platform fees)
+      // Get revenue data from revenue_tracking table
+      const { data: revenueData, error: revenueError } = await supabase
+        .from('revenue_tracking')
+        .select('total_revenue, booking_fee');
+
+      if (revenueError) {
+        console.error('Error fetching revenue data:', revenueError);
+      }
+
+      // Get earnings data (platform fees)
       const { data: earnings, error: earningsError } = await supabase
         .from('specialist_earnings')
         .select('platform_fee');
@@ -104,18 +138,52 @@ export const adminAnalytics = {
         console.error('Error fetching earnings:', earningsError);
       }
 
-      console.log('Appointments fetched:', appointments?.length || 0);
-      console.log('Earnings records:', earnings?.length || 0);
+      // Get completed payments for additional revenue calculation
+      const { data: payments, error: paymentsError } = await supabase
+        .from('payments')
+        .select('amount, status')
+        .eq('status', 'completed');
+
+      if (paymentsError) {
+        console.error('Error fetching payments:', paymentsError);
+      }
+
+      console.log('=== REVENUE DEBUG INFO ===');
+      console.log('Appointments found:', appointments?.length || 0);
+      console.log('Revenue records found:', revenueData?.length || 0);
+      console.log('Earnings records found:', earnings?.length || 0);
+      console.log('Completed payments found:', payments?.length || 0);
 
       const totalBookings = appointments?.length || 0;
       const completedBookings = appointments?.filter(a => a.status === 'completed').length || 0;
       const pendingBookings = appointments?.filter(a => a.status === 'pending').length || 0;
       const canceledBookings = appointments?.filter(a => a.status === 'canceled').length || 0;
 
-      // Calculate total platform revenue from platform fees (convert from cents)
-      const totalRevenue = earnings?.reduce((sum, earning) => {
+      // Calculate total platform revenue from multiple sources
+      let totalRevenue = 0;
+
+      // Add revenue from revenue_tracking (booking fees)
+      const revenueFromTracking = revenueData?.reduce((sum, record) => {
+        return sum + (parseFloat(record.booking_fee?.toString() || '0'));
+      }, 0) || 0;
+
+      // Add platform fees from specialist_earnings (convert from cents)
+      const revenueFromEarnings = earnings?.reduce((sum, earning) => {
         return sum + ((earning.platform_fee || 0) / 100);
       }, 0) || 0;
+
+      // Add 15% of completed payments as platform fee (convert from cents)  
+      const revenueFromPayments = payments?.reduce((sum, payment) => {
+        return sum + ((payment.amount || 0) * 0.15 / 100);
+      }, 0) || 0;
+
+      totalRevenue = revenueFromTracking + revenueFromEarnings + revenueFromPayments;
+
+      console.log('Revenue data:', revenueData?.slice(0, 3) || []);
+      console.log('Earnings data:', earnings?.slice(0, 3) || []);
+      console.log('Payments data:', payments?.slice(0, 3) || []);
+      console.log('=== FINAL REVENUE CALCULATION ===');
+      console.log('Total platform revenue:', totalRevenue);
 
       // Calculate bookings this month
       const thisMonth = new Date();
@@ -135,7 +203,7 @@ export const adminAnalytics = {
         bookingsThisMonth
       };
 
-      console.log('Booking Analytics Result:', result);
+      console.log('Final Booking Analytics Result:', result);
       return result;
     } catch (error) {
       console.error('Error in getBookingAnalytics:', error);
@@ -152,20 +220,26 @@ export const adminAnalytics = {
 
   async getStylistAnalytics(): Promise<StylistAnalytics> {
     try {
-      console.log('Fetching stylist analytics...');
+      console.log('Fetching comprehensive stylist analytics...');
       
-      // Get all earnings with stylist info
+      // Get all earnings
       const { data: earnings, error: earningsError } = await supabase
         .from('specialist_earnings')
-        .select(`
-          stylist_id,
-          net_amount,
-          profiles!inner(full_name)
-        `);
+        .select('stylist_id, net_amount');
 
       if (earningsError) {
         console.error('Error fetching earnings:', earningsError);
         throw earningsError;
+      }
+
+      // Get all stylists
+      const { data: stylists, error: stylistsError } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .eq('is_stylist', true);
+
+      if (stylistsError) {
+        console.error('Error fetching stylists:', stylistsError);
       }
 
       // Get appointment counts per stylist
@@ -178,8 +252,9 @@ export const adminAnalytics = {
         console.error('Error fetching appointments:', appointmentsError);
       }
 
-      console.log('Earnings with stylist info:', earnings?.length || 0);
-      console.log('Completed appointments:', appointments?.length || 0);
+      console.log('Earnings found:', earnings?.length || 0);
+      console.log('Stylists found:', stylists?.length || 0);
+      console.log('Completed appointments found:', appointments?.length || 0);
 
       // Calculate total earnings (convert from cents)
       const totalEarnings = earnings?.reduce((sum, e) => sum + ((e.net_amount || 0) / 100), 0) || 0;
@@ -187,20 +262,23 @@ export const adminAnalytics = {
       // Group earnings by stylist
       const stylistMap = new Map();
       
+      // Initialize with stylist info
+      stylists?.forEach(stylist => {
+        stylistMap.set(stylist.id, {
+          name: stylist.full_name || 'Unknown',
+          earnings: 0,
+          bookings: 0
+        });
+      });
+
+      // Add earnings
       earnings?.forEach(earning => {
         const stylistId = earning.stylist_id;
-        const stylistName = earning.profiles?.full_name || 'Unknown';
         const netAmount = (earning.net_amount || 0) / 100;
         
-        if (!stylistMap.has(stylistId)) {
-          stylistMap.set(stylistId, {
-            name: stylistName,
-            earnings: 0,
-            bookings: 0
-          });
+        if (stylistMap.has(stylistId)) {
+          stylistMap.get(stylistId).earnings += netAmount;
         }
-        
-        stylistMap.get(stylistId).earnings += netAmount;
       });
 
       // Add booking counts
@@ -226,7 +304,7 @@ export const adminAnalytics = {
         topStylists
       };
 
-      console.log('Stylist Analytics Result:', result);
+      console.log('Comprehensive Stylist Analytics Result:', result);
       return result;
     } catch (error) {
       console.error('Error in getStylistAnalytics:', error);
@@ -236,7 +314,7 @@ export const adminAnalytics = {
 
   async getServiceAnalytics(): Promise<ServiceAnalytics> {
     try {
-      console.log('Fetching service analytics...');
+      console.log('Fetching comprehensive service analytics...');
       
       // Get all services
       const { data: services, error: servicesError } = await supabase
@@ -248,55 +326,59 @@ export const adminAnalytics = {
         throw servicesError;
       }
 
-      // Get completed appointments with service info
+      // Get completed appointments
       const { data: appointments, error: appointmentsError } = await supabase
         .from('appointments')
-        .select(`
-          service_id,
-          services!inner(name, price)
-        `)
+        .select('service_id, status')
         .eq('status', 'completed');
 
       if (appointmentsError) {
         console.error('Error fetching appointments:', appointmentsError);
       }
 
-      console.log('Services fetched:', services?.length || 0);
-      console.log('Completed appointments with services:', appointments?.length || 0);
+      console.log('Services found:', services?.length || 0);
+      console.log('Completed appointments for services found:', appointments?.length || 0);
 
       const totalServices = services?.length || 0;
 
       // Group appointments by service
       const serviceMap = new Map();
       
+      // Initialize with service info
+      services?.forEach(service => {
+        serviceMap.set(service.id, {
+          name: service.name || 'Unknown',
+          bookings: 0,
+          revenue: 0,
+          price: (service.price || 0) / 100
+        });
+      });
+
+      // Count bookings per service
       appointments?.forEach(appointment => {
-        const serviceName = appointment.services?.name || 'Unknown';
-        const servicePrice = (appointment.services?.price || 0) / 100;
-        
-        if (!serviceMap.has(serviceName)) {
-          serviceMap.set(serviceName, {
-            name: serviceName,
-            bookings: 0,
-            revenue: 0
-          });
+        const serviceData = serviceMap.get(appointment.service_id);
+        if (serviceData) {
+          serviceData.bookings += 1;
+          serviceData.revenue += serviceData.price * 0.15; // Platform fee (15%)
         }
-        
-        const serviceData = serviceMap.get(serviceName);
-        serviceData.bookings += 1;
-        serviceData.revenue += servicePrice * 0.15; // Platform fee (15%)
       });
 
       const popularServices = Array.from(serviceMap.values())
         .filter(service => service.bookings > 0)
         .sort((a, b) => b.bookings - a.bookings)
-        .slice(0, 5);
+        .slice(0, 5)
+        .map(service => ({
+          name: service.name,
+          bookings: service.bookings,
+          revenue: Math.round(service.revenue * 100) / 100
+        }));
 
       const result = {
         totalServices,
         popularServices
       };
 
-      console.log('Service Analytics Result:', result);
+      console.log('Comprehensive Service Analytics Result:', result);
       return result;
     } catch (error) {
       console.error('Error in getServiceAnalytics:', error);
