@@ -302,7 +302,7 @@
   }
   
   button, a, input, select, textarea {
-    @apply min-h-[36px] sm:min-h-[40px];
+    @apply min-h-[15px] sm:min-h-[40px];
   }
   
   form {
@@ -312,9 +312,6 @@
   input, select, textarea {
     @apply py-2 px-3 text-base;
   }
-
-  button, a, input, select, textarea {
-      min-height: 15px;
 }
 
 @media screen and (max-width: 768px) {
