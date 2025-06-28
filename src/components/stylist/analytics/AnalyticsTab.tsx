@@ -1,9 +1,11 @@
 
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useStylistRevenue } from "@/hooks/useStylistRevenue";
+import { useStylistAnalytics } from "@/hooks/useStylistAnalytics";
 import { supabase } from "@/integrations/supabase/client";
 import { formatGHS } from "@/components/stylist/services/formatGHS";
 import RealTimeBalance from "./RealTimeBalance";
@@ -21,6 +23,7 @@ const AnalyticsTab = () => {
   }, []);
 
   const { revenueSummary, loading } = useStylistRevenue(user?.id);
+  const { serviceStats, monthlyStats, loading: analyticsLoading } = useStylistAnalytics();
 
   // Mock data for Most Popular Services
   const servicesData = [
@@ -103,6 +106,88 @@ const AnalyticsTab = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Service Performance Details Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle className={`${isMobile ? 'text-lg' : 'text-xl'}`}>
+            Service Performance Details
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {analyticsLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <p className="text-muted-foreground">Loading service data...</p>
+            </div>
+          ) : serviceStats && serviceStats.length > 0 ? (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Service</TableHead>
+                    <TableHead>Bookings</TableHead>
+                    <TableHead>Total Revenue</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {serviceStats.map((service, index) => (
+                    <TableRow key={index}>
+                      <TableCell className="font-medium">{service.serviceName}</TableCell>
+                      <TableCell>{service.bookingCount}</TableCell>
+                      <TableCell>{formatGHS(service.totalRevenue)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center py-8">
+              <p className="text-muted-foreground">No service performance data available yet</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Monthly Revenue & Bookings Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle className={`${isMobile ? 'text-lg' : 'text-xl'}`}>
+            Monthly Revenue & Bookings
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {analyticsLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <p className="text-muted-foreground">Loading monthly data...</p>
+            </div>
+          ) : monthlyStats && monthlyStats.length > 0 ? (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Month</TableHead>
+                    <TableHead>Bookings</TableHead>
+                    <TableHead>Revenue</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {monthlyStats.map((month, index) => (
+                    <TableRow key={index}>
+                      <TableCell className="font-medium">{month.month}</TableCell>
+                      <TableCell>{month.bookings}</TableCell>
+                      <TableCell>{formatGHS(month.revenue)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center py-8">
+              <p className="text-muted-foreground">No monthly data available yet</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Charts Grid - Stack on mobile, side by side on desktop */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
