@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface DetailedUser {
@@ -11,6 +10,10 @@ export interface DetailedUser {
   location?: string;
   specialty?: string;
   experience?: string;
+  bio?: string;
+  avatar_url?: string;
+  availability?: boolean;
+  availability_status?: string;
 }
 
 export interface DetailedAppointment {
@@ -40,11 +43,11 @@ export interface DetailedPayment {
 export const adminDataService = {
   async getAllUsers(): Promise<DetailedUser[]> {
     try {
-      console.log('Fetching all users from profiles table...');
+      console.log('Fetching ALL users from profiles table (both stylists and clients)...');
       
       const { data: profiles, error } = await supabase
         .from('profiles')
-        .select('id, full_name, email, is_stylist, created_at, phone, location, specialty, experience')
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -52,20 +55,70 @@ export const adminDataService = {
         throw error;
       }
 
-      console.log('Profiles data:', profiles?.slice(0, 5) || []);
-      console.log('Total users found:', profiles?.length || 0);
+      console.log('Profiles data found:', profiles?.length || 0);
+      console.log('Sample profiles:', profiles?.slice(0, 3) || []);
 
-      return profiles?.map(profile => ({
-        id: profile.id,
-        full_name: profile.full_name || 'Unknown User',
-        email: profile.email || 'No email',
-        is_stylist: profile.is_stylist || false,
-        created_at: profile.created_at,
-        phone: profile.phone,
-        location: profile.location,
-        specialty: profile.specialty,
-        experience: profile.experience
-      })) || [];
+      // Also fetch from auth.users to get additional user data if available
+      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+      
+      if (authError) {
+        console.error('Error fetching auth users:', authError);
+      }
+
+      console.log('Auth users found:', authUsers?.users?.length || 0);
+
+      // Create a map of auth users for additional data
+      const authUserMap = new Map();
+      authUsers?.users?.forEach(user => {
+        authUserMap.set(user.id, user);
+      });
+
+      // Combine profile data with auth data
+      const allUsers = profiles?.map(profile => {
+        const authUser = authUserMap.get(profile.id);
+        return {
+          id: profile.id,
+          full_name: profile.full_name || authUser?.user_metadata?.full_name || authUser?.email?.split('@')[0] || 'Unknown User',
+          email: profile.email || authUser?.email || 'No email',
+          is_stylist: profile.is_stylist || false,
+          created_at: profile.created_at,
+          phone: profile.phone || authUser?.user_metadata?.phone,
+          location: profile.location,
+          specialty: profile.specialty,
+          experience: profile.experience,
+          bio: profile.bio,
+          avatar_url: profile.avatar_url,
+          availability: profile.availability,
+          availability_status: profile.availability_status
+        };
+      }) || [];
+
+      // Add any auth users that don't have profiles yet
+      authUsers?.users?.forEach(authUser => {
+        if (!allUsers.find(user => user.id === authUser.id)) {
+          allUsers.push({
+            id: authUser.id,
+            full_name: authUser.user_metadata?.full_name || authUser.email?.split('@')[0] || 'Unknown User',
+            email: authUser.email || 'No email',
+            is_stylist: authUser.user_metadata?.is_stylist || false,
+            created_at: authUser.created_at,
+            phone: authUser.user_metadata?.phone,
+            location: undefined,
+            specialty: authUser.user_metadata?.specialty,
+            experience: authUser.user_metadata?.experience,
+            bio: authUser.user_metadata?.bio,
+            avatar_url: undefined,
+            availability: undefined,
+            availability_status: undefined
+          });
+        }
+      });
+
+      console.log('Total users combined:', allUsers.length);
+      console.log('Stylists:', allUsers.filter(u => u.is_stylist).length);
+      console.log('Clients:', allUsers.filter(u => !u.is_stylist).length);
+
+      return allUsers;
     } catch (error) {
       console.error('Error in getAllUsers:', error);
       return [];

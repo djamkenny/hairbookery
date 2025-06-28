@@ -80,7 +80,9 @@ const DataTables: React.FC<DataTablesProps> = ({ users, appointments, payments, 
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">All Users ({users.length})</CardTitle>
-          <CardDescription>Complete list of registered users</CardDescription>
+          <CardDescription>
+            Complete list of registered users - {users.filter(u => u.is_stylist).length} stylists, {users.filter(u => !u.is_stylist).length} clients
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {users.length > 0 ? (
@@ -91,6 +93,9 @@ const DataTables: React.FC<DataTablesProps> = ({ users, appointments, payments, 
                     <TableHead>Name</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Type</TableHead>
+                    <TableHead>Phone</TableHead>
+                    <TableHead>Location</TableHead>
+                    <TableHead>Specialty</TableHead>
                     <TableHead>Joined</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -100,12 +105,15 @@ const DataTables: React.FC<DataTablesProps> = ({ users, appointments, payments, 
                       <TableCell className="font-medium">
                         {user.full_name || 'No name'}
                       </TableCell>
-                      <TableCell>{user.email}</TableCell>
+                      <TableCell className="text-sm">{user.email}</TableCell>
                       <TableCell>
                         <Badge variant={user.is_stylist ? "default" : "secondary"}>
                           {user.is_stylist ? 'Stylist' : 'Client'}
                         </Badge>
                       </TableCell>
+                      <TableCell className="text-sm">{user.phone || '-'}</TableCell>
+                      <TableCell className="text-sm">{user.location || '-'}</TableCell>
+                      <TableCell className="text-sm">{user.specialty || '-'}</TableCell>
                       <TableCell>
                         {format(new Date(user.created_at), 'MMM dd, yyyy')}
                       </TableCell>

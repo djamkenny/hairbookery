@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface UserAnalytics {
@@ -51,7 +50,15 @@ export const adminAnalytics = {
         throw profilesError;
       }
 
+      // Also get auth users count for complete picture
+      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+      
+      if (authError) {
+        console.error('Error fetching auth users:', authError);
+      }
+
       console.log('Profiles found for analytics:', profiles?.length || 0);
+      console.log('Auth users found:', authUsers?.users?.length || 0);
 
       // Get unique client IDs from appointments
       const { data: appointments, error: appointmentsError } = await supabase
@@ -65,7 +72,8 @@ export const adminAnalytics = {
       const uniqueClientIds = new Set(appointments?.map(a => a.client_id) || []);
       console.log('Unique client IDs from appointments:', uniqueClientIds.size);
 
-      const totalUsers = profiles?.length || 0;
+      // Use the higher count between profiles and auth users
+      const totalUsers = Math.max(profiles?.length || 0, authUsers?.users?.length || 0);
       const totalStylists = profiles?.filter(p => p.is_stylist).length || 0;
       
       // Count actual clients (non-stylists from profiles + unique clients from appointments)
@@ -75,14 +83,20 @@ export const adminAnalytics = {
       // Use the higher count as the total clients
       const totalClients = Math.max(profileClients, appointmentClients);
 
-      // Calculate new users this month
+      // Calculate new users this month from both sources
       const thisMonth = new Date();
       thisMonth.setDate(1);
       thisMonth.setHours(0, 0, 0, 0);
 
-      const newUsersThisMonth = profiles?.filter(p => 
+      const newUsersFromProfiles = profiles?.filter(p => 
         new Date(p.created_at) >= thisMonth
       ).length || 0;
+
+      const newUsersFromAuth = authUsers?.users?.filter(u => 
+        new Date(u.created_at) >= thisMonth
+      ).length || 0;
+
+      const newUsersThisMonth = Math.max(newUsersFromProfiles, newUsersFromAuth);
 
       const result = {
         totalUsers,

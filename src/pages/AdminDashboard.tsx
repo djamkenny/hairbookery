@@ -92,6 +92,11 @@ const AdminDashboard = () => {
         revenue: revenueTrackingData.length,
         earnings: specialistEarningsData.length
       });
+      console.log('User breakdown:', {
+        totalUsers: usersData.length,
+        stylists: usersData.filter(u => u.is_stylist).length,
+        clients: usersData.filter(u => !u.is_stylist).length
+      });
 
       // Set analytics data
       setUserAnalytics(usersAnalytics);
