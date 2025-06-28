@@ -12,6 +12,7 @@ export interface Notification {
   priority?: string | null;
   type: string;
 }
+
 export function useNotifications() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
@@ -19,25 +20,56 @@ export function useNotifications() {
   useEffect(() => {
     let mounted = true;
 
-    const fetch = async () => {
-      setLoading(true);
-      const { data } = await supabase
-        .from("notifications")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(20);
-      if (!mounted) return;
-      setNotifications(data || []);
-      setLoading(false);
-    };
-    fetch();
+    const fetchNotifications = async () => {
+      try {
+        setLoading(true);
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user) {
+          setNotifications([]);
+          setLoading(false);
+          return;
+        }
 
+        const { data, error } = await supabase
+          .from("notifications")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(20);
+
+        if (error) {
+          console.error("Error fetching notifications:", error);
+          return;
+        }
+
+        if (!mounted) return;
+        setNotifications(data || []);
+      } catch (error) {
+        console.error("Error in fetchNotifications:", error);
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchNotifications();
+
+    // Subscribe to realtime changes
     const channel = supabase
       .channel("notifications_realtime")
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "notifications" },
-        () => fetch()
+        { 
+          event: "*", 
+          schema: "public", 
+          table: "notifications"
+        },
+        (payload) => {
+          console.log("Notification change detected:", payload);
+          fetchNotifications();
+        }
       )
       .subscribe();
 
