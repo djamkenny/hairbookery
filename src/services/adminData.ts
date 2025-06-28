@@ -7,6 +7,10 @@ export interface DetailedUser {
   email: string;
   is_stylist: boolean;
   created_at: string;
+  phone?: string;
+  location?: string;
+  specialty?: string;
+  experience?: string;
 }
 
 export interface DetailedAppointment {
@@ -19,6 +23,7 @@ export interface DetailedAppointment {
   appointment_time: string;
   status: string;
   created_at: string;
+  notes?: string;
 }
 
 export interface DetailedPayment {
@@ -28,6 +33,8 @@ export interface DetailedPayment {
   user_name: string;
   service_name: string;
   created_at: string;
+  currency: string;
+  description?: string;
 }
 
 export const adminDataService = {
@@ -37,7 +44,7 @@ export const adminDataService = {
       
       const { data: profiles, error } = await supabase
         .from('profiles')
-        .select('id, full_name, email, is_stylist, created_at')
+        .select('id, full_name, email, is_stylist, created_at, phone, location, specialty, experience')
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -45,15 +52,19 @@ export const adminDataService = {
         throw error;
       }
 
-      console.log('Profiles data:', profiles?.slice(0, 3) || []);
+      console.log('Profiles data:', profiles?.slice(0, 5) || []);
       console.log('Total users found:', profiles?.length || 0);
 
       return profiles?.map(profile => ({
         id: profile.id,
-        full_name: profile.full_name || 'Unknown',
+        full_name: profile.full_name || 'Unknown User',
         email: profile.email || 'No email',
         is_stylist: profile.is_stylist || false,
-        created_at: profile.created_at
+        created_at: profile.created_at,
+        phone: profile.phone,
+        location: profile.location,
+        specialty: profile.specialty,
+        experience: profile.experience
       })) || [];
     } catch (error) {
       console.error('Error in getAllUsers:', error);
@@ -63,12 +74,12 @@ export const adminDataService = {
 
   async getAllAppointments(): Promise<DetailedAppointment[]> {
     try {
-      console.log('Fetching all appointments...');
+      console.log('Fetching all appointments with full details...');
       
-      // First get appointments
+      // Get appointments
       const { data: appointments, error: appointmentsError } = await supabase
         .from('appointments')
-        .select('id, order_id, appointment_date, appointment_time, status, created_at, client_id, stylist_id, service_id')
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (appointmentsError) {
@@ -76,25 +87,30 @@ export const adminDataService = {
         throw appointmentsError;
       }
 
-      // Get all related profiles
+      console.log('Raw appointments found:', appointments?.length || 0);
+
+      if (!appointments || appointments.length === 0) {
+        console.log('No appointments found in database');
+        return [];
+      }
+
+      // Get all profiles for name lookup
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('id, full_name');
 
       if (profilesError) {
-        console.error('Error fetching profiles:', profilesError);
+        console.error('Error fetching profiles for appointments:', profilesError);
       }
 
-      // Get all services
+      // Get all services for name lookup
       const { data: services, error: servicesError } = await supabase
         .from('services')
         .select('id, name');
 
       if (servicesError) {
-        console.error('Error fetching services:', servicesError);
+        console.error('Error fetching services for appointments:', servicesError);
       }
-
-      console.log('Raw appointments found:', appointments?.length || 0);
 
       // Create lookup maps
       const profileMap = new Map();
@@ -104,20 +120,24 @@ export const adminDataService = {
 
       const serviceMap = new Map();
       services?.forEach(service => {
-        serviceMap.set(service.id, service.name || 'Unknown');
+        serviceMap.set(service.id, service.name || 'Unknown Service');
       });
 
-      return appointments?.map(appointment => ({
+      console.log('Profile lookup map size:', profileMap.size);
+      console.log('Service lookup map size:', serviceMap.size);
+
+      return appointments.map(appointment => ({
         id: appointment.id,
-        order_id: appointment.order_id || 'N/A',
-        client_name: profileMap.get(appointment.client_id) || 'Unknown',
-        stylist_name: profileMap.get(appointment.stylist_id) || 'Unknown',
-        service_name: serviceMap.get(appointment.service_id) || 'Unknown',
+        order_id: appointment.order_id || `APT-${appointment.id.slice(0, 8)}`,
+        client_name: profileMap.get(appointment.client_id) || 'Unknown Client',
+        stylist_name: profileMap.get(appointment.stylist_id) || 'Unknown Stylist',
+        service_name: serviceMap.get(appointment.service_id) || 'Unknown Service',
         appointment_date: appointment.appointment_date,
         appointment_time: appointment.appointment_time,
         status: appointment.status,
-        created_at: appointment.created_at
-      })) || [];
+        created_at: appointment.created_at,
+        notes: appointment.notes
+      }));
     } catch (error) {
       console.error('Error in getAllAppointments:', error);
       return [];
@@ -126,12 +146,12 @@ export const adminDataService = {
 
   async getAllPayments(): Promise<DetailedPayment[]> {
     try {
-      console.log('Fetching all payments...');
+      console.log('Fetching all payments with full details...');
       
-      // First get payments
+      // Get payments
       const { data: payments, error: paymentsError } = await supabase
         .from('payments')
-        .select('id, amount, status, created_at, user_id, service_id')
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (paymentsError) {
@@ -139,25 +159,30 @@ export const adminDataService = {
         throw paymentsError;
       }
 
-      // Get all related profiles
+      console.log('Raw payments found:', payments?.length || 0);
+
+      if (!payments || payments.length === 0) {
+        console.log('No payments found in database');
+        return [];
+      }
+
+      // Get all profiles for name lookup
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('id, full_name');
 
       if (profilesError) {
-        console.error('Error fetching profiles:', profilesError);
+        console.error('Error fetching profiles for payments:', profilesError);
       }
 
-      // Get all services
+      // Get all services for name lookup
       const { data: services, error: servicesError } = await supabase
         .from('services')
         .select('id, name');
 
       if (servicesError) {
-        console.error('Error fetching services:', servicesError);
+        console.error('Error fetching services for payments:', servicesError);
       }
-
-      console.log('Raw payments found:', payments?.length || 0);
 
       // Create lookup maps
       const profileMap = new Map();
@@ -167,19 +192,68 @@ export const adminDataService = {
 
       const serviceMap = new Map();
       services?.forEach(service => {
-        serviceMap.set(service.id, service.name || 'Unknown');
+        serviceMap.set(service.id, service.name || 'Unknown Service');
       });
 
-      return payments?.map(payment => ({
+      console.log('Payment profile lookup map size:', profileMap.size);
+      console.log('Payment service lookup map size:', serviceMap.size);
+
+      return payments.map(payment => ({
         id: payment.id,
         amount: payment.amount,
         status: payment.status,
-        user_name: profileMap.get(payment.user_id) || 'Unknown',
-        service_name: serviceMap.get(payment.service_id) || 'Unknown',
-        created_at: payment.created_at
-      })) || [];
+        user_name: profileMap.get(payment.user_id) || 'Unknown User',
+        service_name: serviceMap.get(payment.service_id) || 'Unknown Service',
+        created_at: payment.created_at,
+        currency: payment.currency || 'GHS',
+        description: payment.description
+      }));
     } catch (error) {
       console.error('Error in getAllPayments:', error);
+      return [];
+    }
+  },
+
+  async getAllRevenue(): Promise<any[]> {
+    try {
+      console.log('Fetching all revenue tracking data...');
+      
+      const { data: revenue, error } = await supabase
+        .from('revenue_tracking')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching revenue:', error);
+        throw error;
+      }
+
+      console.log('Revenue records found:', revenue?.length || 0);
+      return revenue || [];
+    } catch (error) {
+      console.error('Error in getAllRevenue:', error);
+      return [];
+    }
+  },
+
+  async getAllEarnings(): Promise<any[]> {
+    try {
+      console.log('Fetching all specialist earnings...');
+      
+      const { data: earnings, error } = await supabase
+        .from('specialist_earnings')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching earnings:', error);
+        throw error;
+      }
+
+      console.log('Earnings records found:', earnings?.length || 0);
+      return earnings || [];
+    } catch (error) {
+      console.error('Error in getAllEarnings:', error);
       return [];
     }
   }

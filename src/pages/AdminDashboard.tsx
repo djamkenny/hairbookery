@@ -30,6 +30,8 @@ const AdminDashboard = () => {
   const [users, setUsers] = useState<DetailedUser[]>([]);
   const [appointments, setAppointments] = useState<DetailedAppointment[]>([]);
   const [payments, setPayments] = useState<DetailedPayment[]>([]);
+  const [revenueData, setRevenueData] = useState<any[]>([]);
+  const [earningsData, setEarningsData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [dataLoading, setDataLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -51,7 +53,7 @@ const AdminDashboard = () => {
       setDataLoading(true);
       setError(null);
 
-      console.log('Loading all admin dashboard data...');
+      console.log('=== LOADING ALL ADMIN DASHBOARD DATA ===');
 
       // Load analytics and detailed data in parallel
       const [
@@ -61,7 +63,9 @@ const AdminDashboard = () => {
         servicesAnalytics,
         usersData,
         appointmentsData,
-        paymentsData
+        paymentsData,
+        revenueTrackingData,
+        specialistEarningsData
       ] = await Promise.all([
         adminAnalytics.getUserAnalytics(),
         adminAnalytics.getBookingAnalytics(),
@@ -69,8 +73,25 @@ const AdminDashboard = () => {
         adminAnalytics.getServiceAnalytics(),
         adminDataService.getAllUsers(),
         adminDataService.getAllAppointments(),
-        adminDataService.getAllPayments()
+        adminDataService.getAllPayments(),
+        adminDataService.getAllRevenue(),
+        adminDataService.getAllEarnings()
       ]);
+
+      console.log('=== DATA LOADING RESULTS ===');
+      console.log('Analytics loaded:', {
+        users: usersAnalytics,
+        bookings: bookingsAnalytics,
+        stylists: stylistsAnalytics,
+        services: servicesAnalytics
+      });
+      console.log('Data counts:', {
+        users: usersData.length,
+        appointments: appointmentsData.length,
+        payments: paymentsData.length,
+        revenue: revenueTrackingData.length,
+        earnings: specialistEarningsData.length
+      });
 
       // Set analytics data
       setUserAnalytics(usersAnalytics);
@@ -82,8 +103,10 @@ const AdminDashboard = () => {
       setUsers(usersData);
       setAppointments(appointmentsData);
       setPayments(paymentsData);
+      setRevenueData(revenueTrackingData);
+      setEarningsData(specialistEarningsData);
 
-      console.log('All data loaded successfully');
+      console.log('All admin dashboard data loaded successfully');
     } catch (error) {
       console.error('Error loading admin dashboard data:', error);
       setError('Failed to load dashboard data. Please try refreshing the page.');
@@ -167,7 +190,7 @@ const AdminDashboard = () => {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
-            {/* Overview Cards */}
+            {/* Enhanced Overview Cards with actual data */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
               <Card className="mobile-card">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -181,6 +204,9 @@ const AdminDashboard = () => {
                   <p className="text-xs text-muted-foreground">
                     {userAnalytics?.newUsersThisMonth || 0} new this month
                   </p>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    {userAnalytics?.totalStylists || 0} stylists • {userAnalytics?.totalClients || 0} clients
+                  </div>
                 </CardContent>
               </Card>
 
@@ -196,6 +222,9 @@ const AdminDashboard = () => {
                   <p className="text-xs text-muted-foreground">
                     {bookingAnalytics?.bookingsThisMonth || 0} this month
                   </p>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    {bookingAnalytics?.completedBookings || 0} completed • {bookingAnalytics?.pendingBookings || 0} pending
+                  </div>
                 </CardContent>
               </Card>
 
@@ -211,6 +240,9 @@ const AdminDashboard = () => {
                   <p className="text-xs text-muted-foreground">
                     From platform fees
                   </p>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    Revenue records: {revenueData.length}
+                  </div>
                 </CardContent>
               </Card>
 
@@ -226,6 +258,9 @@ const AdminDashboard = () => {
                   <p className="text-xs text-muted-foreground">
                     Total stylists registered
                   </p>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    Earning: GH₵{stylistAnalytics?.totalEarnings?.toFixed(2) || '0.00'}
+                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -384,6 +419,30 @@ const AdminDashboard = () => {
 
           <TabsContent value="revenue" className="space-y-6">
             <RevenueHistory />
+            
+            {/* Additional Revenue Data */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Revenue Breakdown</CardTitle>
+                <CardDescription>Detailed revenue information</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span>Total Revenue Records:</span>
+                    <span className="font-medium">{revenueData.length}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>Total Earnings Records:</span>
+                    <span className="font-medium">{earningsData.length}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>Completed Payments:</span>
+                    <span className="font-medium">{payments.filter(p => p.status === 'completed').length}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="data" className="space-y-6">
