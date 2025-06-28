@@ -3,9 +3,24 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useStylistRevenue } from "@/hooks/useStylistRevenue";
+import { supabase } from "@/integrations/supabase/client";
+import { formatGHS } from "@/components/stylist/services/formatGHS";
+import RealTimeBalance from "./RealTimeBalance";
 
 const AnalyticsTab = () => {
   const isMobile = useIsMobile();
+  const [user, setUser] = React.useState<any>(null);
+
+  React.useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+    };
+    getUser();
+  }, []);
+
+  const { revenueSummary, loading } = useStylistRevenue(user?.id);
 
   // Mock data for Most Popular Services
   const servicesData = [
@@ -29,6 +44,64 @@ const AnalyticsTab = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-xl md:text-2xl font-semibold">Analytics Overview</h2>
+      </div>
+
+      {/* Revenue Summary Cards */}
+      {user && (
+        <div className="mb-6">
+          <RealTimeBalance stylistId={user.id} />
+        </div>
+      )}
+
+      {/* Revenue Overview Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {loading ? "Loading..." : formatGHS(revenueSummary.total_revenue)}
+            </div>
+            <p className="text-xs text-muted-foreground">All time earnings</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {loading ? "Loading..." : revenueSummary.total_bookings}
+            </div>
+            <p className="text-xs text-muted-foreground">Completed appointments</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Avg. Booking Value</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {loading ? "Loading..." : formatGHS(revenueSummary.avg_booking_value)}
+            </div>
+            <p className="text-xs text-muted-foreground">Per appointment</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Service Revenue</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {loading ? "Loading..." : formatGHS(revenueSummary.total_service_revenue)}
+            </div>
+            <p className="text-xs text-muted-foreground">From services only</p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Charts Grid - Stack on mobile, side by side on desktop */}
