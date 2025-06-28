@@ -150,7 +150,7 @@ const SpecialistDetail = () => {
                   <img 
                     src={specialist.avatar_url || "https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=761&q=80"} 
                     alt={specialist.full_name}
-                    className="w-full h-80 sm:h-50 object-cover"
+                    className="w-full h-64 sm:h-80 object-cover"
                   />
                 </div>
                 
