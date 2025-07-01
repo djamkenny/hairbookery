@@ -107,7 +107,7 @@ class AdminAuthService {
       
       this.recordLoginAttempt(email, true);
       
-      // Log security event
+      // Log security event (simplified logging)
       this.logSecurityEvent('admin_login_success', response.admin!.id);
       
       return { success: true, admin: adminSession };
@@ -163,17 +163,11 @@ class AdminAuthService {
     return true;
   }
 
-  private async logSecurityEvent(eventType: string, userId: string): Promise<void> {
+  private logSecurityEvent(eventType: string, userId: string): void {
     try {
-      await supabase.rpc('log_security_event', {
-        event_type: eventType,
-        user_id: userId,
-        details: {
-          timestamp: new Date().toISOString(),
-          user_agent: navigator.userAgent,
-          ip_address: 'client-side' // Would need server-side logging for real IP
-        }
-      });
+      // Simple console logging for security events
+      // In production, this could be sent to a logging service
+      console.log(`Security Event: ${eventType} for user ${userId} at ${new Date().toISOString()}`);
     } catch (error) {
       console.error('Failed to log security event:', error);
     }

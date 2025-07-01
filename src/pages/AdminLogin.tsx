@@ -36,7 +36,6 @@ const AdminLogin = () => {
       const response = await adminAuth.login(email, password);
       
       if (response.success && response.admin) {
-        adminAuth.setCurrentAdmin(response.admin);
         toast.success("Successfully logged in!");
         navigate("/admin-dashboard");
       } else {
