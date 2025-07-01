@@ -1,6 +1,8 @@
+
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { paymentSecurity } from "@/services/security/paymentSecurity";
 
 interface PaymentStatusResult {
   loading: boolean;
@@ -20,37 +22,62 @@ export function usePaymentStatus(reference: string | null) {
         setLoading(false);
         return;
       }
+
       try {
-        // Verify payment status
-        const { data, error } = await supabase.functions.invoke('session-status', {
-          body: { session_id: reference }
-        });
-
-        if (error) {
-          setError('Failed to verify payment status');
-          return;
-        }
-        if (data?.status !== 'complete') {
-          setError(data?.status === 'failed' ? 'Payment was declined' : 'Payment was not successful');
-          return;
-        }
-
-        // Appointment creation block
-        let hasCallback = localStorage.getItem('paymentSuccessCallback');
         const serviceId = localStorage.getItem('serviceId');
+        const storedAmount = localStorage.getItem('paymentAmount');
+        
+        if (!serviceId || !storedAmount) {
+          setError('Missing payment verification data');
+          setLoading(false);
+          return;
+        }
+
+        const expectedAmount = parseInt(storedAmount);
+
+        // Verify payment with enhanced security
+        const verification = await paymentSecurity.verifyPaymentAmount(
+          reference, 
+          expectedAmount, 
+          serviceId
+        );
+
+        if (!verification.isValid) {
+          setError(verification.error || 'Payment verification failed');
+          setLoading(false);
+          return;
+        }
+
+        // Appointment creation block with enhanced validation
+        let hasCallback = localStorage.getItem('paymentSuccessCallback');
         const stylistId = localStorage.getItem('stylistId');
         const appointmentDate = localStorage.getItem('appointmentDate');
         const appointmentTime = localStorage.getItem('appointmentTime');
         const appointmentNotes = localStorage.getItem('appointmentNotes');
+
         if (hasCallback && serviceId && stylistId && appointmentDate && appointmentTime) {
           // Get user
           const { data: { user } } = await supabase.auth.getUser();
           if (user) {
+            // Validate appointment data
+            const currentDate = new Date();
+            const selectedDate = new Date(appointmentDate);
+            
+            if (selectedDate < currentDate) {
+              setError('Invalid appointment date');
+              setLoading(false);
+              return;
+            }
+
             // Generate order_id
             const { data: refData } = await supabase.rpc("generate_appointment_reference");
             const generatedOrderId = refData;
 
-            // Create appointment
+            // Sanitize notes
+            const sanitizedNotes = appointmentNotes ? 
+              appointmentNotes.substring(0, 500).replace(/[<>]/g, '') : '';
+
+            // Create appointment with validation
             const { data: appointmentData, error: appointmentError } = await supabase
               .from('appointments')
               .insert({
@@ -59,7 +86,7 @@ export function usePaymentStatus(reference: string | null) {
                 stylist_id: stylistId,
                 appointment_date: appointmentDate,
                 appointment_time: appointmentTime,
-                notes: appointmentNotes || '',
+                notes: sanitizedNotes,
                 status: 'confirmed',
                 order_id: generatedOrderId || null
               })
@@ -67,8 +94,9 @@ export function usePaymentStatus(reference: string | null) {
               .single();
 
             if (appointmentError) {
+              console.error('Appointment creation error:', appointmentError);
               toast.error("Payment successful but failed to create appointment");
-              setSuccess(true); // Allow success, but error shown
+              setSuccess(true);
             } else {
               // Link payment to appointment
               try {
@@ -89,41 +117,56 @@ export function usePaymentStatus(reference: string | null) {
                     .update({ appointment_id: appointmentData.id })
                     .eq('id', payment.id);
                 }
+
                 // Process earnings
                 if (appointmentData?.id) {
                   try {
                     const { error: earningsError } = await supabase.functions.invoke('process-earnings', {
                       body: { appointment_id: appointmentData.id }
                     });
-                    if (earningsError) toast.error('Payment went through, but failed to add funds to specialist account.');
+                    if (earningsError) {
+                      console.error('Earnings processing error:', earningsError);
+                      toast.error('Payment successful, but failed to process stylist earnings.');
+                    }
                   } catch (processErr: any) {
+                    console.error('Earnings processing error:', processErr);
                     toast.error('Could not process stylist earnings record.');
                   }
                 }
-              } catch {}
-              // Notifications (optional. Keep simple for now.)
+              } catch (linkError) {
+                console.error('Payment linking error:', linkError);
+              }
+
               toast.success('Appointment booked successfully!');
             }
           }
-          // Cleanup
-          localStorage.removeItem('paymentSuccessCallback');
-          localStorage.removeItem('appointmentId');
-          localStorage.removeItem('serviceId');
-          localStorage.removeItem('stylistId');
-          localStorage.removeItem('appointmentDate');
-          localStorage.removeItem('appointmentTime');
-          localStorage.removeItem('appointmentNotes');
+
+          // Cleanup localStorage
+          const keysToRemove = [
+            'paymentSuccessCallback',
+            'appointmentId',
+            'serviceId',
+            'stylistId',
+            'appointmentDate',
+            'appointmentTime',
+            'appointmentNotes',
+            'paymentAmount'
+          ];
+          
+          keysToRemove.forEach(key => localStorage.removeItem(key));
         }
+
         setSuccess(true);
         toast.success('Payment successful!');
-      } catch (err) {
+      } catch (err: any) {
+        console.error('Payment status check error:', err);
         setError('Failed to verify payment');
       } finally {
         setLoading(false);
       }
     };
+
     checkPaymentStatus();
-    // eslint-disable-next-line
   }, [reference]);
 
   return { loading, success, error } as PaymentStatusResult;

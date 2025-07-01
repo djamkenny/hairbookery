@@ -1,55 +1,7 @@
+import { secureAdminAuth } from "./security/adminAuth";
 
-import { supabase } from "@/integrations/supabase/client";
+// Re-export the secure admin auth service
+export const adminAuth = secureAdminAuth;
 
-export interface AdminUser {
-  id: string;
-  email: string;
-  full_name: string;
-  role: string;
-}
-
-export interface AdminAuthResponse {
-  success: boolean;
-  message?: string;
-  admin?: AdminUser;
-}
-
-export const adminAuth = {
-  async login(email: string, password: string): Promise<AdminAuthResponse> {
-    try {
-      const { data, error } = await supabase.rpc('authenticate_admin', {
-        p_email: email,
-        p_password: password
-      });
-
-      if (error) {
-        console.error('Admin login error:', error);
-        return { success: false, message: 'Authentication failed' };
-      }
-
-      // Properly handle the RPC response with unknown cast first
-      const response = data as unknown as AdminAuthResponse;
-      return response;
-    } catch (error) {
-      console.error('Admin login error:', error);
-      return { success: false, message: 'Authentication failed' };
-    }
-  },
-
-  getCurrentAdmin(): AdminUser | null {
-    const adminData = localStorage.getItem('admin_user');
-    return adminData ? JSON.parse(adminData) : null;
-  },
-
-  setCurrentAdmin(admin: AdminUser): void {
-    localStorage.setItem('admin_user', JSON.stringify(admin));
-  },
-
-  logout(): void {
-    localStorage.removeItem('admin_user');
-  },
-
-  isAuthenticated(): boolean {
-    return this.getCurrentAdmin() !== null;
-  }
-};
+// Keep the interfaces for backward compatibility
+export type { AdminSession as AdminUser, AdminAuthResponse } from "./security/adminAuth";
