@@ -36,8 +36,9 @@ const AdminSupportDashboard = () => {
 
   const fetchTickets = async () => {
     try {
+      // Using any to work around missing types
       let query = supabase
-        .from('support_tickets')
+        .from('support_tickets' as any)
         .select(`
           *,
           profiles:user_id (
@@ -64,7 +65,7 @@ const AdminSupportDashboard = () => {
   const updateTicketStatus = async (ticketId: string, status: string) => {
     try {
       const { error } = await supabase
-        .from('support_tickets')
+        .from('support_tickets' as any)
         .update({ status })
         .eq('id', ticketId);
 
@@ -88,7 +89,7 @@ const AdminSupportDashboard = () => {
     setIsLoading(true);
     try {
       const { error } = await supabase
-        .from('support_tickets')
+        .from('support_tickets' as any)
         .update({ 
           response: response.trim(),
           status: 'in_progress'

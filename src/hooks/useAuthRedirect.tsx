@@ -2,9 +2,11 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 export const useAuthRedirect = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
     const checkSession = async () => {
@@ -21,4 +23,6 @@ export const useAuthRedirect = () => {
     
     checkSession();
   }, [navigate]);
+
+  return { user };
 };

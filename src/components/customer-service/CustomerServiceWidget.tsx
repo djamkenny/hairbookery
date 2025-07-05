@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuthRedirect } from "@/hooks/useAuthRedirect";
+import { useAuth } from "@/hooks/useAuth";
 
 interface SupportTicket {
   id: string;
@@ -30,7 +30,7 @@ const CustomerServiceWidget = () => {
   const [priority, setPriority] = useState<'low' | 'medium' | 'high' | 'urgent'>('medium');
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const { user } = useAuthRedirect();
+  const { user } = useAuth();
 
   useEffect(() => {
     if (user && isOpen) {
@@ -42,14 +42,27 @@ const CustomerServiceWidget = () => {
     if (!user) return;
     
     try {
+      // Using raw SQL to work around missing types
       const { data, error } = await supabase
-        .from('support_tickets')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+        .rpc('get_user_tickets', { user_uuid: user.id });
 
-      if (error) throw error;
-      setTickets(data || []);
+      if (error) {
+        console.error('Error fetching tickets:', error);
+        // If the function doesn't exist, try direct query
+        const { data: directData, error: directError } = await supabase
+          .from('support_tickets' as any)
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+        
+        if (directError) {
+          console.error('Direct query error:', directError);
+          return;
+        }
+        setTickets(directData || []);
+      } else {
+        setTickets(data || []);
+      }
     } catch (error) {
       console.error('Error fetching tickets:', error);
     }
@@ -69,7 +82,7 @@ const CustomerServiceWidget = () => {
     setIsLoading(true);
     try {
       const { error } = await supabase
-        .from('support_tickets')
+        .from('support_tickets' as any)
         .insert({
           user_id: user.id,
           subject: subject.trim(),
@@ -105,7 +118,7 @@ const CustomerServiceWidget = () => {
     // For now, create a quick ticket from the message
     try {
       const { error } = await supabase
-        .from('support_tickets')
+        .from('support_tickets' as any)
         .insert({
           user_id: user.id,
           subject: 'Quick Message',
