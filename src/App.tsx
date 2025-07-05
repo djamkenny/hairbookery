@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -65,7 +64,7 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
             
-            {/* Customer Service Widget - Fixed to all pages */}
+            {/* Customer Service Widget - Available on all pages for direct contact */}
             <CustomerServiceWidget />
           </TooltipProvider>
         </BrowserRouter>

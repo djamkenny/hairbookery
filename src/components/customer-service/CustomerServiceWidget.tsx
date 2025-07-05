@@ -1,112 +1,20 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { MessageCircle, X, Send, Minimize2, Maximize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-
-interface SupportTicket {
-  id: string;
-  subject: string;
-  message: string;
-  status: 'open' | 'in_progress' | 'resolved' | 'closed';
-  priority: 'low' | 'medium' | 'high' | 'urgent';
-  created_at: string;
-  user_id: string;
-}
 
 const CustomerServiceWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
-  const [activeTab, setActiveTab] = useState<'chat' | 'tickets' | 'create'>('chat');
   const [message, setMessage] = useState('');
-  const [subject, setSubject] = useState('');
-  const [description, setDescription] = useState('');
-  const [priority, setPriority] = useState<'low' | 'medium' | 'high' | 'urgent'>('medium');
-  const [tickets, setTickets] = useState<SupportTicket[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [messages, setMessages] = useState<Array<{id: string, text: string, sender: 'user' | 'support', timestamp: Date}>>([]);
   const { user } = useAuth();
 
-  useEffect(() => {
-    if (user && isOpen) {
-      fetchUserTickets();
-    }
-  }, [user, isOpen]);
-
-  const fetchUserTickets = async () => {
-    if (!user) return;
-    
-    try {
-      // Simple direct query without complex relationships
-      const { data, error } = await supabase
-        .from('support_tickets' as any)
-        .select('id, subject, message, status, priority, created_at, user_id')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-      
-      if (error) {
-        console.error('Error fetching tickets:', error);
-        return;
-      }
-      
-      // Safe type assertion with proper error handling
-      if (data && Array.isArray(data)) {
-        const typedTickets = (data as unknown) as SupportTicket[];
-        setTickets(typedTickets);
-      } else {
-        setTickets([]);
-      }
-    } catch (error) {
-      console.error('Error fetching tickets:', error);
-      setTickets([]);
-    }
-  };
-
-  const handleCreateTicket = async () => {
-    if (!user) {
-      toast.error('Please log in to create a support ticket');
-      return;
-    }
-
-    if (!subject.trim() || !description.trim()) {
-      toast.error('Please fill in all fields');
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const { error } = await supabase
-        .from('support_tickets' as any)
-        .insert({
-          user_id: user.id,
-          subject: subject.trim(),
-          message: description.trim(),
-          priority,
-          status: 'open'
-        });
-
-      if (error) throw error;
-
-      toast.success('Support ticket created successfully!');
-      setSubject('');
-      setDescription('');
-      setPriority('medium');
-      setActiveTab('tickets');
-      fetchUserTickets();
-    } catch (error) {
-      console.error('Error creating ticket:', error);
-      toast.error('Failed to create support ticket');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleQuickMessage = async () => {
+  const handleSendMessage = async () => {
     if (!message.trim()) return;
 
     if (!user) {
@@ -114,47 +22,34 @@ const CustomerServiceWidget = () => {
       return;
     }
 
-    // For now, create a quick ticket from the message
-    try {
-      const { error } = await supabase
-        .from('support_tickets' as any)
-        .insert({
-          user_id: user.id,
-          subject: 'Quick Message',
-          message: message.trim(),
-          priority: 'medium',
-          status: 'open'
-        });
+    // Add user message to chat
+    const userMessage = {
+      id: Date.now().toString(),
+      text: message.trim(),
+      sender: 'user' as const,
+      timestamp: new Date()
+    };
 
-      if (error) throw error;
+    setMessages(prev => [...prev, userMessage]);
+    setMessage('');
 
-      toast.success('Message sent! We\'ll get back to you soon.');
-      setMessage('');
-      fetchUserTickets();
-    } catch (error) {
-      console.error('Error sending message:', error);
-      toast.error('Failed to send message');
-    }
+    // Auto-response for demo (in real implementation, this would connect to your support system)
+    setTimeout(() => {
+      const supportResponse = {
+        id: (Date.now() + 1).toString(),
+        text: "Thank you for contacting us! A customer service representative will be with you shortly. In the meantime, you can also reach us at support@example.com or call us at (555) 123-4567.",
+        sender: 'support' as const,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, supportResponse]);
+    }, 1000);
+
+    toast.success('Message sent! We\'ll get back to you soon.');
   };
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'urgent': return 'bg-red-100 text-red-800';
-      case 'high': return 'bg-orange-100 text-orange-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'low': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'open': return 'bg-blue-100 text-blue-800';
-      case 'in_progress': return 'bg-purple-100 text-purple-800';
-      case 'resolved': return 'bg-green-100 text-green-800';
-      case 'closed': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
+  const clearChat = () => {
+    setMessages([]);
+    toast.success('Chat cleared');
   };
 
   if (!isOpen) {
@@ -198,158 +93,84 @@ const CustomerServiceWidget = () => {
 
         {!isMinimized && (
           <CardContent className="p-0 h-[calc(100%-4rem)] flex flex-col">
-            {/* Tab Navigation */}
-            <div className="flex border-b">
-              <button
-                onClick={() => setActiveTab('chat')}
-                className={`flex-1 p-3 text-sm font-medium transition-colors ${
-                  activeTab === 'chat' 
-                    ? 'bg-primary text-primary-foreground' 
-                    : 'hover:bg-muted'
-                }`}
-              >
-                Quick Chat
-              </button>
-              <button
-                onClick={() => setActiveTab('tickets')}
-                className={`flex-1 p-3 text-sm font-medium transition-colors ${
-                  activeTab === 'tickets' 
-                    ? 'bg-primary text-primary-foreground' 
-                    : 'hover:bg-muted'
-                }`}
-              >
-                My Tickets
-              </button>
-              <button
-                onClick={() => setActiveTab('create')}
-                className={`flex-1 p-3 text-sm font-medium transition-colors ${
-                  activeTab === 'create' 
-                    ? 'bg-primary text-primary-foreground' 
-                    : 'hover:bg-muted'
-                }`}
-              >
-                New Ticket
-              </button>
+            {/* Chat Messages */}
+            <div className="flex-1 p-4 overflow-y-auto bg-gray-50">
+              {messages.length === 0 ? (
+                <div className="text-center text-muted-foreground space-y-2">
+                  <div className="text-sm">👋 Welcome to Customer Support!</div>
+                  <div className="text-xs">
+                    How can we help you today? Send us a message and we'll get back to you right away.
+                  </div>
+                  <div className="text-xs pt-2 border-t border-gray-200 mt-4">
+                    <strong>Other ways to reach us:</strong><br/>
+                    📧 support@example.com<br/>
+                    📞 (555) 123-4567<br/>
+                    🕒 Mon-Fri, 9AM-6PM EST
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {messages.map((msg) => (
+                    <div
+                      key={msg.id}
+                      className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                    >
+                      <div
+                        className={`max-w-[80%] p-3 rounded-lg text-sm ${
+                          msg.sender === 'user'
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-white border shadow-sm'
+                        }`}
+                      >
+                        <div>{msg.text}</div>
+                        <div className={`text-xs mt-1 opacity-70`}>
+                          {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* Tab Content */}
-            <div className="flex-1 p-4 overflow-y-auto">
-              {activeTab === 'chat' && (
-                <div className="space-y-4">
-                  <div className="text-sm text-muted-foreground">
-                    Need quick help? Send us a message and we'll get back to you as soon as possible.
-                  </div>
-                  <div className="space-y-3">
-                    <Textarea
-                      placeholder="Type your message here..."
-                      value={message}
-                      onChange={(e) => setMessage(e.target.value)}
-                      className="min-h-[100px]"
-                    />
-                    <Button 
-                      onClick={handleQuickMessage}
-                      className="w-full"
-                      disabled={!message.trim() || !user}
-                    >
-                      <Send className="h-4 w-4 mr-2" />
-                      Send Message
-                    </Button>
-                    {!user && (
-                      <div className="text-xs text-muted-foreground text-center">
-                        Please log in to send messages
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {activeTab === 'tickets' && (
-                <div className="space-y-4">
-                  {!user ? (
-                    <div className="text-center text-muted-foreground">
-                      Please log in to view your support tickets
-                    </div>
-                  ) : tickets.length === 0 ? (
-                    <div className="text-center text-muted-foreground">
-                      No support tickets found
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {tickets.map((ticket) => (
-                        <div key={ticket.id} className="border rounded-lg p-3 space-y-2">
-                          <div className="flex items-start justify-between">
-                            <h4 className="font-medium text-sm">{ticket.subject}</h4>
-                            <div className="flex gap-1">
-                              <Badge className={`text-xs ${getPriorityColor(ticket.priority)}`}>
-                                {ticket.priority}
-                              </Badge>
-                              <Badge className={`text-xs ${getStatusColor(ticket.status)}`}>
-                                {ticket.status}
-                              </Badge>
-                            </div>
-                          </div>
-                          <p className="text-xs text-muted-foreground line-clamp-2">
-                            {ticket.message}
-                          </p>
-                          <div className="text-xs text-muted-foreground">
-                            {new Date(ticket.created_at).toLocaleDateString()}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {activeTab === 'create' && (
-                <div className="space-y-4">
-                  {!user ? (
-                    <div className="text-center text-muted-foreground">
-                      Please log in to create support tickets
-                    </div>
-                  ) : (
-                    <>
-                      <div className="space-y-3">
-                        <div>
-                          <label className="text-sm font-medium">Subject</label>
-                          <Input
-                            placeholder="Brief description of your issue"
-                            value={subject}
-                            onChange={(e) => setSubject(e.target.value)}
-                          />
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium">Priority</label>
-                          <select
-                            value={priority}
-                            onChange={(e) => setPriority(e.target.value as any)}
-                            className="w-full p-2 border rounded-md text-sm"
-                          >
-                            <option value="low">Low</option>
-                            <option value="medium">Medium</option>
-                            <option value="high">High</option>
-                            <option value="urgent">Urgent</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium">Description</label>
-                          <Textarea
-                            placeholder="Please provide detailed information about your issue"
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
-                            className="min-h-[100px]"
-                          />
-                        </div>
-                        <Button 
-                          onClick={handleCreateTicket}
-                          className="w-full"
-                          disabled={isLoading || !subject.trim() || !description.trim()}
-                        >
-                          {isLoading ? 'Creating...' : 'Create Ticket'}
-                        </Button>
-                      </div>
-                    </>
-                  )}
+            {/* Message Input */}
+            <div className="p-4 border-t bg-white">
+              <div className="flex items-center gap-2 mb-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={clearChat}
+                  disabled={messages.length === 0}
+                  className="text-xs"
+                >
+                  Clear Chat
+                </Button>
+              </div>
+              <div className="flex gap-2">
+                <Textarea
+                  placeholder="Type your message here..."
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  className="min-h-[60px] resize-none"
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }
+                  }}
+                />
+                <Button 
+                  onClick={handleSendMessage}
+                  disabled={!message.trim() || !user}
+                  size="icon"
+                  className="self-end"
+                >
+                  <Send className="h-4 w-4" />
+                </Button>
+              </div>
+              {!user && (
+                <div className="text-xs text-muted-foreground text-center mt-2">
+                  Please log in to send messages
                 </div>
               )}
             </div>
