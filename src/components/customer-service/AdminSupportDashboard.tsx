@@ -53,36 +53,41 @@ const AdminSupportDashboard = () => {
         return;
       }
       
-      // Type assertion and fetch user details separately
-      const typedTickets = (data || []) as SupportTicket[];
-      
-      // Fetch user profiles for each ticket
-      const ticketsWithProfiles = await Promise.all(
-        typedTickets.map(async (ticket) => {
-          try {
-            const { data: profile } = await supabase
-              .from('profiles')
-              .select('full_name, email')
-              .eq('id', ticket.user_id)
-              .single();
-            
-            return {
-              ...ticket,
-              user_profile: profile || { full_name: 'Unknown User', email: 'unknown@email.com' }
-            };
-          } catch {
-            return {
-              ...ticket,
-              user_profile: { full_name: 'Unknown User', email: 'unknown@email.com' }
-            };
-          }
-        })
-      );
-      
-      setTickets(ticketsWithProfiles);
+      // Safe type assertion with proper error handling
+      if (data && Array.isArray(data)) {
+        const typedTickets = (data as unknown) as SupportTicket[];
+        
+        // Fetch user profiles for each ticket
+        const ticketsWithProfiles = await Promise.all(
+          typedTickets.map(async (ticket) => {
+            try {
+              const { data: profile } = await supabase
+                .from('profiles')
+                .select('full_name, email')
+                .eq('id', ticket.user_id)
+                .single();
+              
+              return {
+                ...ticket,
+                user_profile: profile || { full_name: 'Unknown User', email: 'unknown@email.com' }
+              };
+            } catch {
+              return {
+                ...ticket,
+                user_profile: { full_name: 'Unknown User', email: 'unknown@email.com' }
+              };
+            }
+          })
+        );
+        
+        setTickets(ticketsWithProfiles);
+      } else {
+        setTickets([]);
+      }
     } catch (error) {
       console.error('Error fetching tickets:', error);
       toast.error('Failed to fetch support tickets');
+      setTickets([]);
     }
   };
 

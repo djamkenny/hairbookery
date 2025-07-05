@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { MessageCircle, X, Send, Minimize2, Maximize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -53,11 +54,16 @@ const CustomerServiceWidget = () => {
         return;
       }
       
-      // Type assertion to ensure we have the right structure
-      const typedTickets = (data || []) as SupportTicket[];
-      setTickets(typedTickets);
+      // Safe type assertion with proper error handling
+      if (data && Array.isArray(data)) {
+        const typedTickets = (data as unknown) as SupportTicket[];
+        setTickets(typedTickets);
+      } else {
+        setTickets([]);
+      }
     } catch (error) {
       console.error('Error fetching tickets:', error);
+      setTickets([]);
     }
   };
 
