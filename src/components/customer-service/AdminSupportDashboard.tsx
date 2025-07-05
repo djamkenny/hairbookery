@@ -17,7 +17,7 @@ interface SupportTicket {
   created_at: string;
   user_id: string;
   response?: string;
-  profiles?: {
+  user_profile?: {
     full_name: string;
     email: string;
   };
@@ -36,16 +36,10 @@ const AdminSupportDashboard = () => {
 
   const fetchTickets = async () => {
     try {
-      // Using any to work around missing types
+      // Simple query without complex relationships to avoid type issues
       let query = supabase
         .from('support_tickets' as any)
-        .select(`
-          *,
-          profiles:user_id (
-            full_name,
-            email
-          )
-        `)
+        .select('id, subject, message, status, priority, created_at, user_id, response')
         .order('created_at', { ascending: false });
 
       if (filter !== 'all') {
@@ -54,8 +48,38 @@ const AdminSupportDashboard = () => {
 
       const { data, error } = await query;
 
-      if (error) throw error;
-      setTickets(data || []);
+      if (error) {
+        console.error('Error fetching tickets:', error);
+        return;
+      }
+      
+      // Type assertion and fetch user details separately
+      const typedTickets = (data || []) as SupportTicket[];
+      
+      // Fetch user profiles for each ticket
+      const ticketsWithProfiles = await Promise.all(
+        typedTickets.map(async (ticket) => {
+          try {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('full_name, email')
+              .eq('id', ticket.user_id)
+              .single();
+            
+            return {
+              ...ticket,
+              user_profile: profile || { full_name: 'Unknown User', email: 'unknown@email.com' }
+            };
+          } catch {
+            return {
+              ...ticket,
+              user_profile: { full_name: 'Unknown User', email: 'unknown@email.com' }
+            };
+          }
+        })
+      );
+      
+      setTickets(ticketsWithProfiles);
     } catch (error) {
       console.error('Error fetching tickets:', error);
       toast.error('Failed to fetch support tickets');
@@ -224,7 +248,7 @@ const AdminSupportDashboard = () => {
                       </div>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <User className="h-3 w-3" />
-                        <span>{ticket.profiles?.full_name || 'Unknown User'}</span>
+                        <span>{ticket.user_profile?.full_name || 'Unknown User'}</span>
                         <Clock className="h-3 w-3 ml-2" />
                         <span>{new Date(ticket.created_at).toLocaleDateString()}</span>
                       </div>
@@ -250,8 +274,8 @@ const AdminSupportDashboard = () => {
                     <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
                       <div className="flex items-center gap-1">
                         <User className="h-4 w-4" />
-                        <span>{selectedTicket.profiles?.full_name}</span>
-                        <span>({selectedTicket.profiles?.email})</span>
+                        <span>{selectedTicket.user_profile?.full_name}</span>
+                        <span>({selectedTicket.user_profile?.email})</span>
                       </div>
                       <div className="flex items-center gap-1">
                         <Clock className="h-4 w-4" />

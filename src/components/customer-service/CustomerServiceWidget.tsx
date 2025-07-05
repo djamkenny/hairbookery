@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { MessageCircle, X, Send, Minimize2, Maximize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -42,27 +41,21 @@ const CustomerServiceWidget = () => {
     if (!user) return;
     
     try {
-      // Using raw SQL to work around missing types
+      // Simple direct query without complex relationships
       const { data, error } = await supabase
-        .rpc('get_user_tickets', { user_uuid: user.id });
-
+        .from('support_tickets' as any)
+        .select('id, subject, message, status, priority, created_at, user_id')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+      
       if (error) {
         console.error('Error fetching tickets:', error);
-        // If the function doesn't exist, try direct query
-        const { data: directData, error: directError } = await supabase
-          .from('support_tickets' as any)
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false });
-        
-        if (directError) {
-          console.error('Direct query error:', directError);
-          return;
-        }
-        setTickets(directData || []);
-      } else {
-        setTickets(data || []);
+        return;
       }
+      
+      // Type assertion to ensure we have the right structure
+      const typedTickets = (data || []) as SupportTicket[];
+      setTickets(typedTickets);
     } catch (error) {
       console.error('Error fetching tickets:', error);
     }
