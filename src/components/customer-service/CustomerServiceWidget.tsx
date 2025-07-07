@@ -119,7 +119,7 @@ const CustomerServiceWidget = () => {
                         className={`max-w-[80%] p-3 rounded-lg text-sm ${
                           msg.sender === 'user'
                             ? 'bg-primary text-primary-foreground'
-                            : 'bg-white border shadow-sm'
+                            : 'bg-green-100 border border-green-200 text-green-800 shadow-sm'
                         }`}
                       >
                         <div>{msg.text}</div>
