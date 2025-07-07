@@ -1,54 +1,193 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { MessageCircle, X, Send, Minimize2, Maximize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+
+interface ChatMessage {
+  id: string;
+  message: string;
+  sender_type: 'user' | 'admin';
+  created_at: string;
+}
+
+interface SupportTicket {
+  id: string;
+  subject: string;
+  status: string;
+  created_at: string;
+}
 
 const CustomerServiceWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [message, setMessage] = useState('');
-  const [messages, setMessages] = useState<Array<{id: string, text: string, sender: 'user' | 'support', timestamp: Date}>>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [currentTicket, setCurrentTicket] = useState<SupportTicket | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
 
-  const handleSendMessage = async () => {
-    if (!message.trim()) return;
-
-    if (!user) {
-      toast.error('Please log in to send messages');
-      return;
+  // Load existing ticket and messages when widget opens
+  useEffect(() => {
+    if (isOpen && user) {
+      loadExistingTicket();
     }
+  }, [isOpen, user]);
 
-    // Add user message to chat
-    const userMessage = {
-      id: Date.now().toString(),
-      text: message.trim(),
-      sender: 'user' as const,
-      timestamp: new Date()
+  // Set up real-time subscription for new messages
+  useEffect(() => {
+    if (!currentTicket) return;
+
+    const channel = supabase
+      .channel(`ticket_${currentTicket.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'chat_messages',
+          filter: `ticket_id=eq.${currentTicket.id}`
+        },
+        (payload) => {
+          const newMessage = payload.new as ChatMessage;
+          setMessages(prev => [...prev, newMessage]);
+          
+          // Show toast for admin messages
+          if (newMessage.sender_type === 'admin') {
+            toast.success('New message from support');
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
     };
+  }, [currentTicket]);
 
-    setMessages(prev => [...prev, userMessage]);
-    setMessage('');
+  const loadExistingTicket = async () => {
+    if (!user) return;
 
-    // Auto-response for demo (in real implementation, this would connect to your support system)
-    setTimeout(() => {
-      const supportResponse = {
-        id: (Date.now() + 1).toString(),
-        text: "Thank you for contacting us! A customer service representative will be with you shortly. In the meantime, you can also reach us at support@example.com or call us at (555) 123-4567.",
-        sender: 'support' as const,
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, supportResponse]);
-    }, 1000);
+    try {
+      // Get the most recent open ticket
+      const { data: tickets, error: ticketError } = await supabase
+        .from('support_tickets')
+        .select('*')
+        .eq('user_id', user.id)
+        .in('status', ['open', 'in_progress'])
+        .order('created_at', { ascending: false })
+        .limit(1);
 
-    toast.success('Message sent! We\'ll get back to you soon.');
+      if (ticketError) throw ticketError;
+
+      if (tickets && tickets.length > 0) {
+        const ticket = tickets[0];
+        setCurrentTicket(ticket);
+
+        // Load messages for this ticket
+        const { data: chatMessages, error: messagesError } = await supabase
+          .from('chat_messages')
+          .select('*')
+          .eq('ticket_id', ticket.id)
+          .order('created_at', { ascending: true });
+
+        if (messagesError) throw messagesError;
+
+        setMessages(chatMessages || []);
+      }
+    } catch (error) {
+      console.error('Error loading ticket:', error);
+    }
+  };
+
+  const createNewTicket = async (initialMessage: string) => {
+    if (!user) return null;
+
+    try {
+      const { data: ticket, error: ticketError } = await supabase
+        .from('support_tickets')
+        .insert({
+          user_id: user.id,
+          subject: 'Customer Inquiry',
+          message: initialMessage,
+          status: 'open',
+          priority: 'medium'
+        })
+        .select()
+        .single();
+
+      if (ticketError) throw ticketError;
+
+      return ticket;
+    } catch (error) {
+      console.error('Error creating ticket:', error);
+      toast.error('Failed to create support ticket');
+      return null;
+    }
+  };
+
+  const sendMessage = async (messageText: string, ticketId: string) => {
+    if (!user) return false;
+
+    try {
+      const { error } = await supabase
+        .from('chat_messages')
+        .insert({
+          ticket_id: ticketId,
+          sender_id: user.id,
+          sender_type: 'user',
+          message: messageText
+        });
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast.error('Failed to send message');
+      return false;
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!message.trim() || !user || isLoading) return;
+
+    setIsLoading(true);
+    
+    try {
+      let ticket = currentTicket;
+
+      // Create new ticket if none exists
+      if (!ticket) {
+        ticket = await createNewTicket(message.trim());
+        if (!ticket) {
+          setIsLoading(false);
+          return;
+        }
+        setCurrentTicket(ticket);
+      }
+
+      // Send the message
+      const success = await sendMessage(message.trim(), ticket.id);
+      
+      if (success) {
+        setMessage('');
+        toast.success('Message sent! We\'ll get back to you soon.');
+      }
+    } catch (error) {
+      console.error('Error handling message:', error);
+      toast.error('Failed to send message');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const clearChat = () => {
     setMessages([]);
+    setCurrentTicket(null);
     toast.success('Chat cleared');
   };
 
@@ -113,18 +252,18 @@ const CustomerServiceWidget = () => {
                   {messages.map((msg) => (
                     <div
                       key={msg.id}
-                      className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                      className={`flex ${msg.sender_type === 'user' ? 'justify-end' : 'justify-start'}`}
                     >
                       <div
                         className={`max-w-[80%] p-3 rounded-lg text-sm ${
-                          msg.sender === 'user'
+                          msg.sender_type === 'user'
                             ? 'bg-primary text-primary-foreground'
                             : 'bg-green-100 border border-green-200 text-green-800 shadow-sm'
                         }`}
                       >
-                        <div>{msg.text}</div>
+                        <div>{msg.message}</div>
                         <div className={`text-xs mt-1 opacity-70`}>
-                          {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </div>
                       </div>
                     </div>
@@ -135,17 +274,22 @@ const CustomerServiceWidget = () => {
 
             {/* Message Input */}
             <div className="p-4 border-t bg-white">
-              <div className="flex items-center gap-2 mb-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={clearChat}
-                  disabled={messages.length === 0}
-                  className="text-xs"
-                >
-                  Clear Chat
-                </Button>
-              </div>
+              {currentTicket && (
+                <div className="flex items-center gap-2 mb-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={clearChat}
+                    disabled={messages.length === 0}
+                    className="text-xs"
+                  >
+                    Clear Chat
+                  </Button>
+                  <div className="text-xs text-muted-foreground">
+                    Ticket #{currentTicket.id.slice(-8)} - {currentTicket.status}
+                  </div>
+                </div>
+              )}
               <div className="flex gap-2">
                 <Textarea
                   placeholder="Type your message here..."
@@ -161,7 +305,7 @@ const CustomerServiceWidget = () => {
                 />
                 <Button 
                   onClick={handleSendMessage}
-                  disabled={!message.trim() || !user}
+                  disabled={!message.trim() || !user || isLoading}
                   size="icon"
                   className="self-end"
                 >

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,7 +7,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Clock, User, AlertCircle } from "lucide-react";
+import { Clock, User, AlertCircle, Send } from "lucide-react";
+
+interface ChatMessage {
+  id: string;
+  message: string;
+  sender_type: 'user' | 'admin';
+  created_at: string;
+  sender_id: string;
+}
 
 interface SupportTicket {
   id: string;
@@ -26,7 +35,8 @@ interface SupportTicket {
 const AdminSupportDashboard = () => {
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
-  const [response, setResponse] = useState('');
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [filter, setFilter] = useState<'all' | 'open' | 'in_progress' | 'resolved'>('all');
 
@@ -34,14 +44,67 @@ const AdminSupportDashboard = () => {
     fetchTickets();
   }, [filter]);
 
+  // Real-time subscription for new tickets and messages
+  useEffect(() => {
+    const ticketsChannel = supabase
+      .channel('admin_tickets')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'support_tickets'
+        },
+        () => {
+          fetchTickets();
+          toast.success('New support ticket received!');
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(ticketsChannel);
+    };
+  }, []);
+
+  // Real-time subscription for messages in selected ticket
+  useEffect(() => {
+    if (!selectedTicket) return;
+
+    const messagesChannel = supabase
+      .channel(`admin_messages_${selectedTicket.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'chat_messages',
+          filter: `ticket_id=eq.${selectedTicket.id}`
+        },
+        (payload) => {
+          const newMessage = payload.new as ChatMessage;
+          setMessages(prev => [...prev, newMessage]);
+          
+          if (newMessage.sender_type === 'user') {
+            toast.success('New message from customer');
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(messagesChannel);
+    };
+  }, [selectedTicket]);
+
   const fetchTickets = async () => {
     try {
-      // Simple query without complex relationships to avoid type issues
       let query = supabase
-        .from('support_tickets' as any)
-        .select('id, subject, message, status, priority, created_at, user_id, response')
+        .from('support_tickets')
+        .select('*')
         .order('created_at', { ascending: false });
 
+      // Note: We can't join with profiles due to RLS, so we'll fetch profiles separately
       if (filter !== 'all') {
         query = query.eq('status', filter);
       }
@@ -53,13 +116,10 @@ const AdminSupportDashboard = () => {
         return;
       }
       
-      // Safe type assertion with proper error handling
       if (data && Array.isArray(data)) {
-        const typedTickets = (data as unknown) as SupportTicket[];
-        
         // Fetch user profiles for each ticket
         const ticketsWithProfiles = await Promise.all(
-          typedTickets.map(async (ticket) => {
+          data.map(async (ticket) => {
             try {
               const { data: profile } = await supabase
                 .from('profiles')
@@ -91,10 +151,32 @@ const AdminSupportDashboard = () => {
     }
   };
 
+  const fetchMessages = async (ticketId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('chat_messages')
+        .select('*')
+        .eq('ticket_id', ticketId)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+      setMessages(data || []);
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+      toast.error('Failed to fetch messages');
+    }
+  };
+
+  const handleTicketSelect = (ticket: SupportTicket) => {
+    setSelectedTicket(ticket);
+    fetchMessages(ticket.id);
+    setNewMessage('');
+  };
+
   const updateTicketStatus = async (ticketId: string, status: string) => {
     try {
       const { error } = await supabase
-        .from('support_tickets' as any)
+        .from('support_tickets')
         .update({ status })
         .eq('id', ticketId);
 
@@ -112,28 +194,32 @@ const AdminSupportDashboard = () => {
     }
   };
 
-  const sendResponse = async () => {
-    if (!selectedTicket || !response.trim()) return;
+  const sendMessage = async () => {
+    if (!selectedTicket || !newMessage.trim()) return;
 
     setIsLoading(true);
     try {
-      const { error } = await supabase
-        .from('support_tickets' as any)
-        .update({ 
-          response: response.trim(),
-          status: 'in_progress'
-        })
-        .eq('id', selectedTicket.id);
+      // Send the message
+      const { error: messageError } = await supabase
+        .from('chat_messages')
+        .insert({
+          ticket_id: selectedTicket.id,
+          sender_type: 'admin',
+          message: newMessage.trim()
+        });
 
-      if (error) throw error;
+      if (messageError) throw messageError;
 
-      toast.success('Response sent successfully');
-      setResponse('');
-      fetchTickets();
-      setSelectedTicket({ ...selectedTicket, response: response.trim(), status: 'in_progress' });
+      // Update ticket status to in_progress if it's open
+      if (selectedTicket.status === 'open') {
+        await updateTicketStatus(selectedTicket.id, 'in_progress');
+      }
+
+      toast.success('Message sent successfully');
+      setNewMessage('');
     } catch (error) {
-      console.error('Error sending response:', error);
-      toast.error('Failed to send response');
+      console.error('Error sending message:', error);
+      toast.error('Failed to send message');
     } finally {
       setIsLoading(false);
     }
@@ -238,7 +324,7 @@ const AdminSupportDashboard = () => {
                   {tickets.map((ticket) => (
                     <div
                       key={ticket.id}
-                      onClick={() => setSelectedTicket(ticket)}
+                      onClick={() => handleTicketSelect(ticket)}
                       className={`p-3 border rounded-lg cursor-pointer transition-colors hover:bg-muted ${
                         selectedTicket?.id === ticket.id ? 'bg-muted border-primary' : ''
                       }`}
@@ -299,23 +385,39 @@ const AdminSupportDashboard = () => {
                 </div>
               </CardHeader>
               <CardContent className="space-y-6 p-6">
-                {/* Original Message */}
-                <div>
-                  <h3 className="font-medium mb-2">Customer Message:</h3>
-                  <div className="bg-muted p-4 rounded-lg">
-                    <p className="whitespace-pre-wrap">{selectedTicket.message}</p>
-                  </div>
-                </div>
-
-                {/* Existing Response */}
-                {selectedTicket.response && (
-                  <div>
-                    <h3 className="font-medium mb-2">Your Response:</h3>
-                    <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-400">
-                      <p className="whitespace-pre-wrap">{selectedTicket.response}</p>
+                {/* Chat Messages */}
+                <div className="max-h-96 overflow-y-auto space-y-3 bg-gray-50 p-4 rounded-lg">
+                  {messages.length === 0 ? (
+                    <div className="text-center text-muted-foreground">
+                      No messages yet. Send the first message to start the conversation.
                     </div>
-                  </div>
-                )}
+                  ) : (
+                    messages.map((message) => (
+                      <div
+                        key={message.id}
+                        className={`flex ${message.sender_type === 'admin' ? 'justify-end' : 'justify-start'}`}
+                      >
+                        <div
+                          className={`max-w-[80%] p-3 rounded-lg text-sm ${
+                            message.sender_type === 'admin'
+                              ? 'bg-blue-500 text-white'
+                              : 'bg-white border shadow-sm'
+                          }`}
+                        >
+                          <div>{message.message}</div>
+                          <div className={`text-xs mt-1 ${
+                            message.sender_type === 'admin' ? 'text-blue-100' : 'text-gray-500'
+                          }`}>
+                            {new Date(message.created_at).toLocaleTimeString([], { 
+                              hour: '2-digit', 
+                              minute: '2-digit' 
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
 
                 {/* Status Actions */}
                 <div>
@@ -334,21 +436,23 @@ const AdminSupportDashboard = () => {
                   </div>
                 </div>
 
-                {/* Response Form */}
+                {/* Send Message */}
                 <div>
-                  <h3 className="font-medium mb-2">Send Response:</h3>
-                  <div className="space-y-3">
+                  <h3 className="font-medium mb-2">Send Message:</h3>
+                  <div className="flex gap-2">
                     <Textarea
-                      placeholder="Type your response to the customer..."
-                      value={response}
-                      onChange={(e) => setResponse(e.target.value)}
-                      className="min-h-[120px]"
+                      placeholder="Type your message to the customer..."
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      className="min-h-[80px]"
                     />
                     <Button 
-                      onClick={sendResponse}
-                      disabled={isLoading || !response.trim()}
+                      onClick={sendMessage}
+                      disabled={isLoading || !newMessage.trim()}
+                      size="icon"
+                      className="self-end"
                     >
-                      {isLoading ? 'Sending...' : 'Send Response'}
+                      <Send className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
@@ -360,7 +464,7 @@ const AdminSupportDashboard = () => {
                 <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-medium mb-2">Select a Support Ticket</h3>
                 <p className="text-muted-foreground">
-                  Choose a ticket from the sidebar to view details and respond to customers.
+                  Choose a ticket from the sidebar to view details and chat with customers.
                 </p>
               </CardContent>
             </Card>

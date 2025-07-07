@@ -95,6 +95,41 @@ export type Database = {
           },
         ]
       }
+      chat_messages: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          sender_id: string | null
+          sender_type: string
+          ticket_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          sender_id?: string | null
+          sender_type: string
+          ticket_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          sender_id?: string | null
+          sender_type?: string
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       favorites: {
         Row: {
           created_at: string | null
@@ -582,6 +617,42 @@ export type Database = {
           subscription_status?: string | null
           subscription_tier?: string | null
           trial_end?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      support_tickets: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          priority: string
+          response: string | null
+          status: string
+          subject: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          priority?: string
+          response?: string | null
+          status?: string
+          subject?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          priority?: string
+          response?: string | null
+          status?: string
+          subject?: string
           updated_at?: string
           user_id?: string | null
         }

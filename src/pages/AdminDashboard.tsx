@@ -12,7 +12,8 @@ import {
   Shield,
   Scissors,
   Star,
-  Database
+  Database,
+  MessageSquare
 } from "lucide-react";
 import { adminAuth } from "@/services/adminAuth";
 import { 
@@ -175,10 +176,21 @@ const AdminDashboard = () => {
                 </p>
               </div>
             </div>
-            <Button variant="outline" onClick={handleLogout} size="sm" className="flex-shrink-0">
-              <LogOut className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Logout</span>
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => navigate('/admin-support')}
+                size="sm" 
+                className="flex-shrink-0"
+              >
+                <MessageSquare className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Support</span>
+              </Button>
+              <Button variant="outline" onClick={handleLogout} size="sm" className="flex-shrink-0">
+                <LogOut className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Logout</span>
+              </Button>
+            </div>
           </div>
         </div>
       </header>
