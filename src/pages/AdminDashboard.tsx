@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,7 +14,8 @@ import {
   Scissors,
   Star,
   Database,
-  MessageSquare
+  MessageSquare,
+  Headphones
 } from "lucide-react";
 import { adminAuth } from "@/services/adminAuth";
 import { 
@@ -177,6 +179,15 @@ const AdminDashboard = () => {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => navigate('/customer-service-management')}
+                size="sm" 
+                className="flex-shrink-0"
+              >
+                <Headphones className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Customer Service</span>
+              </Button>
               <Button 
                 variant="outline" 
                 onClick={() => navigate('/admin-support')}
