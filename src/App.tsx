@@ -2,7 +2,7 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
@@ -26,38 +26,50 @@ import CustomerServiceWidget from "./components/customer-service/CustomerService
 
 const queryClient = new QueryClient();
 
+function AppContent() {
+  const location = useLocation();
+  
+  // Check if current route is an admin route
+  const isAdminRoute = location.pathname.startsWith('/admin') || 
+                      location.pathname === '/customer-service-management';
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      {!isAdminRoute && <Navbar />}
+      <main className="flex-1">
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/booking" element={<Booking />} />
+          <Route path="/stylist-register" element={<StylistRegister />} />
+          <Route path="/stylist-dashboard" element={<StylistDashboard />} />
+          <Route path="/stylist/:id" element={<StylistDetail />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/payment-return" element={<PaymentReturn />} />
+          <Route path="/admin-login" element={<AdminLogin />} />
+          <Route path="/admin-dashboard" element={<AdminDashboard />} />
+          <Route path="/admin-support" element={<AdminSupportPage />} />
+          <Route path="/customer-service-management" element={<CustomerServiceManagement />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </main>
+      {!isAdminRoute && <Footer />}
+      {!isAdminRoute && <CustomerServiceWidget />}
+    </div>
+  );
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+      <ThemeProvider>
         <TooltipProvider>
           <Toaster />
           <BrowserRouter>
-            <div className="min-h-screen flex flex-col">
-              <Navbar />
-              <main className="flex-1">
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/register" element={<Register />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/booking" element={<Booking />} />
-                  <Route path="/stylist-register" element={<StylistRegister />} />
-                  <Route path="/stylist-dashboard" element={<StylistDashboard />} />
-                  <Route path="/stylist/:id" element={<StylistDetail />} />
-                  <Route path="/forgot-password" element={<ForgotPassword />} />
-                  <Route path="/reset-password" element={<ResetPassword />} />
-                  <Route path="/payment-return" element={<PaymentReturn />} />
-                  <Route path="/admin-login" element={<AdminLogin />} />
-                  <Route path="/admin-dashboard" element={<AdminDashboard />} />
-                  <Route path="/admin-support" element={<AdminSupportPage />} />
-                  <Route path="/customer-service-management" element={<CustomerServiceManagement />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </main>
-              <Footer />
-              <CustomerServiceWidget />
-            </div>
+            <AppContent />
           </BrowserRouter>
         </TooltipProvider>
       </ThemeProvider>
