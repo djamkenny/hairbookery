@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useSecurityMiddleware } from "@/hooks/useSecurityMiddleware";
+import { useNavigate } from "react-router-dom";
 import { 
   Clock, 
   User, 
@@ -20,7 +20,8 @@ import {
   Users,
   CheckCircle,
   XCircle,
-  MoreHorizontal
+  MoreHorizontal,
+  ArrowLeft
 } from "lucide-react";
 
 interface ChatMessage {
@@ -48,6 +49,7 @@ interface SupportTicket {
 
 const CustomerServiceManagement = () => {
   const { isAuthorized } = useSecurityMiddleware(true);
+  const navigate = useNavigate();
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -311,11 +313,22 @@ const CustomerServiceManagement = () => {
       <header className="border-b border-border bg-card">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-semibold">Customer Service Management</h1>
-              <p className="text-sm text-muted-foreground">
-                Manage support tickets and customer communications
-              </p>
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/admin-dashboard')}
+                className="flex items-center gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back to Dashboard
+              </Button>
+              <div>
+                <h1 className="text-2xl font-semibold">Customer Service Management</h1>
+                <p className="text-sm text-muted-foreground">
+                  Manage support tickets and customer communications
+                </p>
+              </div>
             </div>
             <div className="flex items-center gap-4">
               <Badge variant="outline" className="flex items-center gap-1">

@@ -1,493 +1,254 @@
 
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import React, { useEffect, useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
+import { useSecurityMiddleware } from '@/hooks/useSecurityMiddleware';
+import { secureAdminAuth } from '@/services/security/adminAuth';
+import { adminDataService } from '@/services/adminData';
 import { 
   Users, 
   Calendar, 
   DollarSign, 
   TrendingUp, 
-  LogOut,
-  Shield,
-  Scissors,
-  Star,
-  Database,
+  Activity,
+  UserCheck,
   MessageSquare,
-  Headphones
-} from "lucide-react";
-import { adminAuth } from "@/services/adminAuth";
-import { 
-  adminAnalytics, 
-  UserAnalytics, 
-  BookingAnalytics, 
-  StylistAnalytics, 
-  ServiceAnalytics 
-} from "@/services/admin";
-import { adminDataService, DetailedUser, DetailedAppointment, DetailedPayment } from "@/services/adminData";
-import DataTables from "@/components/admin/DataTables";
-import RevenueHistory from "@/components/admin/RevenueHistory";
-import { toast } from "sonner";
+  Settings,
+  ArrowLeft,
+  LogOut
+} from 'lucide-react';
+import { toast } from 'sonner';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const [userAnalytics, setUserAnalytics] = useState<UserAnalytics | null>(null);
-  const [bookingAnalytics, setBookingAnalytics] = useState<BookingAnalytics | null>(null);
-  const [stylistAnalytics, setStylistAnalytics] = useState<StylistAnalytics | null>(null);
-  const [serviceAnalytics, setServiceAnalytics] = useState<ServiceAnalytics | null>(null);
-  const [users, setUsers] = useState<DetailedUser[]>([]);
-  const [appointments, setAppointments] = useState<DetailedAppointment[]>([]);
-  const [payments, setPayments] = useState<DetailedPayment[]>([]);
-  const [revenueData, setRevenueData] = useState<any[]>([]);
-  const [earningsData, setEarningsData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [dataLoading, setDataLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { isAuthorized } = useSecurityMiddleware(true);
+  const [dashboardData, setDashboardData] = useState({
+    totalUsers: 0,
+    totalBookings: 0,
+    totalRevenue: 0,
+    activeStylists: 0,
+    recentActivity: []
+  });
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check authentication
-    if (!adminAuth.isAuthenticated()) {
-      navigate("/admin-login");
-      return;
+    if (isAuthorized) {
+      fetchDashboardData();
     }
+  }, [isAuthorized]);
 
-    // Load all data
-    loadAllData();
-  }, [navigate]);
-
-  const loadAllData = async () => {
+  const fetchDashboardData = async () => {
     try {
-      setLoading(true);
-      setDataLoading(true);
-      setError(null);
-
-      console.log('=== LOADING ALL ADMIN DASHBOARD DATA ===');
-
-      // Load analytics and detailed data in parallel
-      const [
-        usersAnalytics,
-        bookingsAnalytics,
-        stylistsAnalytics,
-        servicesAnalytics,
-        usersData,
-        appointmentsData,
-        paymentsData,
-        revenueTrackingData,
-        specialistEarningsData
-      ] = await Promise.all([
-        adminAnalytics.getUserAnalytics(),
-        adminAnalytics.getBookingAnalytics(),
-        adminAnalytics.getStylistAnalytics(),
-        adminAnalytics.getServiceAnalytics(),
-        adminDataService.getAllUsers(),
-        adminDataService.getAllAppointments(),
-        adminDataService.getAllPayments(),
-        adminDataService.getAllRevenue(),
-        adminDataService.getAllEarnings()
-      ]);
-
-      console.log('=== DATA LOADING RESULTS ===');
-      console.log('Analytics loaded:', {
-        users: usersAnalytics,
-        bookings: bookingsAnalytics,
-        stylists: stylistsAnalytics,
-        services: servicesAnalytics
-      });
-      console.log('Data counts:', {
-        users: usersData.length,
-        appointments: appointmentsData.length,
-        payments: paymentsData.length,
-        revenue: revenueTrackingData.length,
-        earnings: specialistEarningsData.length
-      });
-      console.log('User breakdown:', {
-        totalUsers: usersData.length,
-        stylists: usersData.filter(u => u.is_stylist).length,
-        clients: usersData.filter(u => !u.is_stylist).length
-      });
-
-      // Set analytics data
-      setUserAnalytics(usersAnalytics);
-      setBookingAnalytics(bookingsAnalytics);
-      setStylistAnalytics(stylistsAnalytics);
-      setServiceAnalytics(servicesAnalytics);
-
-      // Set detailed data
-      setUsers(usersData);
-      setAppointments(appointmentsData);
-      setPayments(paymentsData);
-      setRevenueData(revenueTrackingData);
-      setEarningsData(specialistEarningsData);
-
-      console.log('All admin dashboard data loaded successfully');
+      setIsLoading(true);
+      const data = await adminDataService.getDashboardOverview();
+      setDashboardData(data);
     } catch (error) {
-      console.error('Error loading admin dashboard data:', error);
-      setError('Failed to load dashboard data. Please try refreshing the page.');
+      console.error('Error fetching dashboard data:', error);
       toast.error('Failed to load dashboard data');
     } finally {
-      setLoading(false);
-      setDataLoading(false);
+      setIsLoading(false);
     }
   };
 
   const handleLogout = () => {
-    adminAuth.logout();
+    secureAdminAuth.logout();
+    navigate('/admin-login');
     toast.success('Logged out successfully');
-    navigate("/admin-login");
   };
 
-  const currentAdmin = adminAuth.getCurrentAdmin();
-
-  if (loading) {
+  if (isAuthorized === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-lg">Loading dashboard...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
   }
 
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="text-center">
-          <p className="text-lg text-red-600 mb-4">{error}</p>
-          <Button onClick={loadAllData}>
-            Try Again
-          </Button>
-        </div>
-      </div>
-    );
+  if (!isAuthorized) {
+    return null;
   }
 
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b border-border bg-card sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-3 sm:py-4">
+      <header className="border-b border-border bg-card">
+        <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2 sm:space-x-4 min-w-0">
-              <Shield className="h-6 w-6 sm:h-8 sm:w-8 text-primary flex-shrink-0" />
-              <div className="min-w-0">
-                <h1 className="text-lg sm:text-2xl font-semibold truncate">Admin Dashboard</h1>
-                <p className="text-xs sm:text-sm text-muted-foreground truncate">
-                  Welcome, {currentAdmin?.full_name}
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/')}
+                className="flex items-center gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back to Main Site
+              </Button>
+              <div>
+                <h1 className="text-2xl font-semibold">Admin Dashboard</h1>
+                <p className="text-sm text-muted-foreground">
+                  Welcome back, Administrator
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Button 
-                variant="outline" 
-                onClick={() => navigate('/customer-service-management')}
-                size="sm" 
-                className="flex-shrink-0"
-              >
-                <Headphones className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Customer Service</span>
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => navigate('/admin-support')}
-                size="sm" 
-                className="flex-shrink-0"
-              >
-                <MessageSquare className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Support</span>
-              </Button>
-              <Button variant="outline" onClick={handleLogout} size="sm" className="flex-shrink-0">
-                <LogOut className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Logout</span>
-              </Button>
-            </div>
+            <Button variant="outline" onClick={handleLogout} className="flex items-center gap-2">
+              <LogOut className="h-4 w-4" />
+              Logout
+            </Button>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-4 sm:py-8">
-        <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="overview" className="flex items-center gap-2">
-              <TrendingUp className="h-4 w-4" />
-              <span className="hidden sm:inline">Overview</span>
-            </TabsTrigger>
-            <TabsTrigger value="revenue" className="flex items-center gap-2">
-              <DollarSign className="h-4 w-4" />
-              <span className="hidden sm:inline">Revenue</span>
-            </TabsTrigger>
-            <TabsTrigger value="data" className="flex items-center gap-2">
-              <Database className="h-4 w-4" />
-              <span className="hidden sm:inline">All Data</span>
-            </TabsTrigger>
-          </TabsList>
+      <main className="container mx-auto p-6">
+        {/* Stats Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {isLoading ? '...' : dashboardData.totalUsers.toLocaleString()}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Registered users on platform
+              </p>
+            </CardContent>
+          </Card>
 
-          <TabsContent value="overview" className="space-y-6">
-            {/* Enhanced Overview Cards with actual data */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
-              <Card className="mobile-card">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-xs sm:text-sm font-medium">Total Users</CardTitle>
-                  <Users className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent className="p-3 sm:p-6 pt-0">
-                  <div className="text-lg sm:text-2xl font-bold">
-                    {userAnalytics?.totalUsers || 0}
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    {userAnalytics?.newUsersThisMonth || 0} new this month
-                  </p>
-                  <div className="text-xs text-muted-foreground mt-1">
-                    {userAnalytics?.totalStylists || 0} stylists • {userAnalytics?.totalClients || 0} clients
-                  </div>
-                </CardContent>
-              </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {isLoading ? '...' : dashboardData.totalBookings.toLocaleString()}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                All-time appointments
+              </p>
+            </CardContent>
+          </Card>
 
-              <Card className="mobile-card">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-xs sm:text-sm font-medium">Total Bookings</CardTitle>
-                  <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent className="p-3 sm:p-6 pt-0">
-                  <div className="text-lg sm:text-2xl font-bold">
-                    {bookingAnalytics?.totalBookings || 0}
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    {bookingAnalytics?.bookingsThisMonth || 0} this month
-                  </p>
-                  <div className="text-xs text-muted-foreground mt-1">
-                    {bookingAnalytics?.completedBookings || 0} completed • {bookingAnalytics?.pendingBookings || 0} pending
-                  </div>
-                </CardContent>
-              </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {isLoading ? '...' : `GH₵${dashboardData.totalRevenue.toLocaleString()}`}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Platform revenue generated
+              </p>
+            </CardContent>
+          </Card>
 
-              <Card className="mobile-card">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-xs sm:text-sm font-medium">Platform Revenue</CardTitle>
-                  <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent className="p-3 sm:p-6 pt-0">
-                  <div className="text-lg sm:text-2xl font-bold">
-                    GH₵{bookingAnalytics?.totalRevenue?.toFixed(2) || '0.00'}
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    From platform fees
-                  </p>
-                  <div className="text-xs text-muted-foreground mt-1">
-                    Revenue records: {revenueData.length}
-                  </div>
-                </CardContent>
-              </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Active Stylists</CardTitle>
+              <UserCheck className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {isLoading ? '...' : dashboardData.activeStylists.toLocaleString()}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Currently available
+              </p>
+            </CardContent>
+          </Card>
+        </div>
 
-              <Card className="mobile-card">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-xs sm:text-sm font-medium">Active Stylists</CardTitle>
-                  <Scissors className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent className="p-3 sm:p-6 pt-0">
-                  <div className="text-lg sm:text-2xl font-bold">
-                    {userAnalytics?.totalStylists || 0}
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Total stylists registered
-                  </p>
-                  <div className="text-xs text-muted-foreground mt-1">
-                    Earning: GH₵{stylistAnalytics?.totalEarnings?.toFixed(2) || '0.00'}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" 
+                onClick={() => navigate('/customer-service-management')}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MessageSquare className="h-5 w-5" />
+                Customer Service
+              </CardTitle>
+              <CardDescription>
+                Manage support tickets and customer communications
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button className="w-full">
+                Open Customer Service
+              </Button>
+            </CardContent>
+          </Card>
 
-            {/* Detailed Analytics */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
-              {/* Booking Status */}
-              <Card className="mobile-card">
-                <CardHeader>
-                  <CardTitle className="text-base sm:text-lg">Booking Status Overview</CardTitle>
-                  <CardDescription className="text-sm">Current status of all bookings</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3 sm:space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">Completed</span>
-                      <span className="font-medium text-green-600">
-                        {bookingAnalytics?.completedBookings || 0}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">Pending</span>
-                      <span className="font-medium text-yellow-600">
-                        {bookingAnalytics?.pendingBookings || 0}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">Canceled</span>
-                      <span className="font-medium text-red-600">
-                        {bookingAnalytics?.canceledBookings || 0}
-                      </span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow"
+                onClick={() => navigate('/admin-support')}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="h-5 w-5" />
+                Support Dashboard
+              </CardTitle>
+              <CardDescription>
+                View support metrics and analytics
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button variant="outline" className="w-full">
+                View Support Dashboard
+              </Button>
+            </CardContent>
+          </Card>
 
-              {/* User Distribution */}
-              <Card className="mobile-card">
-                <CardHeader>
-                  <CardTitle className="text-base sm:text-lg">User Distribution</CardTitle>
-                  <CardDescription className="text-sm">Breakdown of user types</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3 sm:space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">Clients</span>
-                      <span className="font-medium text-blue-600">
-                        {userAnalytics?.totalClients || 0}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">Stylists</span>
-                      <span className="font-medium text-purple-600">
-                        {userAnalytics?.totalStylists || 0}
-                      </span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="h-5 w-5" />
+                System Settings
+              </CardTitle>
+              <CardDescription>
+                Configure platform settings and preferences
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button variant="outline" className="w-full" disabled>
+                Coming Soon
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
 
-            {/* Top Performers */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6">
-              {/* Top Stylists */}
-              <Card className="mobile-card">
-                <CardHeader>
-                  <CardTitle className="text-base sm:text-lg">Top Performing Stylists</CardTitle>
-                  <CardDescription className="text-sm">Based on total earnings</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3 sm:space-y-4">
-                    {stylistAnalytics?.topStylists && stylistAnalytics.topStylists.length > 0 ? (
-                      stylistAnalytics.topStylists.map((stylist, index) => (
-                        <div key={index} className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2 min-w-0">
-                            <Star className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500 flex-shrink-0" />
-                            <span className="text-sm font-medium truncate">{stylist.name}</span>
-                          </div>
-                          <div className="text-right flex-shrink-0">
-                            <p className="text-sm font-medium">GH₵{stylist.earnings.toFixed(2)}</p>
-                            <p className="text-xs text-muted-foreground">{stylist.bookings} bookings</p>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-sm text-muted-foreground">No stylist data available yet</p>
-                    )}
+        {/* Recent Activity */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Activity</CardTitle>
+            <CardDescription>
+              Latest system activities and notifications
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="space-y-2">
+                <div className="h-4 bg-muted rounded animate-pulse"></div>
+                <div className="h-4 bg-muted rounded animate-pulse w-3/4"></div>
+                <div className="h-4 bg-muted rounded animate-pulse w-1/2"></div>
+              </div>
+            ) : dashboardData.recentActivity.length === 0 ? (
+              <p className="text-muted-foreground">No recent activity to display.</p>
+            ) : (
+              <div className="space-y-2">
+                {dashboardData.recentActivity.map((activity, index) => (
+                  <div key={index} className="flex items-center gap-2 p-2 rounded border">
+                    <Activity className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm">{activity}</span>
                   </div>
-                </CardContent>
-              </Card>
-
-              {/* Popular Services */}
-              <Card className="mobile-card">
-                <CardHeader>
-                  <CardTitle className="text-base sm:text-lg">Popular Services</CardTitle>
-                  <CardDescription className="text-sm">Most booked services</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3 sm:space-y-4">
-                    {serviceAnalytics?.popularServices && serviceAnalytics.popularServices.length > 0 ? (
-                      serviceAnalytics.popularServices.map((service, index) => (
-                        <div key={index} className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2 min-w-0">
-                            <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
-                            <span className="text-sm font-medium truncate">{service.name}</span>
-                          </div>
-                          <div className="text-right flex-shrink-0">
-                            <p className="text-sm font-medium">{service.bookings} bookings</p>
-                            <p className="text-xs text-muted-foreground">
-                              GH₵{service.revenue.toFixed(2)} revenue
-                            </p>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-sm text-muted-foreground">No service data available yet</p>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Summary Stats */}
-            <Card className="mobile-card">
-              <CardHeader>
-                <CardTitle className="text-base sm:text-lg">Platform Summary</CardTitle>
-                <CardDescription className="text-sm">Overall platform performance metrics</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-                  <div className="text-center">
-                    <p className="text-xl sm:text-2xl font-bold text-primary">
-                      {bookingAnalytics?.totalBookings ? 
-                        ((bookingAnalytics.completedBookings / bookingAnalytics.totalBookings) * 100).toFixed(1) 
-                        : '0.0'
-                      }%
-                    </p>
-                    <p className="text-sm text-muted-foreground">Success Rate</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-xl sm:text-2xl font-bold text-primary">
-                      GH₵{stylistAnalytics?.averageEarnings?.toFixed(2) || '0.00'}
-                    </p>
-                    <p className="text-sm text-muted-foreground">Avg. Stylist Earnings</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-xl sm:text-2xl font-bold text-primary">
-                      {serviceAnalytics?.totalServices || 0}
-                    </p>
-                    <p className="text-sm text-muted-foreground">Total Services</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="revenue" className="space-y-6">
-            <RevenueHistory />
-            
-            {/* Additional Revenue Data */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Revenue Breakdown</CardTitle>
-                <CardDescription>Detailed revenue information</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span>Total Revenue Records:</span>
-                    <span className="font-medium">{revenueData.length}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span>Total Earnings Records:</span>
-                    <span className="font-medium">{earningsData.length}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span>Completed Payments:</span>
-                    <span className="font-medium">{payments.filter(p => p.status === 'completed').length}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="data" className="space-y-6">
-            <DataTables 
-              users={users}
-              appointments={appointments}
-              payments={payments}
-              loading={dataLoading}
-            />
-          </TabsContent>
-        </Tabs>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </main>
     </div>
   );
