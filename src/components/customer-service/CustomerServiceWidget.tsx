@@ -97,7 +97,12 @@ const CustomerServiceWidget = () => {
 
         if (messagesError) throw messagesError;
 
-        setMessages(chatMessages || []);
+        const typedMessages = (chatMessages || []).map(msg => ({
+          ...msg,
+          sender_type: msg.sender_type as 'user' | 'admin'
+        }));
+
+        setMessages(typedMessages);
       }
     } catch (error) {
       console.error('Error loading ticket:', error);

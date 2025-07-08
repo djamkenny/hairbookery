@@ -129,11 +129,15 @@ const AdminSupportDashboard = () => {
               
               return {
                 ...ticket,
+                status: ticket.status as 'open' | 'in_progress' | 'resolved' | 'closed',
+                priority: ticket.priority as 'low' | 'medium' | 'high' | 'urgent',
                 user_profile: profile || { full_name: 'Unknown User', email: 'unknown@email.com' }
               };
             } catch {
               return {
                 ...ticket,
+                status: ticket.status as 'open' | 'in_progress' | 'resolved' | 'closed',
+                priority: ticket.priority as 'low' | 'medium' | 'high' | 'urgent',
                 user_profile: { full_name: 'Unknown User', email: 'unknown@email.com' }
               };
             }
@@ -160,7 +164,13 @@ const AdminSupportDashboard = () => {
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      setMessages(data || []);
+      
+      const typedMessages = (data || []).map(msg => ({
+        ...msg,
+        sender_type: msg.sender_type as 'user' | 'admin'
+      }));
+      
+      setMessages(typedMessages);
     } catch (error) {
       console.error('Error fetching messages:', error);
       toast.error('Failed to fetch messages');
