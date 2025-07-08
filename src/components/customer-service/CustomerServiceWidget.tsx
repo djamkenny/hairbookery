@@ -1,6 +1,5 @@
-
-import React, { useState, useEffect } from "react";
-import { MessageCircle, X, Send, Minimize2, Maximize2 } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { MessageCircle, X, Send, Minimize2, Maximize2, CheckCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,6 +29,7 @@ const CustomerServiceWidget = () => {
   const [currentTicket, setCurrentTicket] = useState<SupportTicket | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Load existing ticket and messages when widget opens
   useEffect(() => {
@@ -68,6 +68,14 @@ const CustomerServiceWidget = () => {
       supabase.removeChannel(channel);
     };
   }, [currentTicket]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   const loadExistingTicket = async () => {
     if (!user) return;
@@ -165,7 +173,6 @@ const CustomerServiceWidget = () => {
     try {
       let ticket = currentTicket;
 
-      // Create new ticket if none exists
       if (!ticket) {
         ticket = await createNewTicket(message.trim());
         if (!ticket) {
@@ -175,11 +182,11 @@ const CustomerServiceWidget = () => {
         setCurrentTicket(ticket);
       }
 
-      // Send the message
       const success = await sendMessage(message.trim(), ticket.id);
       
       if (success) {
         setMessage('');
+        scrollToBottom();
         toast.success('Message sent! We\'ll get back to you soon.');
       }
     } catch (error) {
@@ -213,14 +220,17 @@ const CustomerServiceWidget = () => {
   return (
     <div className="fixed bottom-6 right-6 z-50">
       <Card className={`w-96 shadow-xl transition-all duration-200 ${isMinimized ? 'h-16' : 'h-[500px]'}`}>
-        <CardHeader className="flex flex-row items-center justify-between p-4 border-b">
-          <CardTitle className="text-lg">Customer Support</CardTitle>
+        <CardHeader className="flex flex-row items-center justify-between p-4 border-b bg-primary text-primary-foreground">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+            <CardTitle className="text-lg">Customer Support</CardTitle>
+          </div>
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setIsMinimized(!isMinimized)}
-              className="h-8 w-8"
+              className="h-8 w-8 text-primary-foreground hover:bg-primary-foreground/20"
             >
               {isMinimized ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-4 w-4" />}
             </Button>
@@ -228,7 +238,7 @@ const CustomerServiceWidget = () => {
               variant="ghost"
               size="icon"
               onClick={() => setIsOpen(false)}
-              className="h-8 w-8"
+              className="h-8 w-8 text-primary-foreground hover:bg-primary-foreground/20"
             >
               <X className="h-4 w-4" />
             </Button>
@@ -240,16 +250,21 @@ const CustomerServiceWidget = () => {
             {/* Chat Messages */}
             <div className="flex-1 p-4 overflow-y-auto bg-gray-50">
               {messages.length === 0 ? (
-                <div className="text-center text-muted-foreground space-y-2">
-                  <div className="text-sm">👋 Welcome to Customer Support!</div>
-                  <div className="text-xs">
-                    How can we help you today? Send us a message and we'll get back to you right away.
+                <div className="text-center text-muted-foreground space-y-3">
+                  <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                    <MessageCircle className="h-8 w-8 text-primary" />
                   </div>
-                  <div className="text-xs pt-2 border-t border-gray-200 mt-4">
-                    <strong>Other ways to reach us:</strong><br/>
-                    📧 support@example.com<br/>
-                    📞 (555) 123-4567<br/>
-                    🕒 Mon-Fri, 9AM-6PM EST
+                  <div>
+                    <div className="text-lg font-medium">👋 Welcome to Customer Support!</div>
+                    <div className="text-sm mt-2">
+                      How can we help you today? Send us a message and we'll get back to you right away.
+                    </div>
+                  </div>
+                  <div className="text-xs pt-2 border-t border-gray-200 mt-4 space-y-1">
+                    <div><strong>Other ways to reach us:</strong></div>
+                    <div>📧 support@example.com</div>
+                    <div>📞 (555) 123-4567</div>
+                    <div>🕒 Mon-Fri, 9AM-6PM EST</div>
                   </div>
                 </div>
               ) : (
@@ -260,19 +275,30 @@ const CustomerServiceWidget = () => {
                       className={`flex ${msg.sender_type === 'user' ? 'justify-end' : 'justify-start'}`}
                     >
                       <div
-                        className={`max-w-[80%] p-3 rounded-lg text-sm ${
+                        className={`max-w-[80%] rounded-lg p-3 shadow-sm ${
                           msg.sender_type === 'user'
                             ? 'bg-primary text-primary-foreground'
-                            : 'bg-green-100 border border-green-200 text-green-800 shadow-sm'
+                            : 'bg-white border border-gray-200'
                         }`}
                       >
-                        <div>{msg.message}</div>
-                        <div className={`text-xs mt-1 opacity-70`}>
-                          {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        <div className="text-sm break-words">{msg.message}</div>
+                        <div className={`text-xs mt-1 flex items-center gap-1 ${
+                          msg.sender_type === 'user' ? 'text-primary-foreground/70' : 'text-gray-500'
+                        }`}>
+                          <span>
+                            {new Date(msg.created_at).toLocaleTimeString([], { 
+                              hour: '2-digit', 
+                              minute: '2-digit' 
+                            })}
+                          </span>
+                          {msg.sender_type === 'user' && (
+                            <CheckCheck className="h-3 w-3" />
+                          )}
                         </div>
                       </div>
                     </div>
                   ))}
+                  <div ref={messagesEndRef} />
                 </div>
               )}
             </div>

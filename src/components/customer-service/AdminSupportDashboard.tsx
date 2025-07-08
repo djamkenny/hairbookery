@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -7,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Clock, User, AlertCircle, Send } from "lucide-react";
+import { Clock, User, AlertCircle, Send, Phone, Video, MoreVertical } from "lucide-react";
 
 interface ChatMessage {
   id: string;
@@ -39,6 +38,7 @@ const AdminSupportDashboard = () => {
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [filter, setFilter] = useState<'all' | 'open' | 'in_progress' | 'resolved'>('all');
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchTickets();
@@ -209,7 +209,6 @@ const AdminSupportDashboard = () => {
 
     setIsLoading(true);
     try {
-      // Send the message
       const { error: messageError } = await supabase
         .from('chat_messages')
         .insert({
@@ -220,13 +219,13 @@ const AdminSupportDashboard = () => {
 
       if (messageError) throw messageError;
 
-      // Update ticket status to in_progress if it's open
       if (selectedTicket.status === 'open') {
         await updateTicketStatus(selectedTicket.id, 'in_progress');
       }
 
       toast.success('Message sent successfully');
       setNewMessage('');
+      scrollToBottom();
     } catch (error) {
       console.error('Error sending message:', error);
       toast.error('Failed to send message');
@@ -234,6 +233,14 @@ const AdminSupportDashboard = () => {
       setIsLoading(false);
     }
   };
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -364,109 +371,154 @@ const AdminSupportDashboard = () => {
           </Card>
         </div>
 
-        {/* Main Content */}
+        {/* Main Content - Enhanced Chat Interface */}
         <div className="lg:col-span-2">
           {selectedTicket ? (
-            <Card>
-              <CardHeader className="border-b">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <CardTitle className="text-xl">{selectedTicket.subject}</CardTitle>
-                    <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        <User className="h-4 w-4" />
-                        <span>{selectedTicket.user_profile?.full_name}</span>
-                        <span>({selectedTicket.user_profile?.email})</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Clock className="h-4 w-4" />
-                        <span>{new Date(selectedTicket.created_at).toLocaleString()}</span>
+            <Card className="h-[700px] flex flex-col">
+              {/* Chat Header - WhatsApp Style */}
+              <CardHeader className="border-b bg-muted/30 flex-shrink-0">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                      <User className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">{selectedTicket.user_profile?.full_name}</CardTitle>
+                      <div className="text-sm text-muted-foreground">
+                        {selectedTicket.user_profile?.email} • Online
                       </div>
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Badge className={getPriorityColor(selectedTicket.priority)}>
-                      {selectedTicket.priority}
-                    </Badge>
-                    <Badge className={getStatusColor(selectedTicket.status)}>
-                      {selectedTicket.status.replace('_', ' ')}
-                    </Badge>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-6 p-6">
-                {/* Chat Messages */}
-                <div className="max-h-96 overflow-y-auto space-y-3 bg-gray-50 p-4 rounded-lg">
-                  {messages.length === 0 ? (
-                    <div className="text-center text-muted-foreground">
-                      No messages yet. Send the first message to start the conversation.
-                    </div>
-                  ) : (
-                    messages.map((message) => (
-                      <div
-                        key={message.id}
-                        className={`flex ${message.sender_type === 'admin' ? 'justify-end' : 'justify-start'}`}
-                      >
-                        <div
-                          className={`max-w-[80%] p-3 rounded-lg text-sm ${
-                            message.sender_type === 'admin'
-                              ? 'bg-blue-500 text-white'
-                              : 'bg-white border shadow-sm'
-                          }`}
-                        >
-                          <div>{message.message}</div>
-                          <div className={`text-xs mt-1 ${
-                            message.sender_type === 'admin' ? 'text-blue-100' : 'text-gray-500'
-                          }`}>
-                            {new Date(message.created_at).toLocaleTimeString([], { 
-                              hour: '2-digit', 
-                              minute: '2-digit' 
-                            })}
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-
-                {/* Status Actions */}
-                <div>
-                  <h3 className="font-medium mb-2">Update Status:</h3>
-                  <div className="flex gap-2">
-                    {['open', 'in_progress', 'resolved', 'closed'].map((status) => (
-                      <Button
-                        key={status}
-                        variant={selectedTicket.status === status ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => updateTicketStatus(selectedTicket.id, status)}
-                      >
-                        {status.replace('_', ' ')}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Send Message */}
-                <div>
-                  <h3 className="font-medium mb-2">Send Message:</h3>
-                  <div className="flex gap-2">
-                    <Textarea
-                      placeholder="Type your message to the customer..."
-                      value={newMessage}
-                      onChange={(e) => setNewMessage(e.target.value)}
-                      className="min-h-[80px]"
-                    />
-                    <Button 
-                      onClick={sendMessage}
-                      disabled={isLoading || !newMessage.trim()}
-                      size="icon"
-                      className="self-end"
-                    >
-                      <Send className="h-4 w-4" />
+                  <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="icon">
+                      <Phone className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon">
+                      <Video className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon">
+                      <MoreVertical className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
+                <div className="flex items-center gap-2 mt-2">
+                  <Badge className={getPriorityColor(selectedTicket.priority)} variant="outline">
+                    {selectedTicket.priority}
+                  </Badge>
+                  <Badge className={getStatusColor(selectedTicket.status)} variant="outline">
+                    {selectedTicket.status.replace('_', ' ')}
+                  </Badge>
+                  <span className="text-xs text-muted-foreground">
+                    Ticket #{selectedTicket.id.slice(-8)} • {new Date(selectedTicket.created_at).toLocaleDateString()}
+                  </span>
+                </div>
+              </CardHeader>
+
+              {/* Chat Messages - WhatsApp Style */}
+              <CardContent className="flex-1 overflow-hidden p-0">
+                <div className="h-full flex flex-col">
+                  <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50/50">
+                    {/* Initial ticket message */}
+                    <div className="flex justify-start">
+                      <div className="max-w-[80%] bg-white border rounded-lg p-3 shadow-sm">
+                        <div className="text-sm font-medium text-primary mb-1">Initial Message:</div>
+                        <div className="text-sm">{selectedTicket.message}</div>
+                        <div className="text-xs text-muted-foreground mt-2">
+                          {new Date(selectedTicket.created_at).toLocaleString()}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Chat Messages */}
+                    {messages.length === 0 ? (
+                      <div className="text-center text-muted-foreground py-8">
+                        <AlertCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                        <p>No messages yet. Start the conversation!</p>
+                      </div>
+                    ) : (
+                      messages.map((message) => (
+                        <div
+                          key={message.id}
+                          className={`flex ${message.sender_type === 'admin' ? 'justify-end' : 'justify-start'}`}
+                        >
+                          <div
+                            className={`max-w-[80%] rounded-lg p-3 shadow-sm ${
+                              message.sender_type === 'admin'
+                                ? 'bg-blue-500 text-white'
+                                : 'bg-white border'
+                            }`}
+                          >
+                            <div className="text-sm break-words">{message.message}</div>
+                            <div className={`text-xs mt-1 flex items-center gap-1 ${
+                              message.sender_type === 'admin' ? 'text-blue-100' : 'text-gray-500'
+                            }`}>
+                              <span>
+                                {new Date(message.created_at).toLocaleTimeString([], { 
+                                  hour: '2-digit', 
+                                  minute: '2-digit' 
+                                })}
+                              </span>
+                              {message.sender_type === 'admin' && (
+                                <span className="text-xs">✓✓</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                    <div ref={messagesEndRef} />
+                  </div>
+
+                  {/* Message Input - WhatsApp Style */}
+                  <div className="border-t bg-white p-4">
+                    <div className="flex gap-2 items-end">
+                      <div className="flex-1">
+                        <Textarea
+                          placeholder="Type a message..."
+                          value={newMessage}
+                          onChange={(e) => setNewMessage(e.target.value)}
+                          className="min-h-[40px] max-h-[120px] resize-none border-0 shadow-sm"
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                              e.preventDefault();
+                              sendMessage();
+                            }
+                          }}
+                        />
+                      </div>
+                      <Button 
+                        onClick={sendMessage}
+                        disabled={isLoading || !newMessage.trim()}
+                        size="icon"
+                        className="h-10 w-10 rounded-full"
+                      >
+                        <Send className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
               </CardContent>
+
+              {/* Status Actions */}
+              <div className="border-t p-4 bg-muted/20">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-sm font-medium">Status:</span>
+                    <div className="flex gap-2 mt-1">
+                      {['open', 'in_progress', 'resolved', 'closed'].map((status) => (
+                        <Button
+                          key={status}
+                          variant={selectedTicket.status === status ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => updateTicketStatus(selectedTicket.id, status)}
+                        >
+                          {status.replace('_', ' ')}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
             </Card>
           ) : (
             <Card>
