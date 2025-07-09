@@ -1,41 +1,39 @@
 
-import React from "react";
-import { useLocation } from "react-router-dom";
-import { cn } from "@/lib/utils";
+import { Link, useLocation } from "react-router-dom";
+import { Heart } from "lucide-react";
 
-export interface NavLink {
-  name: string;
-  path: string;
-}
-
-interface NavLinksProps {
-  links: NavLink[];
-  className?: string;
-  linkClassName?: string;
-  onClick?: () => void;
-}
-
-const NavLinks = ({ links, className, linkClassName, onClick }: NavLinksProps) => {
+const NavLinks = () => {
   const location = useLocation();
 
+  const isActive = (path: string) => location.pathname === path;
+
   return (
-    <nav className={className || "flex items-center space-x-1"}>
-      {links.map((link) => (
-        <a
-          key={link.name}
-          href={link.path}
-          onClick={onClick}
-          className={cn(
-            "px-4 py-2 rounded-md text-sm font-medium transition-colors",
-            location.pathname === link.path
-              ? "text-primary"
-              : "text-muted-foreground hover:text-foreground hover:bg-secondary/80",
-            linkClassName
-          )}
-        >
-          {link.name}
-        </a>
-      ))}
+    <nav className="hidden md:flex items-center space-x-8">
+      <Link
+        to="/"
+        className={`text-sm font-medium transition-colors hover:text-primary ${
+          isActive("/") ? "text-primary" : "text-muted-foreground"
+        }`}
+      >
+        Home
+      </Link>
+      <Link
+        to="/booking"
+        className={`text-sm font-medium transition-colors hover:text-primary ${
+          isActive("/booking") ? "text-primary" : "text-muted-foreground"
+        }`}
+      >
+        Book Appointment
+      </Link>
+      <Link
+        to="/donation"
+        className={`text-sm font-medium transition-colors hover:text-primary flex items-center gap-1 ${
+          isActive("/donation") ? "text-primary" : "text-muted-foreground"
+        }`}
+      >
+        <Heart className="h-4 w-4" />
+        Donate
+      </Link>
     </nav>
   );
 };
