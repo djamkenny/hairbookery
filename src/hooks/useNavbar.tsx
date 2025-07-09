@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import { Heart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { NavLink } from "@/components/layout/NavLinks";
 
@@ -64,6 +65,7 @@ export const useNavbar = () => {
     { name: "Services", path: "/#services" },
     { name: "Specialists", path: "/#specialists" },
     { name: "Contact", path: "/#contact" },
+    { name: "Donate", path: "/donation", icon: Heart },
   ];
 
   return {
