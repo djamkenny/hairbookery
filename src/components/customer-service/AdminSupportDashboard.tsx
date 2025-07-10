@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Clock, User, AlertCircle, Send, Phone, Video, MoreVertical } from "lucide-react";
+import { Clock, User, AlertCircle, Send, Phone, Video, MoreVertical, MessageSquare } from "lucide-react";
 
 interface ChatMessage {
   id: string;
@@ -100,6 +100,7 @@ const AdminSupportDashboard = () => {
 
   const fetchTickets = async () => {
     try {
+      console.log('Fetching tickets with filter:', filter);
       let query = supabase
         .from('support_tickets')
         .select('*')
@@ -299,6 +300,17 @@ const AdminSupportDashboard = () => {
 
   return (
     <div className="container mx-auto p-6">
+      {/* Header */}
+      <div className="mb-6">
+        <div className="flex items-center gap-3 mb-4">
+          <MessageSquare className="h-8 w-8 text-primary" />
+          <div>
+            <h1 className="text-3xl font-bold">Customer Support Chat</h1>
+            <p className="text-muted-foreground">Manage customer inquiries and provide real-time support</p>
+          </div>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Sidebar */}
         <div className="lg:col-span-1 space-y-6">
@@ -550,11 +562,18 @@ const AdminSupportDashboard = () => {
           ) : (
             <Card>
               <CardContent className="p-12 text-center">
-                <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium mb-2">Select a Support Ticket</h3>
-                <p className="text-muted-foreground">
-                  Choose a ticket from the sidebar to view details and chat with customers.
+                <MessageSquare className="h-16 w-16 text-primary mx-auto mb-4" />
+                <h3 className="text-xl font-semibold mb-2">Customer Support Chat</h3>
+                <p className="text-muted-foreground mb-4">
+                  Select a support ticket from the sidebar to start chatting with customers and provide assistance.
                 </p>
+                <div className="bg-blue-50 p-4 rounded-lg text-sm text-blue-800">
+                  <strong>How it works:</strong><br />
+                  • Customers submit tickets through the support widget<br />
+                  • You can view all tickets and their priority levels<br />
+                  • Click on any ticket to open the chat interface<br />
+                  • Send real-time responses and update ticket status
+                </div>
               </CardContent>
             </Card>
           )}
