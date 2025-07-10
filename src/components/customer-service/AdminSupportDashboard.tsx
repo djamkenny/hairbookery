@@ -395,11 +395,11 @@ const AdminSupportDashboard = () => {
           </Card>
         </div>
 
-        {/* Main Content - Enhanced Chat Interface */}
+        {/* Main Content - Chat Interface */}
         <div className="lg:col-span-2">
           {selectedTicket ? (
             <Card className="h-[700px] flex flex-col">
-              {/* Chat Header - WhatsApp Style */}
+              {/* Chat Header */}
               <CardHeader className="border-b bg-muted/30 flex-shrink-0">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -409,7 +409,7 @@ const AdminSupportDashboard = () => {
                     <div>
                       <CardTitle className="text-lg">{selectedTicket.user_profile?.full_name}</CardTitle>
                       <div className="text-sm text-muted-foreground">
-                        {selectedTicket.user_profile?.email} • Active
+                        {selectedTicket.user_profile?.email} • Online
                       </div>
                     </div>
                   </div>
@@ -438,7 +438,7 @@ const AdminSupportDashboard = () => {
                 </div>
               </CardHeader>
 
-              {/* Chat Messages - WhatsApp Style */}
+              {/* Chat Messages */}
               <CardContent className="flex-1 overflow-hidden p-0">
                 <div className="h-full flex flex-col">
                   <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50/50">
@@ -493,16 +493,16 @@ const AdminSupportDashboard = () => {
                     <div ref={messagesEndRef} />
                   </div>
 
-                  {/* Message Input - WhatsApp Style */}
+                  {/* Message Input - Enhanced */}
                   <div className="border-t bg-white p-4">
                     <div className="flex gap-2 items-end">
                       <div className="flex-1">
                         <Textarea
-                          placeholder="Type a message..."
+                          placeholder="Type your response to the customer..."
                           value={newMessage}
                           onChange={(e) => setNewMessage(e.target.value)}
-                          className="min-h-[40px] max-h-[120px] resize-none border-0 shadow-sm"
-                          onKeyPress={(e) => {
+                          className="min-h-[60px] max-h-[120px] resize-none border-0 shadow-sm focus:ring-2 focus:ring-blue-500"
+                          onKeyDown={(e) => {
                             if (e.key === 'Enter' && !e.shiftKey) {
                               e.preventDefault();
                               sendMessage();
@@ -514,10 +514,13 @@ const AdminSupportDashboard = () => {
                         onClick={sendMessage}
                         disabled={isLoading || !newMessage.trim()}
                         size="icon"
-                        className="h-10 w-10 rounded-full"
+                        className="h-12 w-12 rounded-full bg-blue-500 hover:bg-blue-600"
                       >
                         <Send className="h-4 w-4" />
                       </Button>
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-2">
+                      Press Enter to send, Shift+Enter for new line
                     </div>
                   </div>
                 </div>
@@ -527,8 +530,8 @@ const AdminSupportDashboard = () => {
               <div className="border-t p-4 bg-muted/20">
                 <div className="flex items-center justify-between">
                   <div>
-                    <span className="text-sm font-medium">Status:</span>
-                    <div className="flex gap-2 mt-1">
+                    <span className="text-sm font-medium">Update Status:</span>
+                    <div className="flex gap-2 mt-2">
                       {['open', 'in_progress', 'resolved', 'closed'].map((status) => (
                         <Button
                           key={status}
