@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -104,7 +105,6 @@ const AdminSupportDashboard = () => {
         .select('*')
         .order('created_at', { ascending: false });
 
-      // Note: We can't join with profiles due to RLS, so we'll fetch profiles separately
       if (filter !== 'all') {
         query = query.eq('status', filter);
       }
@@ -113,6 +113,7 @@ const AdminSupportDashboard = () => {
 
       if (error) {
         console.error('Error fetching tickets:', error);
+        toast.error('Failed to fetch support tickets');
         return;
       }
       
@@ -121,6 +122,7 @@ const AdminSupportDashboard = () => {
         const ticketsWithProfiles = await Promise.all(
           data.map(async (ticket) => {
             try {
+              // Try to get profile information, but don't fail if we can't
               const { data: profile } = await supabase
                 .from('profiles')
                 .select('full_name, email')
@@ -131,20 +133,28 @@ const AdminSupportDashboard = () => {
                 ...ticket,
                 status: ticket.status as 'open' | 'in_progress' | 'resolved' | 'closed',
                 priority: ticket.priority as 'low' | 'medium' | 'high' | 'urgent',
-                user_profile: profile || { full_name: 'Unknown User', email: 'unknown@email.com' }
+                user_profile: profile || { 
+                  full_name: `User ${ticket.user_id?.slice(-8) || 'Unknown'}`, 
+                  email: 'No email available' 
+                }
               };
-            } catch {
+            } catch (profileError) {
+              console.log('Could not fetch profile for user:', ticket.user_id, profileError);
               return {
                 ...ticket,
                 status: ticket.status as 'open' | 'in_progress' | 'resolved' | 'closed',
                 priority: ticket.priority as 'low' | 'medium' | 'high' | 'urgent',
-                user_profile: { full_name: 'Unknown User', email: 'unknown@email.com' }
+                user_profile: { 
+                  full_name: `User ${ticket.user_id?.slice(-8) || 'Unknown'}`, 
+                  email: 'No email available' 
+                }
               };
             }
           })
         );
         
         setTickets(ticketsWithProfiles);
+        console.log('Fetched tickets:', ticketsWithProfiles.length);
       } else {
         setTickets([]);
       }
@@ -163,7 +173,11 @@ const AdminSupportDashboard = () => {
         .eq('ticket_id', ticketId)
         .order('created_at', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching messages:', error);
+        toast.error('Failed to fetch messages');
+        return;
+      }
       
       const typedMessages = (data || []).map(msg => ({
         ...msg,
@@ -171,6 +185,7 @@ const AdminSupportDashboard = () => {
       }));
       
       setMessages(typedMessages);
+      console.log('Fetched messages for ticket:', ticketId, typedMessages.length);
     } catch (error) {
       console.error('Error fetching messages:', error);
       toast.error('Failed to fetch messages');
@@ -178,6 +193,7 @@ const AdminSupportDashboard = () => {
   };
 
   const handleTicketSelect = (ticket: SupportTicket) => {
+    console.log('Selecting ticket:', ticket.id);
     setSelectedTicket(ticket);
     fetchMessages(ticket.id);
     setNewMessage('');
@@ -190,7 +206,11 @@ const AdminSupportDashboard = () => {
         .update({ status })
         .eq('id', ticketId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating ticket status:', error);
+        toast.error('Failed to update ticket status');
+        return;
+      }
 
       toast.success('Ticket status updated');
       fetchTickets();
@@ -217,7 +237,11 @@ const AdminSupportDashboard = () => {
           message: newMessage.trim()
         });
 
-      if (messageError) throw messageError;
+      if (messageError) {
+        console.error('Error sending message:', messageError);
+        toast.error('Failed to send message');
+        return;
+      }
 
       if (selectedTicket.status === 'open') {
         await updateTicketStatus(selectedTicket.id, 'in_progress');
@@ -329,7 +353,7 @@ const AdminSupportDashboard = () => {
           {/* Tickets List */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Support Tickets</CardTitle>
+              <CardTitle className="text-lg">Support Tickets ({tickets.length})</CardTitle>
             </CardHeader>
             <CardContent className="p-0 max-h-96 overflow-y-auto">
               {tickets.length === 0 ? (
@@ -385,7 +409,7 @@ const AdminSupportDashboard = () => {
                     <div>
                       <CardTitle className="text-lg">{selectedTicket.user_profile?.full_name}</CardTitle>
                       <div className="text-sm text-muted-foreground">
-                        {selectedTicket.user_profile?.email} • Online
+                        {selectedTicket.user_profile?.email} • Active
                       </div>
                     </div>
                   </div>
