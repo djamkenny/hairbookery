@@ -102,6 +102,14 @@ const AdminDashboard = () => {
       disabled: true
     },
     {
+      title: 'Live Chat',
+      description: 'Direct messaging with customers',
+      icon: MessageSquare,
+      onClick: () => navigate('/admin-chat'),
+      color: 'bg-purple-500',
+      disabled: false
+    },
+    {
       title: 'Customer Service',
       description: 'Manage support tickets and customer communications',
       icon: MessageSquare,
