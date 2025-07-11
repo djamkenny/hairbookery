@@ -20,12 +20,15 @@ import AdminSupportPage from "@/pages/AdminSupportPage";
 import AdminChatPage from "@/pages/AdminChatPage";
 import CustomerServiceManagement from './pages/CustomerServiceManagement';
 import CustomerServiceWidget from './components/customer-service/CustomerServiceWidget';
+import { ThemeProvider } from './components/theme/ThemeProvider';
 
 const App: React.FC = () => {
   return (
-    <Router>
-      <AppContent />
-    </Router>
+    <ThemeProvider>
+      <Router>
+        <AppContent />
+      </Router>
+    </ThemeProvider>
   );
 };
 
