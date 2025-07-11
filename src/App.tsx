@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import {
   BrowserRouter as Router,
@@ -6,22 +7,19 @@ import {
   useNavigate,
 } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import HomePage from './pages/HomePage';
-import ProfilePage from './pages/ProfilePage';
-import BookingPage from './pages/BookingPage';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Index from './pages/Index';
+import Profile from './pages/Profile';
+import Booking from './pages/Booking';
 import StylistDashboard from './pages/StylistDashboard';
-import AdminLoginPage from './pages/AdminLoginPage';
+import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
-import ProtectedRoute from './components/ProtectedRoute';
-import PublicRoute from './components/PublicRoute';
-import AdminRoute from './components/AdminRoute';
-import StylistRoute from './components/StylistRoute';
-import CustomerServiceWidget from './components/customer-service/CustomerServiceWidget';
-import CustomerServiceManagement from './pages/CustomerServiceManagement';
+import ProtectedRoute from './components/auth/ProtectedRoute';
 import AdminSupportPage from "@/pages/AdminSupportPage";
 import AdminChatPage from "@/pages/AdminChatPage";
+import CustomerServiceManagement from './pages/CustomerServiceManagement';
+import CustomerServiceWidget from './components/customer-service/CustomerServiceWidget';
 
 const App: React.FC = () => {
   return (
@@ -32,34 +30,46 @@ const App: React.FC = () => {
 };
 
 const AppContent: React.FC = () => {
-  const { authState } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (authState.isAuthenticated) {
+    if (user) {
       // Redirect authenticated users to home page, but not on initial load
       if (window.location.pathname === '/login' || window.location.pathname === '/register') {
         navigate('/');
       }
     }
-  }, [authState.isAuthenticated, navigate]);
+  }, [user, navigate]);
 
   return (
     <>
       <Routes>
-        <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
-        <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
-        <Route path="/" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
-        <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-        <Route path="/booking" element={<ProtectedRoute><BookingPage /></ProtectedRoute>} />
-        <Route path="/stylist-dashboard" element={<StylistRoute><StylistDashboard /></StylistRoute>} />
-        <Route path="/admin-login" element={<PublicRoute><AdminLoginPage /></PublicRoute>} />
-        <Route path="/admin-dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-        <Route path="/customer-service-management" element={<AdminRoute><CustomerServiceManagement /></AdminRoute>} />
-        <Route path="/admin-support" element={<AdminRoute><AdminSupportPage /></AdminRoute>} />
-        <Route path="/admin-chat" element={<AdminRoute><AdminChatPage /></AdminRoute>} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/" element={<Index />} />
+        <Route path="/profile" element={
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        } />
+        <Route path="/booking" element={
+          <ProtectedRoute>
+            <Booking />
+          </ProtectedRoute>
+        } />
+        <Route path="/stylist-dashboard" element={
+          <ProtectedRoute requireStylist={true}>
+            <StylistDashboard />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin-login" element={<AdminLogin />} />
+        <Route path="/admin-dashboard" element={<AdminDashboard />} />
+        <Route path="/customer-service-management" element={<CustomerServiceManagement />} />
+        <Route path="/admin-support" element={<AdminSupportPage />} />
+        <Route path="/admin-chat" element={<AdminChatPage />} />
       </Routes>
-      {authState.isAuthenticated && <CustomerServiceWidget />}
+      {user && <CustomerServiceWidget />}
     </>
   );
 };
