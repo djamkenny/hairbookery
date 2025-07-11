@@ -67,30 +67,44 @@ const AdminChatInterface = () => {
 
       // Fetch user profiles for the ticket user_ids
       const userIds = tickets?.map(t => t.user_id).filter(Boolean) || [];
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('id, full_name, email')
-        .in('id', userIds);
+      let profiles: any[] = [];
+      
+      if (userIds.length > 0) {
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, full_name, email')
+          .in('id', userIds);
 
-      if (profilesError) {
-        console.error('Error fetching profiles:', profilesError);
-        // Continue without profiles
+        if (profilesError) {
+          console.error('Error fetching profiles:', profilesError);
+          // Continue without profiles
+        } else {
+          profiles = profilesData || [];
+        }
       }
 
       // Fetch all messages for these tickets
-      const { data: messages, error: messagesError } = await supabase
-        .from('chat_messages')
-        .select('*')
-        .order('created_at', { ascending: true });
+      const ticketIds = tickets?.map(t => t.id) || [];
+      let messages: any[] = [];
+      
+      if (ticketIds.length > 0) {
+        const { data: messagesData, error: messagesError } = await supabase
+          .from('chat_messages')
+          .select('*')
+          .in('ticket_id', ticketIds)
+          .order('created_at', { ascending: true });
 
-      if (messagesError) {
-        console.error('Error fetching messages:', messagesError);
-        toast.error('Failed to fetch messages');
-        return;
+        if (messagesError) {
+          console.error('Error fetching messages:', messagesError);
+          toast.error('Failed to fetch messages');
+          return;
+        }
+        
+        messages = messagesData || [];
       }
 
       // Create profile lookup map
-      const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
+      const profileMap = new Map(profiles.map(p => [p.id, p]));
 
       // Type cast and group messages by ticket
       const conversationsMap = new Map<string, Conversation>();
@@ -102,7 +116,7 @@ const AdminChatInterface = () => {
           profiles: userProfile || null
         };
         
-        const ticketMessages = (messages || []).filter(msg => msg.ticket_id === ticket.id).map(msg => ({
+        const ticketMessages = messages.filter(msg => msg.ticket_id === ticket.id).map(msg => ({
           ...msg,
           sender_type: msg.sender_type as 'user' | 'admin'
         }));
@@ -121,6 +135,7 @@ const AdminChatInterface = () => {
       });
 
       setConversations(Array.from(conversationsMap.values()));
+      console.log('Loaded conversations:', Array.from(conversationsMap.values()));
     } catch (error) {
       console.error('Error fetching conversations:', error);
       toast.error('Failed to fetch conversations');
