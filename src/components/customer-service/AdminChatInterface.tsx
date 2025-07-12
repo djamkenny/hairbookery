@@ -53,6 +53,8 @@ const AdminChatInterface = () => {
 
   const fetchConversations = async () => {
     try {
+      console.log('Fetching conversations...');
+      
       // Fetch tickets separately first
       const { data: tickets, error: ticketsError } = await supabase
         .from('support_tickets')
@@ -61,9 +63,12 @@ const AdminChatInterface = () => {
 
       if (ticketsError) {
         console.error('Error fetching tickets:', ticketsError);
-        toast.error('Failed to fetch conversations');
+        console.error('Tickets error details:', ticketsError);
+        toast.error('Failed to fetch conversations: ' + ticketsError.message);
         return;
       }
+
+      console.log('Fetched tickets:', tickets);
 
       // Fetch user profiles for the ticket user_ids
       const userIds = tickets?.map(t => t.user_id).filter(Boolean) || [];
