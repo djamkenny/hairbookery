@@ -12,13 +12,7 @@ interface ChatMessage {
   message: string;
   sender_type: 'user' | 'admin';
   created_at: string;
-}
-
-interface SupportTicket {
-  id: string;
-  subject: string;
-  status: string;
-  created_at: string;
+  user_id: string;
 }
 
 const CustomerServiceWidget = () => {
@@ -26,31 +20,30 @@ const CustomerServiceWidget = () => {
   const [isMinimized, setIsMinimized] = useState(false);
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [currentTicket, setCurrentTicket] = useState<SupportTicket | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Load existing ticket and messages when widget opens
+  // Load existing messages when widget opens
   useEffect(() => {
     if (isOpen && user) {
-      loadExistingTicket();
+      loadMessages();
     }
   }, [isOpen, user]);
 
   // Set up real-time subscription for new messages
   useEffect(() => {
-    if (!currentTicket) return;
+    if (!user) return;
 
     const channel = supabase
-      .channel(`ticket_${currentTicket.id}`)
+      .channel(`user_chat_${user.id}`)
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'chat_messages',
-          filter: `ticket_id=eq.${currentTicket.id}`
+          table: 'direct_messages',
+          filter: `user_id=eq.${user.id}`
         },
         (payload) => {
           const newMessage = payload.new as ChatMessage;
@@ -67,7 +60,7 @@ const CustomerServiceWidget = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [currentTicket]);
+  }, [user]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -77,80 +70,38 @@ const CustomerServiceWidget = () => {
     scrollToBottom();
   }, [messages]);
 
-  const loadExistingTicket = async () => {
+  const loadMessages = async () => {
     if (!user) return;
 
     try {
-      // Get the most recent open ticket
-      const { data: tickets, error: ticketError } = await supabase
-        .from('support_tickets')
+      const { data: directMessages, error } = await supabase
+        .from('direct_messages')
         .select('*')
         .eq('user_id', user.id)
-        .in('status', ['open', 'in_progress'])
-        .order('created_at', { ascending: false })
-        .limit(1);
+        .order('created_at', { ascending: true });
 
-      if (ticketError) throw ticketError;
+      if (error) throw error;
 
-      if (tickets && tickets.length > 0) {
-        const ticket = tickets[0];
-        setCurrentTicket(ticket);
+      const typedMessages = (directMessages || []).map(msg => ({
+        ...msg,
+        sender_type: msg.sender_type as 'user' | 'admin'
+      }));
 
-        // Load messages for this ticket
-        const { data: chatMessages, error: messagesError } = await supabase
-          .from('chat_messages')
-          .select('*')
-          .eq('ticket_id', ticket.id)
-          .order('created_at', { ascending: true });
-
-        if (messagesError) throw messagesError;
-
-        const typedMessages = (chatMessages || []).map(msg => ({
-          ...msg,
-          sender_type: msg.sender_type as 'user' | 'admin'
-        }));
-
-        setMessages(typedMessages);
-      }
+      setMessages(typedMessages);
     } catch (error) {
-      console.error('Error loading ticket:', error);
+      console.error('Error loading messages:', error);
+      toast.error('Failed to load chat history');
     }
   };
 
-  const createNewTicket = async (initialMessage: string) => {
-    if (!user) return null;
-
-    try {
-      const { data: ticket, error: ticketError } = await supabase
-        .from('support_tickets')
-        .insert({
-          user_id: user.id,
-          subject: 'Customer Inquiry',
-          message: initialMessage,
-          status: 'open',
-          priority: 'medium'
-        })
-        .select()
-        .single();
-
-      if (ticketError) throw ticketError;
-
-      return ticket;
-    } catch (error) {
-      console.error('Error creating ticket:', error);
-      toast.error('Failed to create support ticket');
-      return null;
-    }
-  };
-
-  const sendMessage = async (messageText: string, ticketId: string) => {
+  const sendMessage = async (messageText: string) => {
     if (!user) return false;
 
     try {
       const { error } = await supabase
-        .from('chat_messages')
+        .from('direct_messages')
         .insert({
-          ticket_id: ticketId,
+          user_id: user.id,
           sender_id: user.id,
           sender_type: 'user',
           message: messageText
@@ -171,18 +122,7 @@ const CustomerServiceWidget = () => {
     setIsLoading(true);
     
     try {
-      let ticket = currentTicket;
-
-      if (!ticket) {
-        ticket = await createNewTicket(message.trim());
-        if (!ticket) {
-          setIsLoading(false);
-          return;
-        }
-        setCurrentTicket(ticket);
-      }
-
-      const success = await sendMessage(message.trim(), ticket.id);
+      const success = await sendMessage(message.trim());
       
       if (success) {
         setMessage('');
@@ -199,7 +139,6 @@ const CustomerServiceWidget = () => {
 
   const clearChat = () => {
     setMessages([]);
-    setCurrentTicket(null);
     toast.success('Chat cleared');
   };
 
@@ -223,7 +162,7 @@ const CustomerServiceWidget = () => {
         <CardHeader className="flex flex-row items-center justify-between p-4 border-b bg-primary text-primary-foreground">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-            <CardTitle className="text-lg">Customer Support</CardTitle>
+            <CardTitle className="text-lg">Live Chat</CardTitle>
           </div>
           <div className="flex items-center gap-2">
             <Button
@@ -255,7 +194,7 @@ const CustomerServiceWidget = () => {
                     <MessageCircle className="h-8 w-8 text-primary" />
                   </div>
                   <div>
-                    <div className="text-lg font-medium">👋 Welcome to Customer Support!</div>
+                    <div className="text-lg font-medium">👋 Welcome to Live Chat!</div>
                     <div className="text-sm mt-2">
                       How can we help you today? Send us a message and we'll get back to you right away.
                     </div>
@@ -305,22 +244,20 @@ const CustomerServiceWidget = () => {
 
             {/* Message Input */}
             <div className="p-4 border-t bg-white">
-              {currentTicket && (
-                <div className="flex items-center gap-2 mb-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={clearChat}
-                    disabled={messages.length === 0}
-                    className="text-xs"
-                  >
-                    Clear Chat
-                  </Button>
-                  <div className="text-xs text-muted-foreground">
-                    Ticket #{currentTicket.id.slice(-8)} - {currentTicket.status}
-                  </div>
+              <div className="flex items-center gap-2 mb-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={clearChat}
+                  disabled={messages.length === 0}
+                  className="text-xs"
+                >
+                  Clear Chat
+                </Button>
+                <div className="text-xs text-muted-foreground">
+                  {messages.length} messages
                 </div>
-              )}
+              </div>
               <div className="flex gap-2">
                 <Textarea
                   placeholder="Type your message here..."

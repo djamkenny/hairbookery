@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Send, MessageSquare, User, Clock, Users } from "lucide-react";
+import { Send, MessageSquare, User, Users } from "lucide-react";
 
 interface ChatMessage {
   id: string;
@@ -15,25 +14,17 @@ interface ChatMessage {
   sender_type: 'user' | 'admin';
   created_at: string;
   sender_id: string;
-  ticket_id: string;
+  user_id: string;
 }
 
-interface SupportTicket {
+interface UserProfile {
   id: string;
-  user_id: string;
-  subject: string;
-  status: string;
-  created_at: string;
-  updated_at: string;
-  profiles?: {
-    id: string;
-    full_name: string | null;
-    email: string | null;
-  } | null;
+  full_name: string | null;
+  email: string | null;
 }
 
 interface Conversation {
-  ticket: SupportTicket;
+  user: UserProfile;
   messages: ChatMessage[];
   unreadCount: number;
   lastMessage?: ChatMessage;
@@ -41,7 +32,7 @@ interface Conversation {
 
 const AdminChatInterface = () => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [newMessageIds, setNewMessageIds] = useState<Set<string>>(new Set());
@@ -56,24 +47,25 @@ const AdminChatInterface = () => {
     try {
       console.log('Fetching conversations...');
       
-      // Fetch all tickets first
-      const { data: tickets, error: ticketsError } = await supabase
-        .from('support_tickets')
+      // Fetch all messages
+      const { data: messages, error: messagesError } = await supabase
+        .from('direct_messages')
         .select('*')
-        .order('updated_at', { ascending: false });
+        .order('created_at', { ascending: true });
 
-      if (ticketsError) {
-        console.error('Error fetching tickets:', ticketsError);
-        toast.error('Failed to fetch conversations: ' + ticketsError.message);
+      if (messagesError) {
+        console.error('Error fetching messages:', messagesError);
+        toast.error('Failed to fetch messages: ' + messagesError.message);
         return;
       }
 
-      console.log('Fetched tickets:', tickets);
+      console.log('Fetched messages:', messages);
 
-      // Fetch user profiles separately
-      const userIds = tickets?.map(t => t.user_id).filter(Boolean) || [];
-      let profiles: any[] = [];
+      // Get unique user IDs
+      const userIds = [...new Set(messages?.map(m => m.user_id) || [])];
       
+      // Fetch user profiles
+      let profiles: UserProfile[] = [];
       if (userIds.length > 0) {
         const { data: profilesData, error: profilesError } = await supabase
           .from('profiles')
@@ -89,60 +81,45 @@ const AdminChatInterface = () => {
 
       console.log('Fetched profiles:', profiles);
 
-      // Fetch all messages for these tickets
-      const ticketIds = tickets?.map(t => t.id) || [];
-      let messages: any[] = [];
-      
-      if (ticketIds.length > 0) {
-        const { data: messagesData, error: messagesError } = await supabase
-          .from('chat_messages')
-          .select('*')
-          .in('ticket_id', ticketIds)
-          .order('created_at', { ascending: true });
-
-        if (messagesError) {
-          console.error('Error fetching messages:', messagesError);
-          toast.error('Failed to fetch messages');
-          return;
-        }
-        
-        messages = messagesData || [];
-        console.log('Fetched messages:', messages);
-      }
-
       // Create profile lookup map
       const profileMap = new Map(profiles.map(p => [p.id, p]));
 
-      // Type cast and group messages by ticket
+      // Group messages by user
       const conversationsMap = new Map<string, Conversation>();
       
-      tickets?.forEach(ticket => {
-        const userProfile = ticket.user_id ? profileMap.get(ticket.user_id) : null;
-        const typedTicket: SupportTicket = {
-          ...ticket,
-          profiles: userProfile || null
+      userIds.forEach(userId => {
+        const userProfile = profileMap.get(userId) || {
+          id: userId,
+          full_name: 'Unknown User',
+          email: null
         };
         
-        const ticketMessages = messages.filter(msg => msg.ticket_id === ticket.id).map(msg => ({
+        const userMessages = messages?.filter(msg => msg.user_id === userId).map(msg => ({
           ...msg,
           sender_type: msg.sender_type as 'user' | 'admin'
-        }));
-        const lastMessage = ticketMessages[ticketMessages.length - 1];
-        const unreadCount = ticketMessages.filter(msg => 
-          msg.sender_type === 'user' && 
-          new Date(msg.created_at) > new Date(ticket.updated_at || ticket.created_at)
+        })) || [];
+        
+        const lastMessage = userMessages[userMessages.length - 1];
+        const unreadCount = userMessages.filter(msg => 
+          msg.sender_type === 'user'
         ).length;
 
-        conversationsMap.set(ticket.id, {
-          ticket: typedTicket,
-          messages: ticketMessages,
+        conversationsMap.set(userId, {
+          user: userProfile,
+          messages: userMessages,
           unreadCount,
           lastMessage
         });
       });
 
-      setConversations(Array.from(conversationsMap.values()));
-      console.log('Loaded conversations:', Array.from(conversationsMap.values()));
+      // Sort conversations by most recent activity
+      const sortedConversations = Array.from(conversationsMap.values()).sort((a, b) => 
+        new Date(b.lastMessage?.created_at || '1970-01-01').getTime() - 
+        new Date(a.lastMessage?.created_at || '1970-01-01').getTime()
+      );
+
+      setConversations(sortedConversations);
+      console.log('Loaded conversations:', sortedConversations);
     } catch (error) {
       console.error('Error fetching conversations:', error);
       toast.error('Failed to fetch conversations');
@@ -157,7 +134,7 @@ const AdminChatInterface = () => {
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'chat_messages'
+          table: 'direct_messages'
         },
         (payload) => {
           const newMessage = {
@@ -166,23 +143,32 @@ const AdminChatInterface = () => {
           } as ChatMessage;
           
           setConversations(prev => {
-            const updated = prev.map(conv => {
-              if (conv.ticket.id === newMessage.ticket_id) {
-                return {
-                  ...conv,
-                  messages: [...conv.messages, newMessage],
-                  lastMessage: newMessage,
-                  unreadCount: newMessage.sender_type === 'user' ? conv.unreadCount + 1 : conv.unreadCount
-                };
-              }
-              return conv;
-            });
+            const existingConv = prev.find(conv => conv.user.id === newMessage.user_id);
             
-            // Sort by most recent activity
-            return updated.sort((a, b) => 
-              new Date(b.lastMessage?.created_at || b.ticket.updated_at).getTime() - 
-              new Date(a.lastMessage?.created_at || a.ticket.updated_at).getTime()
-            );
+            if (existingConv) {
+              // Update existing conversation
+              const updated = prev.map(conv => {
+                if (conv.user.id === newMessage.user_id) {
+                  return {
+                    ...conv,
+                    messages: [...conv.messages, newMessage],
+                    lastMessage: newMessage,
+                    unreadCount: newMessage.sender_type === 'user' ? conv.unreadCount + 1 : conv.unreadCount
+                  };
+                }
+                return conv;
+              });
+              
+              // Sort by most recent activity
+              return updated.sort((a, b) => 
+                new Date(b.lastMessage?.created_at || '1970-01-01').getTime() - 
+                new Date(a.lastMessage?.created_at || '1970-01-01').getTime()
+              );
+            } else {
+              // New conversation - refresh data to get user profile
+              fetchConversations();
+              return prev;
+            }
           });
 
           if (newMessage.sender_type === 'user') {
@@ -199,16 +185,16 @@ const AdminChatInterface = () => {
   };
 
   const sendMessage = async () => {
-    if (!newMessage.trim() || isLoading || !selectedConversation) return;
+    if (!newMessage.trim() || isLoading || !selectedUserId) return;
 
     setIsLoading(true);
     try {
       const { error } = await supabase
-        .from('chat_messages')
+        .from('direct_messages')
         .insert({
+          user_id: selectedUserId,
           sender_type: 'admin',
-          message: newMessage.trim(),
-          ticket_id: selectedConversation
+          message: newMessage.trim()
         });
 
       if (error) {
@@ -227,17 +213,17 @@ const AdminChatInterface = () => {
     }
   };
 
-  const markAsRead = async (ticketId: string) => {
+  const markAsRead = async (userId: string) => {
     setConversations(prev => 
       prev.map(conv => 
-        conv.ticket.id === ticketId 
+        conv.user.id === userId 
           ? { ...conv, unreadCount: 0 }
           : conv
       )
     );
     
     // Clear new message highlights for this conversation
-    const conversation = conversations.find(c => c.ticket.id === ticketId);
+    const conversation = conversations.find(c => c.user.id === userId);
     if (conversation) {
       const messageIds = conversation.messages.map(m => m.id);
       setNewMessageIds(prev => {
@@ -249,7 +235,7 @@ const AdminChatInterface = () => {
   };
 
   const getSelectedConversation = () => {
-    return conversations.find(conv => conv.ticket.id === selectedConversation);
+    return conversations.find(conv => conv.user.id === selectedUserId);
   };
 
   const scrollToBottom = () => {
@@ -257,10 +243,10 @@ const AdminChatInterface = () => {
   };
 
   useEffect(() => {
-    if (selectedConversation) {
+    if (selectedUserId) {
       scrollToBottom();
     }
-  }, [selectedConversation, conversations]);
+  }, [selectedUserId, conversations]);
 
   const selectedConv = getSelectedConversation();
 
@@ -290,13 +276,13 @@ const AdminChatInterface = () => {
             <div className="space-y-0">
               {conversations.map((conversation) => (
                 <div
-                  key={conversation.ticket.id}
+                  key={conversation.user.id}
                   onClick={() => {
-                    setSelectedConversation(conversation.ticket.id);
-                    markAsRead(conversation.ticket.id);
+                    setSelectedUserId(conversation.user.id);
+                    markAsRead(conversation.user.id);
                   }}
                   className={`relative flex items-center gap-3 p-3 cursor-pointer transition-colors hover:bg-muted/80 ${
-                    selectedConversation === conversation.ticket.id
+                    selectedUserId === conversation.user.id
                       ? 'bg-muted border-r-2 border-primary'
                       : ''
                   } ${conversation.unreadCount > 0 ? 'bg-accent/10' : ''}`}
@@ -319,7 +305,7 @@ const AdminChatInterface = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
                       <h4 className="font-medium text-sm truncate">
-                        {conversation.ticket.profiles?.full_name || 'Anonymous User'}
+                        {conversation.user.full_name || 'Anonymous User'}
                       </h4>
                       <span className="text-xs text-muted-foreground">
                         {conversation.lastMessage ? 
@@ -327,10 +313,7 @@ const AdminChatInterface = () => {
                             hour: '2-digit', 
                             minute: '2-digit' 
                           })
-                          : new Date(conversation.ticket.created_at).toLocaleTimeString([], { 
-                            hour: '2-digit', 
-                            minute: '2-digit' 
-                          })
+                          : ''
                         }
                       </span>
                     </div>
@@ -349,7 +332,7 @@ const AdminChatInterface = () => {
                     )}
                     
                     <div className="text-xs text-muted-foreground mt-1 truncate">
-                      {conversation.ticket.subject}
+                      {conversation.user.email}
                     </div>
                   </div>
                   
@@ -376,18 +359,15 @@ const AdminChatInterface = () => {
                 </div>
                 <div className="flex-1">
                   <h2 className="font-semibold">
-                    {selectedConv.ticket.profiles?.full_name || 'Anonymous User'}
+                    {selectedConv.user.full_name || 'Anonymous User'}
                   </h2>
                   <p className="text-sm text-muted-foreground">
-                    {selectedConv.ticket.profiles?.email}
+                    {selectedConv.user.email}
                   </p>
                 </div>
                 <Badge variant="outline">
-                  {selectedConv.ticket.status}
+                  {selectedConv.messages.length} messages
                 </Badge>
-              </div>
-              <div className="mt-2 text-sm text-muted-foreground">
-                {selectedConv.ticket.subject}
               </div>
             </div>
 
