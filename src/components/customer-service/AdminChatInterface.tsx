@@ -25,9 +25,10 @@ interface SupportTicket {
   status: string;
   created_at: string;
   updated_at: string;
-  profiles: {
-    full_name: string;
-    email: string;
+  profiles?: {
+    id: string;
+    full_name: string | null;
+    email: string | null;
   } | null;
 }
 
@@ -55,7 +56,7 @@ const AdminChatInterface = () => {
     try {
       console.log('Fetching conversations...');
       
-      // Fetch tickets separately first
+      // Fetch all tickets first
       const { data: tickets, error: ticketsError } = await supabase
         .from('support_tickets')
         .select('*')
@@ -63,14 +64,13 @@ const AdminChatInterface = () => {
 
       if (ticketsError) {
         console.error('Error fetching tickets:', ticketsError);
-        console.error('Tickets error details:', ticketsError);
         toast.error('Failed to fetch conversations: ' + ticketsError.message);
         return;
       }
 
       console.log('Fetched tickets:', tickets);
 
-      // Fetch user profiles for the ticket user_ids
+      // Fetch user profiles separately
       const userIds = tickets?.map(t => t.user_id).filter(Boolean) || [];
       let profiles: any[] = [];
       
@@ -82,11 +82,12 @@ const AdminChatInterface = () => {
 
         if (profilesError) {
           console.error('Error fetching profiles:', profilesError);
-          // Continue without profiles
         } else {
           profiles = profilesData || [];
         }
       }
+
+      console.log('Fetched profiles:', profiles);
 
       // Fetch all messages for these tickets
       const ticketIds = tickets?.map(t => t.id) || [];
@@ -106,6 +107,7 @@ const AdminChatInterface = () => {
         }
         
         messages = messagesData || [];
+        console.log('Fetched messages:', messages);
       }
 
       // Create profile lookup map
