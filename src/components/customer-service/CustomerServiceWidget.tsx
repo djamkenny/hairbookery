@@ -95,23 +95,33 @@ const CustomerServiceWidget = () => {
   };
 
   const sendMessage = async (messageText: string) => {
-    if (!user) return false;
+    if (!user) {
+      toast.error('Please log in to send messages');
+      return false;
+    }
 
     try {
-      const { error } = await supabase
+      console.log('Attempting to send message for user:', user.id);
+      const { data, error } = await supabase
         .from('direct_messages')
         .insert({
           user_id: user.id,
           sender_id: user.id,
           sender_type: 'user',
           message: messageText
-        });
+        })
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+      
+      console.log('Message inserted successfully:', data);
       return true;
     } catch (error) {
       console.error('Error sending message:', error);
-      toast.error('Failed to send message');
+      toast.error('Failed to send message: ' + (error as any).message);
       return false;
     }
   };
