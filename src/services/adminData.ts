@@ -28,10 +28,10 @@ export const adminDataService = {
         .eq('is_stylist', true)
         .eq('availability', true);
 
-      // Get recent support tickets for activity
-      const { data: recentTickets } = await supabase
-        .from('support_tickets')
-        .select('subject, status, created_at')
+      // Get recent direct messages for activity
+      const { data: recentMessages } = await supabase
+        .from('direct_messages')
+        .select('message, sender_type, created_at')
         .order('created_at', { ascending: false })
         .limit(5);
 
@@ -45,9 +45,9 @@ export const adminDataService = {
       // Create recent activity feed
       const recentActivity = [];
       
-      if (recentTickets && recentTickets.length > 0) {
-        recentTickets.slice(0, 3).forEach(ticket => {
-          recentActivity.push(`New support ticket: ${ticket.subject} (${ticket.status})`);
+      if (recentMessages && recentMessages.length > 0) {
+        recentMessages.slice(0, 3).forEach(message => {
+          recentActivity.push(`New message from ${message.sender_type}: ${message.message.substring(0, 50)}...`);
         });
       }
 

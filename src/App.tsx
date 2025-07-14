@@ -18,7 +18,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import AdminSupportPage from "@/pages/AdminSupportPage";
 import AdminChatPage from "@/pages/AdminChatPage";
-import CustomerServiceManagement from './pages/CustomerServiceManagement';
+
 import CustomerServiceWidget from './components/customer-service/CustomerServiceWidget';
 import { ThemeProvider } from './components/theme/ThemeProvider';
 
@@ -68,7 +68,7 @@ const AppContent: React.FC = () => {
         } />
         <Route path="/admin-login" element={<AdminLogin />} />
         <Route path="/admin-dashboard" element={<AdminDashboard />} />
-        <Route path="/customer-service-management" element={<CustomerServiceManagement />} />
+        
         <Route path="/admin-support" element={<AdminSupportPage />} />
         <Route path="/admin-chat" element={<AdminChatPage />} />
       </Routes>
