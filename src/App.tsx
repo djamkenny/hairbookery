@@ -19,6 +19,7 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 import AdminSupportPage from "@/pages/AdminSupportPage";
 import AdminChatPage from "@/pages/AdminChatPage";
 import Donation from './pages/Donation';
+import StylistDetail from './pages/StylistDetail';
 import CustomerServiceWidget from './components/customer-service/CustomerServiceWidget';
 import { ThemeProvider } from './components/theme/ThemeProvider';
 import { PaymentProvider } from './components/payment/PaymentProvider';
@@ -71,6 +72,7 @@ const AppContent: React.FC = () => {
         } />
         <Route path="/admin-login" element={<AdminLogin />} />
         <Route path="/admin-dashboard" element={<AdminDashboard />} />
+        <Route path="/stylist/:id" element={<StylistDetail />} />
         <Route path="/donation" element={<Donation />} />
         <Route path="/admin-support" element={<AdminSupportPage />} />
         <Route path="/admin-chat" element={<AdminChatPage />} />
