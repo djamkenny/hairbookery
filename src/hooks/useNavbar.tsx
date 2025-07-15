@@ -65,7 +65,6 @@ export const useNavbar = () => {
     { name: "Services", path: "/#services" },
     { name: "Specialists", path: "/#specialists" },
     { name: "Contact", path: "/#contact" },
-    { name: "Donate", path: "/donation", icon: Heart },
   ];
 
   return {

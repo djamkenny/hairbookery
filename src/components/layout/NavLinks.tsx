@@ -25,7 +25,6 @@ const NavLinks = ({ links, className, linkClassName, onClick }: NavLinksProps = 
   const defaultLinks: NavLink[] = [
     { name: "Home", path: "/" },
     { name: "Book Appointment", path: "/booking" },
-    { name: "Donate", path: "/donation", icon: Heart },
   ];
 
   const navLinks = links || defaultLinks;
