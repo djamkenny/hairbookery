@@ -39,12 +39,12 @@ const Donation = () => {
 
   const handleDonation = async () => {
     if (amount <= 0) {
-      toast.error("Please enter a valid donation amount");
+      toast.error("Please enter a valid fund amount");
       return;
     }
 
     if (amount < 1) {
-      toast.error("Minimum donation amount is GH₵1.00");
+      toast.error("Minimum fund amount is GH₵1.00");
       return;
     }
 
@@ -57,12 +57,12 @@ const Donation = () => {
       const metadata = {
         donor_name: donorName || "Anonymous",
         message: message || "",
-        donation_type: "general"
+        fund_type: "general"
       };
 
       const result = await createPayment(
         amountInPesewas, 
-        `Donation from ${donorName || "Anonymous Donor"}`,
+        `Fund from ${donorName || "Anonymous Donor"}`,
         undefined,
         metadata
       );
@@ -75,12 +75,12 @@ const Donation = () => {
           }, 1000);
         } else {
           window.open(result.url, '_blank');
-          toast.success("Payment page opened in new tab. Complete your donation there.");
+          toast.success("Payment page opened in new tab. Complete your fund there.");
         }
       }
     } catch (error) {
       console.error("Donation failed:", error);
-      toast.error("Failed to process donation. Please try again.");
+      toast.error("Failed to process fund. Please try again.");
     } finally {
       setIsProcessing(false);
     }
@@ -98,7 +98,7 @@ const Donation = () => {
             Make a Difference Today
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Your donation helps us continue providing quality beauty and wellness services 
+            Your fund helps us continue providing quality beauty and wellness services 
             to our community. Every contribution makes a meaningful impact.
           </p>
         </div>
@@ -139,7 +139,7 @@ const Donation = () => {
         {/* Donation Form */}
         <Card className="max-w-2xl mx-auto">
           <CardHeader>
-            <CardTitle className="text-2xl text-center">Choose Your Donation Amount</CardTitle>
+            <CardTitle className="text-2xl text-center">Choose Your Fund Amount</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Predefined Amounts */}
@@ -197,7 +197,7 @@ const Donation = () => {
               </Label>
               <Textarea
                 id="message"
-                placeholder="Share why you're donating or leave a message..."
+                placeholder="Share why you're funding or leave a message..."
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 className="mt-2"
@@ -208,8 +208,8 @@ const Donation = () => {
             {/* Selected Amount Display */}
             {amount > 0 && (
               <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                <p className="text-lg font-semibold text-green-800">
-                  Donation Amount: GH₵{amount.toFixed(2)}
+                 <p className="text-lg font-semibold text-green-800">
+                  Fund Amount: GH₵{amount.toFixed(2)}
                 </p>
                 <p className="text-sm text-green-600 mt-1">
                   Thank you for your generous support!
@@ -242,14 +242,14 @@ const Donation = () => {
               ) : (
                 <>
                   <Heart className="mr-2 h-5 w-5" />
-                  Donate GH₵{amount.toFixed(2)}
+                  Fund GH₵{amount.toFixed(2)}
                 </>
               )}
             </Button>
 
             {/* Security Note */}
             <p className="text-xs text-gray-500 text-center">
-              🔒 Your donation is processed securely through Paystack. 
+              🔒 Your fund is processed securely through Paystack. 
               We do not store your payment information.
             </p>
           </CardContent>
@@ -261,7 +261,7 @@ const Donation = () => {
             Thank You for Your Support
           </h3>
           <p className="text-gray-600 max-w-xl mx-auto">
-            Every donation, no matter the size, helps us make a positive impact 
+            Every fund, no matter the size, helps us make a positive impact 
             in our community. Your generosity is truly appreciated.
           </p>
         </div>
