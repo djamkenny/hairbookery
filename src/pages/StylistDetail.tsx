@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { Service } from "@/components/stylist/services/types";
 import RatingComponent from "@/components/specialist/RatingComponent";
 import AvailabilityBadge from "@/components/ui/AvailabilityBadge";
+import AvailabilityCalendar from "@/components/specialist/AvailabilityCalendar";
 import { useAvailabilityStatus } from "@/hooks/useAvailabilityStatus";
 
 interface SpecialistProfile {
@@ -211,6 +212,22 @@ const SpecialistDetail = () => {
                 <p className="text-muted-foreground leading-relaxed text-sm lg:text-base">
                   {specialist.bio || "Professional specialist with years of experience in the industry."}
                 </p>
+              </div>
+              
+              <div className="animate-fade-in">
+                <h2 className="text-lg lg:text-xl font-semibold mb-4 lg:mb-6">Availability Calendar</h2>
+                <AvailabilityCalendar 
+                  specialistId={id!} 
+                  onDateTimeSelect={(date, time) => {
+                    // Navigate to booking page with pre-selected date/time
+                    const searchParams = new URLSearchParams({
+                      stylist: id!,
+                      date: date.toISOString().split('T')[0],
+                      time: time
+                    });
+                    window.location.href = `/booking?${searchParams.toString()}`;
+                  }}
+                />
               </div>
               
               <div className="animate-fade-in">

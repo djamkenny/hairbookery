@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { BookingFormData } from "./types";
@@ -17,6 +18,9 @@ export const useBookingFormState = ({
   allServices, 
   stylists 
 }: UseBookingFormStateProps) => {
+  const [searchParams] = useSearchParams();
+  const preSelectedDate = searchParams.get('date');
+  const preSelectedTime = searchParams.get('time');
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [services, setServices] = useState<string[]>([]);
   const [stylist, setStylist] = useState("");
@@ -55,6 +59,15 @@ export const useBookingFormState = ({
   useEffect(() => {
     if (preSelectedStylistId && stylists.length > 0) {
       setStylist(preSelectedStylistId);
+    }
+
+    // Handle pre-selected date and time from URL
+    if (preSelectedDate) {
+      setDate(new Date(preSelectedDate));
+    }
+
+    if (preSelectedTime) {
+      setTime(preSelectedTime);
     }
 
     // Check for similar booking data from localStorage

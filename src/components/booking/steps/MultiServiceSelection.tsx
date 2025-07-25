@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { CalendarIcon, Clock, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { ChevronRight } from "lucide-react";
 import MultiBookingSummary from "./MultiBookingSummary";
@@ -29,6 +30,12 @@ const timeSlots = [
   "9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM", 
   "1:00 PM", "2:00 PM", "3:00 PM", "4:00 PM", "5:00 PM"
 ];
+
+interface TimeSlotAvailability {
+  time: string;
+  available: boolean;
+  bookingCount: number;
+}
 
 interface MultiServiceSelectionProps {
   date: Date | undefined;
@@ -87,6 +94,69 @@ const MultiServiceSelection: React.FC<MultiServiceSelectionProps> = ({
   formatPrice,
   formatDuration,
 }) => {
+  const [timeSlotAvailability, setTimeSlotAvailability] = useState<TimeSlotAvailability[]>([]);
+  const [loadingTimeSlots, setLoadingTimeSlots] = useState(false);
+
+  // Fetch time slot availability when date and stylist change
+  useEffect(() => {
+    if (!date || !stylist) {
+      setTimeSlotAvailability([]);
+      return;
+    }
+
+    const fetchTimeSlotAvailability = async () => {
+      setLoadingTimeSlots(true);
+      try {
+        const formattedDate = format(date, 'yyyy-MM-dd');
+        
+        // Get existing appointments for this stylist on this date
+        const { data: appointments, error } = await supabase
+          .from('appointments')
+          .select('appointment_time, status')
+          .eq('stylist_id', stylist)
+          .eq('appointment_date', formattedDate)
+          .neq('status', 'canceled');
+
+        if (error) {
+          console.error('Error fetching appointments:', error);
+          return;
+        }
+
+        // Get stylist's daily appointment limit
+        const { data: stylistData } = await supabase
+          .from('profiles')
+          .select('daily_appointment_limit')
+          .eq('id', stylist)
+          .single();
+
+        const dailyLimit = stylistData?.daily_appointment_limit || 5;
+
+        // Count bookings per time slot
+        const bookingCounts: Record<string, number> = {};
+        appointments?.forEach(apt => {
+          if (apt.appointment_time) {
+            bookingCounts[apt.appointment_time] = (bookingCounts[apt.appointment_time] || 0) + 1;
+          }
+        });
+
+        // Create availability data
+        const availability = timeSlots.map(timeSlot => ({
+          time: timeSlot,
+          bookingCount: bookingCounts[timeSlot] || 0,
+          available: (bookingCounts[timeSlot] || 0) < dailyLimit
+        }));
+
+        setTimeSlotAvailability(availability);
+      } catch (error) {
+        console.error('Error fetching time slot availability:', error);
+        toast.error('Failed to load time slot availability');
+      } finally {
+        setLoadingTimeSlots(false);
+      }
+    };
+
+    fetchTimeSlotAvailability();
+  }, [date, stylist]);
   const handleAddService = (serviceId: string) => {
     if (!services.includes(serviceId)) {
       setServices([...services, serviceId]);
@@ -207,24 +277,58 @@ const MultiServiceSelection: React.FC<MultiServiceSelectionProps> = ({
             </Popover>
           </div>
           
-          <div className="space-y-2">
-            <Label htmlFor="time">Select Time</Label>
-            <Select value={time} onValueChange={setTime}>
-              <SelectTrigger id="time">
-                <SelectValue placeholder="Choose a time" />
-              </SelectTrigger>
-              <SelectContent>
-                {timeSlots.map((slot) => (
-                  <SelectItem key={slot} value={slot}>
-                    <div className="flex items-center">
-                      <Clock className="mr-2 h-3.5 w-3.5" />
-                      <span>{slot}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="time">Select Time</Label>
+              <Select value={time} onValueChange={setTime}>
+                <SelectTrigger id="time" className={loadingTimeSlots ? "animate-pulse" : ""}>
+                  <SelectValue placeholder={loadingTimeSlots ? "Loading times..." : "Choose a time"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {timeSlotAvailability.length > 0 ? (
+                    timeSlotAvailability.map((slot) => (
+                      <SelectItem 
+                        key={slot.time} 
+                        value={slot.time}
+                        disabled={!slot.available}
+                        className={cn(
+                          "flex items-center justify-between",
+                          !slot.available && "opacity-50"
+                        )}
+                      >
+                        <div className="flex items-center">
+                          <Clock className="mr-2 h-3.5 w-3.5" />
+                          <span>{slot.time}</span>
+                        </div>
+                        {slot.bookingCount > 0 && (
+                          <span className="text-xs text-muted-foreground ml-2">
+                            ({slot.bookingCount} booked)
+                          </span>
+                        )}
+                        {!slot.available && (
+                          <span className="text-xs text-destructive ml-2">
+                            Full
+                          </span>
+                        )}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    timeSlots.map((slot) => (
+                      <SelectItem key={slot} value={slot}>
+                        <div className="flex items-center">
+                          <Clock className="mr-2 h-3.5 w-3.5" />
+                          <span>{slot}</span>
+                        </div>
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+              {date && stylist && timeSlotAvailability.length > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  {timeSlotAvailability.filter(slot => slot.available).length} of {timeSlots.length} slots available
+                </p>
+              )}
+            </div>
         </div>
         
         <div className="space-y-4">
