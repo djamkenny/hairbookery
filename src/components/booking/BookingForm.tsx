@@ -1,16 +1,15 @@
-import React from "react";
-import { formatPrice, formatDuration } from "./utils/formatUtils";
+import { formatPrice, formatDuration } from "@/components/booking/utils/formatUtils";
+import MultiServiceSelection from "./steps/MultiServiceSelection";
+import MultiPaymentConfirmation from "./steps/MultiPaymentConfirmation";
 import { useBookingForm } from "./hooks/useBookingForm";
-import ServiceSelection from "./steps/ServiceSelection";
-import PaymentConfirmation from "./steps/PaymentConfirmation";
 
 export const BookingForm = () => {
   const {
     // Form state
     date,
     setDate,
-    service,
-    setService,
+    services,
+    setServices,
     stylist,
     setStylist,
     time,
@@ -27,12 +26,12 @@ export const BookingForm = () => {
     
     // Data state
     loading,
-    services,
+    availableServices,
     stylists,
     currentUser,
     
     // Derived state
-    selectedService,
+    selectedServices,
     selectedStylist,
     
     // Step state
@@ -45,13 +44,13 @@ export const BookingForm = () => {
   } = useBookingForm();
 
   return (
-    <div className="space-y-6">
-      {step === 1 ? (
-        <ServiceSelection
+    <div className="w-full">
+      {step === 1 && (
+        <MultiServiceSelection
           date={date}
           setDate={setDate}
-          service={service}
-          setService={setService}
+          services={services}
+          setServices={setServices}
           stylist={stylist}
           setStylist={setStylist}
           time={time}
@@ -67,23 +66,30 @@ export const BookingForm = () => {
           handleSubmit={handleSubmit}
           isSubmitting={isSubmitting}
           loading={loading}
-          services={services}
+          availableServices={availableServices}
           stylists={stylists}
-          selectedService={selectedService}
+          selectedServices={selectedServices}
           selectedStylist={selectedStylist}
           currentUser={currentUser}
           formatPrice={formatPrice}
           formatDuration={formatDuration}
         />
-      ) : (
-        <PaymentConfirmation
-          selectedService={selectedService}
+      )}
+      
+      {step === 2 && (
+        <MultiPaymentConfirmation
+          selectedServices={selectedServices}
+          selectedStylist={selectedStylist}
           date={date}
           time={time}
-          handlePaymentSuccess={handlePaymentSuccess}
-          handleGoBack={handleGoBack}
-          isSubmitting={isSubmitting}
+          name={name}
+          email={email}
+          phone={phone}
+          notes={notes}
+          onPaymentSuccess={handlePaymentSuccess}
+          onGoBack={handleGoBack}
           formatPrice={formatPrice}
+          formatDuration={formatDuration}
         />
       )}
     </div>

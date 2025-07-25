@@ -9,8 +9,8 @@ export const useBookingForm = () => {
   const {
     date,
     setDate,
-    service,
-    setService,
+    services,
+    setServices,
     stylist,
     setStylist,
     time,
@@ -30,13 +30,13 @@ export const useBookingForm = () => {
   const { isSubmitting, handleSubmit, handlePaymentSuccess, handleGoBack } = useBookingSubmission({
     currentUser,
     date,
-    service,
+    services,
     stylist,
     time,
     notes,
     setStep,
     setDate,
-    setService,
+    setServices,
     setStylist,
     setTime,
     setNotes
@@ -46,18 +46,20 @@ export const useBookingForm = () => {
   const selectedStylist = stylists.find(s => s.id === stylist);
   
   // Filter services based on selected stylist
-  const services = stylist 
+  const availableServices = stylist 
     ? allServices.filter(s => s.stylist_id === stylist)
     : allServices;
   
-  const selectedService = services.find(s => s.id === service);
+  const selectedServices = services.map(serviceId => 
+    allServices.find(s => s.id === serviceId)
+  ).filter(Boolean);
 
   return {
     // Form state
     date,
     setDate,
-    service,
-    setService,
+    services,
+    setServices,
     stylist,
     setStylist,
     time,
@@ -74,12 +76,12 @@ export const useBookingForm = () => {
     
     // Data state
     loading,
-    services, // This now returns filtered services based on selected stylist
+    availableServices, // Services available for the selected stylist
     stylists,
     currentUser,
     
     // Derived state
-    selectedService,
+    selectedServices, // Array of selected services
     selectedStylist,
     
     // Step state

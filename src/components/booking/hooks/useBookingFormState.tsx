@@ -18,7 +18,7 @@ export const useBookingFormState = ({
   stylists 
 }: UseBookingFormStateProps) => {
   const [date, setDate] = useState<Date | undefined>(undefined);
-  const [service, setService] = useState("");
+  const [services, setServices] = useState<string[]>([]);
   const [stylist, setStylist] = useState("");
   const [time, setTime] = useState("");
   const [name, setName] = useState("");
@@ -68,7 +68,7 @@ export const useBookingFormState = ({
           // Find and pre-select service if it matches
           const matchingService = allServices?.find(s => s.name === bookingData.service);
           if (matchingService) {
-            setService(matchingService.id);
+            setServices([matchingService.id]);
           }
           
           // Find and pre-select stylist if it matches
@@ -98,20 +98,23 @@ export const useBookingFormState = ({
 
   // Reset service selection when stylist changes
   useEffect(() => {
-    if (stylist && service) {
-      const currentService = allServices.find(s => s.id === service);
-      if (currentService && currentService.stylist_id !== stylist) {
-        setService('');
+    if (stylist && services.length > 0) {
+      const validServices = services.filter(serviceId => {
+        const service = allServices.find(s => s.id === serviceId);
+        return service && service.stylist_id === stylist;
+      });
+      if (validServices.length !== services.length) {
+        setServices(validServices);
       }
     }
-  }, [stylist, service, allServices]);
+  }, [stylist, services, allServices]);
 
   return {
     // Form state
     date,
     setDate,
-    service,
-    setService,
+    services,
+    setServices,
     stylist,
     setStylist,
     time,

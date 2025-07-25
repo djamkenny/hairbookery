@@ -1,7 +1,7 @@
 
 export interface BookingFormData {
   date: Date | undefined;
-  service: string;
+  services: string[]; // Changed from single service to array of services
   stylist: string;
   time: string;
   name: string;
@@ -24,7 +24,7 @@ export interface BookingData {
 
 export interface BookingFormActions {
   setDate: (date: Date | undefined) => void;
-  setService: (service: string) => void;
+  setServices: (services: string[]) => void; // Changed from setService to setServices
   setStylist: (stylist: string) => void;
   setTime: (time: string) => void;
   setName: (name: string) => void;

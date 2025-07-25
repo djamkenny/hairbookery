@@ -5,13 +5,13 @@ import { toast } from "sonner";
 interface UseBookingSubmissionProps {
   currentUser: any;
   date: Date | undefined;
-  service: string;
+  services: string[];
   stylist: string;
   time: string;
   notes: string;
   setStep: (step: number) => void;
   setDate: (date: Date | undefined) => void;
-  setService: (service: string) => void;
+  setServices: (services: string[]) => void;
   setStylist: (stylist: string) => void;
   setTime: (time: string) => void;
   setNotes: (notes: string) => void;
@@ -20,13 +20,13 @@ interface UseBookingSubmissionProps {
 export const useBookingSubmission = ({
   currentUser,
   date,
-  service,
+  services,
   stylist,
   time,
   notes,
   setStep,
   setDate,
-  setService,
+  setServices,
   setStylist,
   setTime,
   setNotes
@@ -41,8 +41,8 @@ export const useBookingSubmission = ({
       return;
     }
     
-    if (!date || !service || !stylist || !time) {
-      toast.error('Please fill in all required fields');
+    if (!date || !services.length || !stylist || !time) {
+      toast.error('Please fill in all required fields and select at least one service');
       return;
     }
     
@@ -50,7 +50,7 @@ export const useBookingSubmission = ({
     
     try {
       // Store booking details in localStorage for after payment
-      localStorage.setItem('serviceId', service);
+      localStorage.setItem('serviceIds', JSON.stringify(services));
       localStorage.setItem('stylistId', stylist);
       localStorage.setItem('appointmentDate', date.toISOString().split('T')[0]);
       localStorage.setItem('appointmentTime', time);
@@ -76,7 +76,7 @@ export const useBookingSubmission = ({
       
       // Reset form
       setDate(undefined);
-      setService('');
+      setServices([]);
       setStylist('');
       setTime('');
       setNotes('');
