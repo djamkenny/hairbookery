@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ChatMessage {
   id: string;
@@ -22,6 +23,7 @@ const CustomerServiceWidget = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
+  const isMobile = useIsMobile();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Load existing messages when widget opens
@@ -154,35 +156,49 @@ const CustomerServiceWidget = () => {
 
   if (!isOpen) {
     return (
-      <div className="fixed bottom-6 right-6 z-50">
+      <div className={`fixed z-50 ${isMobile ? 'bottom-4 right-4' : 'bottom-6 right-6'}`}>
         <Button
           onClick={() => setIsOpen(true)}
-          className="rounded-full w-14 h-14 shadow-lg hover:shadow-xl transition-all duration-200"
+          className={`rounded-full shadow-lg hover:shadow-xl transition-all duration-200 ${
+            isMobile ? 'w-12 h-12' : 'w-14 h-14'
+          }`}
           size="icon"
         >
-          <MessageCircle className="h-6 w-6" />
+          <MessageCircle className={`${isMobile ? 'h-5 w-5' : 'h-6 w-6'}`} />
         </Button>
       </div>
     );
   }
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
-      <Card className={`w-96 shadow-xl transition-all duration-200 ${isMinimized ? 'h-16' : 'h-[500px]'}`}>
-        <CardHeader className="flex flex-row items-center justify-between p-4 border-b bg-primary text-primary-foreground">
+    <div className={`fixed z-50 ${
+      isMobile 
+        ? 'inset-4' 
+        : 'bottom-6 right-6'
+    }`}>
+      <Card className={`shadow-xl transition-all duration-200 ${
+        isMobile 
+          ? `w-full ${isMinimized ? 'h-16' : 'h-full'}` 
+          : `w-96 ${isMinimized ? 'h-16' : 'h-[500px]'}`
+      }`}>
+        <CardHeader className={`flex flex-row items-center justify-between border-b bg-primary text-primary-foreground ${
+          isMobile ? 'p-3' : 'p-4'
+        }`}>
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-            <CardTitle className="text-lg">Live Chat</CardTitle>
+            <CardTitle className={`${isMobile ? 'text-base' : 'text-lg'}`}>Live Chat</CardTitle>
           </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsMinimized(!isMinimized)}
-              className="h-8 w-8 text-primary-foreground hover:bg-primary-foreground/20"
-            >
-              {isMinimized ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-4 w-4" />}
-            </Button>
+          <div className="flex items-center gap-1">
+            {!isMobile && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsMinimized(!isMinimized)}
+                className="h-8 w-8 text-primary-foreground hover:bg-primary-foreground/20"
+              >
+                {isMinimized ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-4 w-4" />}
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="icon"
@@ -194,10 +210,12 @@ const CustomerServiceWidget = () => {
           </div>
         </CardHeader>
 
-        {!isMinimized && (
-          <CardContent className="p-0 h-[calc(100%-4rem)] flex flex-col">
+        {(!isMinimized || isMobile) && (
+          <CardContent className={`p-0 flex flex-col ${
+            isMobile ? 'h-[calc(100%-3.5rem)]' : 'h-[calc(100%-4rem)]'
+          }`}>
             {/* Chat Messages */}
-            <div className="flex-1 p-4 overflow-y-auto bg-gray-50">
+            <div className={`flex-1 overflow-y-auto bg-gray-50 ${isMobile ? 'p-3' : 'p-4'}`}>
               {messages.length === 0 ? (
                 <div className="text-center text-muted-foreground space-y-3">
                   <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
@@ -253,8 +271,8 @@ const CustomerServiceWidget = () => {
             </div>
 
             {/* Message Input */}
-            <div className="p-4 border-t bg-white">
-              <div className="flex items-center gap-2 mb-2">
+            <div className={`border-t bg-white ${isMobile ? 'p-3' : 'p-4'}`}>
+              <div className={`flex items-center gap-2 mb-2 ${isMobile ? 'flex-col items-start gap-1' : ''}`}>
                 <Button
                   variant="outline"
                   size="sm"
@@ -273,7 +291,7 @@ const CustomerServiceWidget = () => {
                   placeholder="Type your message here..."
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  className="min-h-[60px] resize-none"
+                  className={`resize-none ${isMobile ? 'min-h-[50px]' : 'min-h-[60px]'}`}
                   onKeyPress={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
                       e.preventDefault();
@@ -284,7 +302,7 @@ const CustomerServiceWidget = () => {
                 <Button 
                   onClick={handleSendMessage}
                   disabled={!message.trim() || !user || isLoading}
-                  size="icon"
+                  size={isMobile ? "sm" : "icon"}
                   className="self-end"
                 >
                   <Send className="h-4 w-4" />
