@@ -30,7 +30,7 @@ const NavLinks = ({ links, className, linkClassName, onClick }: NavLinksProps = 
   const navLinks = links || defaultLinks;
 
   return (
-    <nav className={cn("hidden md:flex items-center space-x-8", className)}>
+    <nav className={cn("hidden md:flex items-center space-x-6 lg:space-x-8", className)}>
       {navLinks.map((link) => (
         <Link
           key={link.path}
