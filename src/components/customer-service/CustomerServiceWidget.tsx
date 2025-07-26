@@ -149,9 +149,25 @@ const CustomerServiceWidget = () => {
     }
   };
 
-  const clearChat = () => {
-    setMessages([]);
-    toast.success('Chat cleared');
+  const clearChat = async () => {
+    if (!user) return;
+    
+    try {
+      // Delete messages from database
+      const { error } = await supabase
+        .from('direct_messages')
+        .delete()
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      // Clear local state
+      setMessages([]);
+      toast.success('Chat cleared');
+    } catch (error) {
+      console.error('Error clearing chat:', error);
+      toast.error('Failed to clear chat');
+    }
   };
 
   if (!isOpen) {
@@ -218,8 +234,12 @@ const CustomerServiceWidget = () => {
             <div className={`flex-1 overflow-y-auto bg-gray-50 ${isMobile ? 'p-3' : 'p-4'}`}>
               {messages.length === 0 ? (
                 <div className="text-center text-muted-foreground space-y-3">
-                  <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-                    <MessageCircle className="h-8 w-8 text-primary" />
+                  <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto overflow-hidden">
+                    <img 
+                      src="https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=64&h=64&fit=crop&crop=center" 
+                      alt="Support"
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                   <div>
                     <div className="text-lg font-medium">👋 Welcome to Live Chat!</div>
