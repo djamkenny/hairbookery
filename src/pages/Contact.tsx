@@ -3,6 +3,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { Phone, Mail, MapPin, Clock } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import ContactMap from '@/components/ui/ContactMap';
 
 const Contact = () => {
   return (
@@ -64,7 +65,7 @@ const Contact = () => {
                   <input
                     type="text"
                     id="name"
-                    className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground placeholder:text-muted-foreground"
                     placeholder="Your name"
                   />
                 </div>
@@ -75,7 +76,7 @@ const Contact = () => {
                   <input
                     type="email"
                     id="email"
-                    className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground placeholder:text-muted-foreground"
                     placeholder="your.email@example.com"
                   />
                 </div>
@@ -86,7 +87,7 @@ const Contact = () => {
                   <input
                     type="text"
                     id="subject"
-                    className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground placeholder:text-muted-foreground"
                     placeholder="How can we help?"
                   />
                 </div>
@@ -97,7 +98,7 @@ const Contact = () => {
                   <textarea
                     id="message"
                     rows={5}
-                    className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground placeholder:text-muted-foreground resize-none"
                     placeholder="Tell us more about your inquiry..."
                   />
                 </div>
@@ -112,9 +113,7 @@ const Contact = () => {
 
             <div>
               <h2 className="text-2xl font-bold mb-6">Find Us</h2>
-              <div className="bg-muted rounded-lg h-80 flex items-center justify-center">
-                <p className="text-muted-foreground">Map placeholder - Location in Accra, Ghana</p>
-              </div>
+              <ContactMap className="h-80 mb-6" />
               <div className="mt-6">
                 <h3 className="font-semibold mb-3">Why Choose K n L Bookery?</h3>
                 <ul className="space-y-2 text-muted-foreground">
