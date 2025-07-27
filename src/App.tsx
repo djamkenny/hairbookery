@@ -19,6 +19,9 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 import AdminSupportPage from "@/pages/AdminSupportPage";
 import AdminChatPage from "@/pages/AdminChatPage";
 import Donation from './pages/Donation';
+import Services from './pages/Services';
+import Specialists from './pages/Specialists';
+import Contact from './pages/Contact';
 import StylistDetail from './pages/StylistDetail';
 import CustomerServiceWidget from './components/customer-service/CustomerServiceWidget';
 import { ThemeProvider } from './components/theme/ThemeProvider';
@@ -55,6 +58,9 @@ const AppContent: React.FC = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/" element={<Index />} />
+        <Route path="/services" element={<Services />} />
+        <Route path="/specialists" element={<Specialists />} />
+        <Route path="/contact" element={<Contact />} />
         <Route path="/profile" element={
           <ProtectedRoute>
             <Profile />

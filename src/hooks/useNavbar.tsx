@@ -62,9 +62,9 @@ export const useNavbar = () => {
 
   const navLinks: NavLink[] = [
     { name: "Home", path: "/" },
-    { name: "Services", path: "/#services" },
-    { name: "Specialists", path: "/#specialists" },
-    { name: "Contact", path: "/#contact" },
+    { name: "Services", path: "/services" },
+    { name: "Specialists", path: "/specialists" },
+    { name: "Contact", path: "/contact" },
   ];
 
   return {
