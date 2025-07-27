@@ -3,7 +3,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { Phone, Mail, MapPin, Clock } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import ContactMap from '@/components/ui/ContactMap';
+
 
 const Contact = () => {
   return (
@@ -112,18 +112,14 @@ const Contact = () => {
             </div>
 
             <div>
-              <h2 className="text-2xl font-bold mb-6">Find Us</h2>
-              <ContactMap className="h-80 mb-6" />
-              <div className="mt-6">
-                <h3 className="font-semibold mb-3">Why Choose K n L Bookery?</h3>
-                <ul className="space-y-2 text-muted-foreground">
-                  <li>• Professional and experienced stylists</li>
-                  <li>• Quality products and equipment</li>
-                  <li>• Convenient online booking</li>
-                  <li>• Flexible scheduling</li>
-                  <li>• Competitive pricing</li>
-                </ul>
-              </div>
+              <h2 className="text-2xl font-bold mb-6">Why Choose K n L Bookery?</h2>
+              <ul className="space-y-2 text-muted-foreground">
+                <li>• Professional and experienced stylists</li>
+                <li>• Quality products and equipment</li>
+                <li>• Convenient online booking</li>
+                <li>• Flexible scheduling</li>
+                <li>• Competitive pricing</li>
+              </ul>
             </div>
           </div>
         </div>
