@@ -92,16 +92,16 @@ const StylistCard = ({ id, name, role, bio, image, location, className }: Stylis
           </span>
         </div>
         
-        <div className="flex gap-2">
+        <div className="flex gap-2 mt-4">
           <Link to={`/stylist/${id}`} className="flex-1">
-            <Button variant="outline" size="sm" className="w-full text-xs">
+            <Button variant="outline" size="sm" className="w-full text-xs h-9 px-3">
               View Profile
             </Button>
           </Link>
           <Link to={`/booking?stylist=${id}`} className="flex-1">
             <Button 
               size="sm" 
-              className="w-full text-xs"
+              className="w-full text-xs h-9 px-3"
               disabled={!availabilityStatus?.available || availabilityStatus?.status === 'unavailable'}
             >
               <Calendar className="h-3 w-3 mr-1" />
