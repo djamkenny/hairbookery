@@ -53,8 +53,8 @@ const ProfileSidebar = ({
       <CardHeader className={`flex ${isMobile ? "flex-row justify-between" : "flex-col"} items-center gap-4 pb-2`}>
         <div className="flex items-center gap-3">
           <Avatar className="h-10 w-10 md:h-12 md:w-12 ring-2 ring-offset-2 ring-primary/20">
-            <AvatarImage 
-              src={avatarUrl || "https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3"} 
+             <AvatarImage 
+               src={avatarUrl || "https://images.unsplash.com/photo-1649972904349-6e44c42644a7?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80"}
               alt={fullName || "User"} 
             />
             <AvatarFallback>{user?.email?.charAt(0).toUpperCase() || "U"}</AvatarFallback>

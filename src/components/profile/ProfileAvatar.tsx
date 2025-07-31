@@ -103,8 +103,8 @@ const ProfileAvatar = ({ user, fullName, avatarUrl, onAvatarUpdate }: ProfileAva
     <div className="flex flex-col sm:flex-row items-center gap-4">
       <div className="relative group cursor-pointer" onClick={handleAvatarClick}>
         <Avatar className="h-20 w-20 border-2 border-primary/20">
-          <AvatarImage 
-            src={localAvatarUrl || "https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3"} 
+           <AvatarImage 
+             src={localAvatarUrl || "https://images.unsplash.com/photo-1649972904349-6e44c42644a7?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80"}
             alt={fullName || "User"} 
           />
           <AvatarFallback>{user?.email?.charAt(0).toUpperCase() || "U"}</AvatarFallback>
