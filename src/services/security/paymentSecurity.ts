@@ -51,9 +51,12 @@ export const paymentSecurity = {
       }
 
       // Verify payment status with Paystack
+      console.log('Calling session-status with sessionId:', sessionId);
       const { data, error } = await supabase.functions.invoke('session-status', {
         body: { session_id: sessionId }
       });
+      
+      console.log('Session status response:', { data, error });
 
       if (error) {
         return { isValid: false, error: 'Payment verification failed' };
