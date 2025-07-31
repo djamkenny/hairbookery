@@ -36,10 +36,10 @@ const MultiPaymentConfirmation: React.FC<MultiPaymentConfirmationProps> = ({
   const totalPrice = selectedServices.reduce((sum, service) => sum + Number(service.price), 0);
   const totalDuration = selectedServices.reduce((sum, service) => sum + Number(service.duration), 0);
 
-  // Calculate booking fee (20% of total price)
+  // Calculate booking fee
   const {
     fee: bookingFee
-  } = calculateBookingFee(totalPrice, 20);
+  } = calculateBookingFee(totalPrice);
   return <div className="space-y-6">
       <Card>
         <CardHeader>
@@ -108,7 +108,7 @@ const MultiPaymentConfirmation: React.FC<MultiPaymentConfirmationProps> = ({
             </div>
             <div className="flex justify-between text-sm text-muted-foreground">
               <span>Pay at appointment:</span>
-              <span>{formatPrice(totalPrice - bookingFee)}</span>
+              <span>{formatPrice(totalPrice)}</span>
             </div>
           </div>
           
