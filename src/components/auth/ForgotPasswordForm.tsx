@@ -24,8 +24,8 @@ const ForgotPasswordForm = () => {
     setIsSubmitting(true);
     
     try {
-      // Use the explicit site URL for password reset
-      const redirectUrl = "https://hairbookery.lovable.app/reset-password";
+      // Use dynamic site URL for password reset
+      const redirectUrl = `${window.location.origin}/reset-password`;
       console.log("Sending password reset to:", email, "with redirect:", redirectUrl);
       
       const { error } = await supabase.auth.resetPasswordForEmail(email, {

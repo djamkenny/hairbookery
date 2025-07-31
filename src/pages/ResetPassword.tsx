@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import AuthLayout from "@/components/auth/AuthLayout";
 import ResetPasswordForm from "@/components/auth/ResetPasswordForm";
 import { KeyRound } from "lucide-react";
@@ -124,6 +124,15 @@ const ResetPassword = () => {
       icon={<KeyRound className="h-8 w-8 text-primary" />}
     >
       <ResetPasswordForm />
+      
+      <div className="text-center text-sm mt-4">
+        <div>
+          Remember your password?{" "}
+          <Link to="/login" className="text-primary hover:underline">
+            Back to Sign In
+          </Link>
+        </div>
+      </div>
     </AuthLayout>
   );
 };
