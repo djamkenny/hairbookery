@@ -62,7 +62,7 @@ const StylistCard = ({ id, name, role, bio, image, location, className }: Stylis
   };
 
   return (
-    <Card className={`group hover:shadow-lg transition-all duration-300 ${className}`}>
+    <Card className={`group hover:shadow-lg transition-all duration-300 md:w-[calc(100%+3px)] ${className}`}>
       <div className="aspect-square overflow-hidden rounded-t-lg">
         {image ? (
           <img
