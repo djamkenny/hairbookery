@@ -26,6 +26,7 @@ import StylistDetail from './pages/StylistDetail';
 import CustomerServiceWidget from './components/customer-service/CustomerServiceWidget';
 import { ThemeProvider } from './components/theme/ThemeProvider';
 import { PaymentProvider } from './components/payment/PaymentProvider';
+import { Toaster } from 'sonner';
 
 const App: React.FC = () => {
   return (
@@ -84,6 +85,7 @@ const AppContent: React.FC = () => {
         <Route path="/admin-chat" element={<AdminChatPage />} />
       </Routes>
       {user && <CustomerServiceWidget />}
+      <Toaster />
     </>
   );
 };
