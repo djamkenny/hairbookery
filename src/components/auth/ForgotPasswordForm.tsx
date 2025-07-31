@@ -26,16 +26,21 @@ const ForgotPasswordForm = () => {
     try {
       // Use dynamic site URL for password reset
       const redirectUrl = `${window.location.origin}/reset-password`;
-      console.log("Sending password reset to:", email, "with redirect:", redirectUrl);
+      console.log("=== Sending Password Reset ===");
+      console.log("Email:", email);
+      console.log("Redirect URL:", redirectUrl);
+      console.log("Current origin:", window.location.origin);
       
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: redirectUrl,
       });
       
       if (error) {
+        console.error("Password reset error:", error);
         throw error;
       }
       
+      console.log("Password reset email sent successfully");
       setEmailSent(true);
       toast.success("Password reset email sent! Please check your inbox.");
     } catch (error: any) {

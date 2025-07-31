@@ -48,15 +48,41 @@ const ResetPasswordForm = () => {
     setIsSubmitting(true);
     
     try {
+      // Check if user has a valid session first
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        toast.error("Your reset session has expired. Please request a new reset link.");
+        navigate("/forgot-password");
+        return;
+      }
+
+      console.log("Updating password for user:", session.user?.email);
+      
       const { error } = await supabase.auth.updateUser({
         password: password
       });
       
       if (error) {
+        console.error("Password update error:", error);
+        
+        // Handle specific error cases
+        if (error.message?.includes("session_not_found") || error.message?.includes("invalid_session")) {
+          toast.error("Your reset session has expired. Please request a new reset link.");
+          navigate("/forgot-password");
+          return;
+        }
+        
         throw error;
       }
       
+      console.log("Password updated successfully");
       toast.success("Password updated successfully! You can now sign in with your new password.");
+      
+      // Sign out the user to clear the reset session
+      await supabase.auth.signOut();
+      
+      // Redirect to login
       navigate("/login");
     } catch (error: any) {
       console.error("Password reset error:", error);
