@@ -79,37 +79,30 @@ export function usePaymentStatus(reference: string | null) {
           try {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
-              // Try multiple approaches to find the payment
-              let fetchedPaymentData = null;
-              let paymentError = null;
-              
               // Try with paystack_reference stored in the database
-              const { data: paystackPayment, error: paystackError } = await supabase
+              const { data: paymentData, error: paymentError } = await supabase
                 .from('payments')
                 .select('service_id, amount')
                 .eq('paystack_reference', reference)
                 .eq('user_id', user.id)
                 .maybeSingle();
               
-              if (paystackPayment && !paystackError) {
-                fetchedPaymentData = paystackPayment;
-                paymentError = paystackError;
-              } else {
+              if (!paymentData && !paymentError) {
                 // Fallback: try with metadata containing paystack_reference
-                const { data: metadataPayment, error: metadataError } = await supabase
+                const { data: metadataPayment } = await supabase
                   .from('payments')
                   .select('service_id, amount')
                   .contains('metadata', { paystack_reference: reference })
                   .eq('user_id', user.id)
                   .maybeSingle();
                 
-                fetchedPaymentData = metadataPayment;
-                paymentError = metadataError;
-              }
-              
-              if (fetchedPaymentData && !paymentError) {
-                serviceId = serviceId || fetchedPaymentData.service_id;
-                storedAmount = storedAmount || fetchedPaymentData.amount.toString();
+                if (metadataPayment) {
+                  serviceId = serviceId || metadataPayment.service_id;
+                  storedAmount = storedAmount || metadataPayment.amount.toString();
+                }
+              } else if (paymentData) {
+                serviceId = serviceId || paymentData.service_id;
+                storedAmount = storedAmount || paymentData.amount.toString();
                 console.log('Retrieved payment data from database:', { serviceId, storedAmount });
               }
             }

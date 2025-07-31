@@ -319,6 +319,8 @@ export type Database = {
           description: string | null
           id: string
           metadata: Json | null
+          paystack_access_code: string | null
+          paystack_reference: string | null
           service_id: string | null
           status: string
           stripe_payment_intent_id: string | null
@@ -334,6 +336,8 @@ export type Database = {
           description?: string | null
           id?: string
           metadata?: Json | null
+          paystack_access_code?: string | null
+          paystack_reference?: string | null
           service_id?: string | null
           status?: string
           stripe_payment_intent_id?: string | null
@@ -349,6 +353,8 @@ export type Database = {
           description?: string | null
           id?: string
           metadata?: Json | null
+          paystack_access_code?: string | null
+          paystack_reference?: string | null
           service_id?: string | null
           status?: string
           stripe_payment_intent_id?: string | null
