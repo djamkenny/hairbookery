@@ -115,7 +115,7 @@ const MultiPaymentConfirmation: React.FC<MultiPaymentConfirmationProps> = ({
           <div className="bg-blue-50 p-3 rounded-md">
             <p className="text-sm text-blue-800">
               <strong>Payment Notice:</strong> You're only paying the booking fee now. 
-              The remaining balance will be paid directly to your specialist at the appointment.
+              The service fee will be paid directly to your specialist at the appointment.
             </p>
           </div>
         </CardContent>
