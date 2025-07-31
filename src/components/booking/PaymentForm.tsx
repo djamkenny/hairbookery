@@ -61,8 +61,12 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
         localStorage.setItem('bookingPaymentCallback', 'true');
         localStorage.setItem('bookingPaymentAmount', amountInPesewas.toString());
         
+        // Ensure serviceId is stored for verification
         if (serviceId) {
           localStorage.setItem('bookingServiceId', serviceId);
+          console.log('Stored serviceId for verification:', serviceId);
+        } else {
+          console.warn('No serviceId found to store for verification');
         }
         
         if (isMobile) {

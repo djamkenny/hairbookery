@@ -79,12 +79,32 @@ export function usePaymentStatus(reference: string | null) {
           try {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
-              const { data: fetchedPaymentData, error: paymentError } = await supabase
+              // Try multiple approaches to find the payment
+              let fetchedPaymentData = null;
+              let paymentError = null;
+              
+              // First try with stripe_session_id (in case the table still uses this field)
+              const { data: stripePayment, error: stripeError } = await supabase
                 .from('payments')
                 .select('service_id, amount')
-                .or(`stripe_session_id.eq.${reference},metadata.cs.{"paystack_reference":"${reference}"}`)
+                .eq('stripe_session_id', reference)
                 .eq('user_id', user.id)
-                .single();
+                .maybeSingle();
+              
+              if (stripePayment && !stripeError) {
+                fetchedPaymentData = stripePayment;
+              } else {
+                // Try with metadata containing paystack_reference
+                const { data: paystackPayment, error: paystackError } = await supabase
+                  .from('payments')
+                  .select('service_id, amount')
+                  .contains('metadata', { paystack_reference: reference })
+                  .eq('user_id', user.id)
+                  .maybeSingle();
+                
+                fetchedPaymentData = paystackPayment;
+                paymentError = paystackError;
+              }
               
               if (fetchedPaymentData && !paymentError) {
                 serviceId = serviceId || fetchedPaymentData.service_id;
