@@ -9,6 +9,7 @@ interface AvailabilityStatus {
   appointments_count?: number;
   daily_limit?: number;
   slots_remaining?: number;
+  stylist_available: boolean; // Overall stylist availability (not date-specific)
 }
 
 export const useAvailabilityStatus = (stylistId: string | undefined, checkDate?: Date) => {
@@ -45,7 +46,8 @@ export const useAvailabilityStatus = (stylistId: string | undefined, checkDate?:
           setAvailabilityStatus({
             available: false,
             status: 'unavailable',
-            reason: 'Stylist is currently unavailable'
+            reason: 'Stylist is currently unavailable',
+            stylist_available: false
           });
           return;
         }
@@ -60,15 +62,20 @@ export const useAvailabilityStatus = (stylistId: string | undefined, checkDate?:
 
         if (error) throw error;
         
-        // Properly type cast the response data
-        setAvailabilityStatus(data as unknown as AvailabilityStatus);
+        // Properly type cast the response data and add stylist_available flag
+        const availabilityData = data as unknown as AvailabilityStatus;
+        setAvailabilityStatus({
+          ...availabilityData,
+          stylist_available: true // Stylist is available overall, just might be full for this date
+        });
       } catch (err: any) {
         console.error("Error fetching availability status:", err);
         setError(err.message);
         setAvailabilityStatus({
           available: false,
           status: 'unavailable',
-          reason: 'Unable to check availability'
+          reason: 'Unable to check availability',
+          stylist_available: true // Assume stylist is available unless we know otherwise
         });
       } finally {
         setLoading(false);
@@ -98,7 +105,8 @@ export const useAvailabilityStatus = (stylistId: string | undefined, checkDate?:
           setAvailabilityStatus({
             available: false,
             status: 'unavailable',
-            reason: 'Stylist is currently unavailable'
+            reason: 'Stylist is currently unavailable',
+            stylist_available: false
           });
           return;
         }
@@ -112,13 +120,18 @@ export const useAvailabilityStatus = (stylistId: string | undefined, checkDate?:
         });
 
         if (error) throw error;
-        setAvailabilityStatus(data as unknown as AvailabilityStatus);
+        const availabilityData = data as unknown as AvailabilityStatus;
+        setAvailabilityStatus({
+          ...availabilityData,
+          stylist_available: true // Stylist is available overall, just might be full for this date
+        });
       } catch (err: any) {
         setError(err.message);
         setAvailabilityStatus({
           available: false,
           status: 'unavailable',
-          reason: 'Unable to check availability'
+          reason: 'Unable to check availability',
+          stylist_available: true // Assume stylist is available unless we know otherwise
         });
       } finally {
         setLoading(false);

@@ -120,7 +120,7 @@ const StylistCard = ({ id, name, role, bio, image, location, className }: Stylis
             <Button 
               size="sm" 
               className="w-full text-xs h-9 px-3 md:h-7 md:px-2 md:text-[10px]"
-              disabled={!availabilityStatus?.available || availabilityStatus?.status === 'unavailable'}
+              disabled={availabilityStatus?.stylist_available === false}
             >
               <Calendar className="h-3 w-3 mr-1 md:h-2.5 md:w-2.5" />
               Book Now
