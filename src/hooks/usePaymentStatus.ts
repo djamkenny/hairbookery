@@ -24,17 +24,26 @@ export function usePaymentStatus(reference: string | null) {
       }
 
       try {
-        // Try to get serviceId from different possible keys
-        let serviceId = localStorage.getItem('serviceId');
-        if (!serviceId) {
-          const serviceIds = localStorage.getItem('serviceIds');
-          if (serviceIds) {
-            const parsed = JSON.parse(serviceIds);
-            serviceId = Array.isArray(parsed) ? parsed[0] : parsed;
+        // Check if this is a booking payment or regular payment
+        let serviceId = localStorage.getItem('bookingServiceId');
+        let storedAmount = localStorage.getItem('bookingPaymentAmount');
+        let hasCallback = localStorage.getItem('bookingPaymentCallback');
+        
+        // If not booking payment, fall back to regular payment keys
+        if (!serviceId || !storedAmount) {
+          serviceId = localStorage.getItem('serviceId');
+          storedAmount = localStorage.getItem('paymentAmount');
+          hasCallback = localStorage.getItem('paymentSuccessCallback');
+          
+          // Try to get from serviceIds if still not found
+          if (!serviceId) {
+            const serviceIds = localStorage.getItem('serviceIds');
+            if (serviceIds) {
+              const parsed = JSON.parse(serviceIds);
+              serviceId = Array.isArray(parsed) ? parsed[0] : parsed;
+            }
           }
         }
-        
-        const storedAmount = localStorage.getItem('paymentAmount');
         
         if (!serviceId || !storedAmount) {
           setError('Missing payment verification data');
@@ -57,8 +66,7 @@ export function usePaymentStatus(reference: string | null) {
           return;
         }
 
-        // Appointment creation block with enhanced validation
-        let hasCallback = localStorage.getItem('paymentSuccessCallback');
+        // Appointment creation block with enhanced validation (only for booking payments)
         const stylistId = localStorage.getItem('stylistId');
         const appointmentDate = localStorage.getItem('appointmentDate');
         const appointmentTime = localStorage.getItem('appointmentTime');
@@ -150,16 +158,20 @@ export function usePaymentStatus(reference: string | null) {
             }
           }
 
-          // Cleanup localStorage
+          // Cleanup localStorage for both booking and regular payment keys
           const keysToRemove = [
             'paymentSuccessCallback',
+            'bookingPaymentCallback',
             'appointmentId',
             'serviceId',
+            'bookingServiceId',
+            'serviceIds',
             'stylistId',
             'appointmentDate',
             'appointmentTime',
             'appointmentNotes',
-            'paymentAmount'
+            'paymentAmount',
+            'bookingPaymentAmount'
           ];
           
           keysToRemove.forEach(key => localStorage.removeItem(key));
