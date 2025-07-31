@@ -29,7 +29,7 @@ const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
 }) => {
   // Only collect the fee—the amount paid now is ONLY the fee!
   const basePrice = selectedService?.price || 0;
-  const { fee: bookingFee } = calculateBookingFee(basePrice, 20);
+  const { fee: bookingFee, serviceTotal } = calculateBookingFee(basePrice);
 
   return (
     <div className="space-y-6">
@@ -67,7 +67,7 @@ const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
             </div>
             <div className="flex justify-between items-center text-sm">
               <span className="font-medium text-amber-700">
-                Booking Fee (20% to confirm):
+                Booking Fee (to confirm):
               </span>
               <span className="text-amber-700">
                 {formatPrice ? formatPrice(bookingFee) : `₵${bookingFee.toFixed(2)}`}
@@ -82,7 +82,7 @@ const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
           </div>
           <div className="bg-yellow-50 p-3 rounded-lg text-sm mt-4 text-yellow-800">
             <span className="font-semibold">Note:</span> Your booking will be confirmed when you pay the fee above. <br />
-            <span>You will pay <strong>{formatPrice ? formatPrice(basePrice) : `₵${basePrice?.toFixed(2)}`}</strong> directly to the specialist at your appointment. This booking fee is a separate non-refundable fee charged by the platform.</span>
+            <span>You will pay <strong>{formatPrice ? formatPrice(serviceTotal) : `₵${serviceTotal?.toFixed(2)}`}</strong> directly to the specialist at your appointment. This booking fee is a separate non-refundable fee charged by the platform.</span>
           </div>
         </CardContent>
       </Card>

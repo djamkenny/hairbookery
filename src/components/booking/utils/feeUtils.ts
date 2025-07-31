@@ -4,12 +4,15 @@
 /**
  * Calculate the booking (platform) fee and total.
  * @param price Base service price in GHS
- * @param feePercent Booking fee as percentage (default 20)
  */
-export function calculateBookingFee(price: number, feePercent: number = 20) {
-  const fee = Math.round(price * (feePercent / 100) * 100) / 100; // two decimals
+export function calculateBookingFee(price: number) {
+  // If service cost is ₵100 or more, booking fee is ₵10
+  // Otherwise, booking fee is 20% of service cost
+  const fee = price >= 100 ? 10 : Math.round(price * 0.20 * 100) / 100;
+  
   return {
     fee,
-    total: Math.round((price + fee) * 100) / 100
+    serviceTotal: Math.round(price * 100) / 100, // Original service cost (pay at appointment)
+    total: Math.round((price + fee) * 100) / 100 // Total including booking fee
   };
 }
