@@ -17,7 +17,7 @@ const PaymentReturnResult: React.FC<Props> = ({ success, error, onContinue, onGo
       <CardHeader className="text-center">
         <div className="flex justify-center mb-4">
           {success ? (
-            <CheckCircle className="h-16 w-16 text-green-500" />
+            <CheckCircle className="h-16 w-16 text-primary" />
           ) : (
             <XCircle className="h-16 w-16 text-red-500" />
           )}

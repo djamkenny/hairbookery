@@ -74,8 +74,8 @@ const PaymentConfirmation: React.FC<PaymentConfirmationProps> = ({
               </span>
             </div>
             <div className="flex justify-between items-center font-bold border-t pt-2">
-              <span className="text-green-700">Total to Pay Now:</span>
-              <span className="text-green-700">
+              <span className="text-primary">Total to Pay Now:</span>
+              <span className="text-primary">
                 {formatPrice ? formatPrice(bookingFee) : `₵${bookingFee.toFixed(2)}`}
               </span>
             </div>

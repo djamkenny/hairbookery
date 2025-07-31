@@ -79,7 +79,7 @@ const LoyaltyPointsCard = ({ totalPoints }: LoyaltyPointsCardProps) => {
                     {new Date(point.created_at).toLocaleDateString()}
                   </div>
                 </div>
-                <Badge variant="outline" className="text-green-600">
+                <Badge variant="outline" className="text-primary">
                   +{point.points} pts
                 </Badge>
               </div>

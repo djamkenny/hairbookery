@@ -88,8 +88,8 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
           </ul>
         </div>
         {isMobile && (
-          <div className="bg-green-50 p-3 rounded-lg text-sm">
-            <p className="text-green-800">
+          <div className="bg-primary/10 p-3 rounded-lg text-sm">
+            <p className="text-primary">
               📱 You'll be redirected to Paystack's secure mobile payment page
             </p>
           </div>

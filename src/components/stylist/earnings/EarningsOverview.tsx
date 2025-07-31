@@ -19,9 +19,9 @@ const EarningsOverview = ({
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      <div className="bg-green-50 border-2 border-green-100 rounded-xl p-4">
-        <div className="text-green-600 text-xs font-semibold">Available Balance</div>
-        <div className="text-2xl font-bold text-green-800">{formatAmount(availableBalance)}</div>
+      <div className="bg-primary/5 border-2 border-primary/20 rounded-xl p-4">
+        <div className="text-primary text-xs font-semibold">Available Balance</div>
+        <div className="text-2xl font-bold text-primary">{formatAmount(availableBalance)}</div>
       </div>
       <div className="bg-blue-50 border-2 border-blue-100 rounded-xl p-4">
         <div className="text-blue-600 text-xs font-semibold">Total Net Earnings</div>

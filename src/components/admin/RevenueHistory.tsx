@@ -151,7 +151,7 @@ const RevenueHistory: React.FC = () => {
                         {format(new Date(record.created_at), 'MMM dd, yyyy')}
                       </TableCell>
                       <TableCell>{record.stylist_name}</TableCell>
-                      <TableCell className="font-medium text-green-600">
+                       <TableCell className="font-medium text-primary">
                         GH₵{Number(record.booking_fee).toFixed(2)}
                       </TableCell>
                       <TableCell>
@@ -203,7 +203,7 @@ const RevenueHistory: React.FC = () => {
                       <TableCell>
                         GH₵{(Number(record.gross_amount) / 100).toFixed(2)}
                       </TableCell>
-                      <TableCell className="font-medium text-green-600">
+                      <TableCell className="font-medium text-primary">
                         GH₵{(Number(record.platform_fee) / 100).toFixed(2)}
                       </TableCell>
                       <TableCell>

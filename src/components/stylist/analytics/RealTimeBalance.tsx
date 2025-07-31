@@ -131,16 +131,16 @@ const RealTimeBalance = ({ stylistId }: RealTimeBalanceProps) => {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <Card className="border-2 border-green-200 bg-green-50">
+      <Card className="border-2 border-primary/20 bg-primary/5">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-green-800">Available Balance</CardTitle>
-          <DollarSign className="h-4 w-4 text-green-600" />
+          <CardTitle className="text-sm font-medium text-primary">Available Balance</CardTitle>
+          <DollarSign className="h-4 w-4 text-primary" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-green-700">
+          <div className="text-2xl font-bold text-primary">
             {formatAmount(availableBalance)}
           </div>
-          <p className="text-xs text-green-600">Ready for withdrawal</p>
+          <p className="text-xs text-primary">Ready for withdrawal</p>
         </CardContent>
       </Card>
 

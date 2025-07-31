@@ -40,7 +40,7 @@ const AppointmentsContent: React.FC<AppointmentsContentProps> = ({
       case "pending":
         return "bg-yellow-100 text-yellow-800";
       case "confirmed":
-        return "bg-green-100 text-green-800";
+        return "bg-primary/10 text-primary";
       case "completed":
         return "bg-blue-100 text-blue-800";
       case "canceled":

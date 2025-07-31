@@ -90,7 +90,7 @@ const AdminDashboard = () => {
       description: 'View and manage all bookings and appointments',
       icon: Calendar,
       onClick: () => navigate('/admin/bookings'),
-      color: 'bg-green-500',
+      color: 'bg-primary',
       disabled: true
     },
     {
@@ -284,10 +284,10 @@ const AdminDashboard = () => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Completed Today</CardTitle>
-              <Clock className="h-4 w-4 text-green-500" />
+              <Clock className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-2xl font-bold text-primary">
                 {dashboardData.completedBookings}
               </div>
               <p className="text-xs text-muted-foreground">
@@ -421,10 +421,10 @@ const AdminDashboard = () => {
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between p-3 rounded-lg border">
                 <div className="flex items-center gap-2">
-                  <CreditCard className="h-4 w-4 text-green-500" />
+                  <CreditCard className="h-4 w-4 text-primary" />
                   <span className="text-sm font-medium">Payment Success Rate</span>
                 </div>
-                <span className="text-sm font-bold text-green-600">98.5%</span>
+                <span className="text-sm font-bold text-primary">98.5%</span>
               </div>
               
               <div className="flex items-center justify-between p-3 rounded-lg border">

@@ -95,7 +95,7 @@ export const SubscriptionPlans: React.FC = () => {
                   <li key={index} className="flex items-center gap-2">
                     <Check 
                       className={`h-4 w-4 ${
-                        feature.included ? 'text-green-500' : 'text-muted-foreground'
+                        feature.included ? 'text-primary' : 'text-muted-foreground'
                       }`} 
                     />
                     <span 

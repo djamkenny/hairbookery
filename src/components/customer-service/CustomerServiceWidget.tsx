@@ -201,7 +201,7 @@ const CustomerServiceWidget = () => {
           isMobile ? 'p-3' : 'p-4'
         }`}>
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+            <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
             <CardTitle className={`${isMobile ? 'text-base' : 'text-lg'}`}>Live Chat</CardTitle>
           </div>
           <div className="flex items-center gap-1">

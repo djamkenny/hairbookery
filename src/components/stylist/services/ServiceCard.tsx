@@ -77,7 +77,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
       <CardContent>
         <div className="flex items-center justify-between text-sm">
           <div className="flex items-center">
-            <DollarSign className="h-4 w-4 mr-1 text-green-600" />
+            <DollarSign className="h-4 w-4 mr-1 text-primary" />
             <span className="font-medium">{formatGHS(service.price)}</span>
           </div>
           <div className="flex items-center text-muted-foreground">

@@ -64,7 +64,7 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
                 <div className="flex justify-between items-center pt-2 border-t border-border/30">
                   <div className="flex items-center">
                     <span className={`inline-flex px-2 py-1 text-xs rounded-full ${
-                      appointment.status === 'completed' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
+                      appointment.status === 'completed' ? 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary' :
                       appointment.status === 'canceled' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' :
                       appointment.status === 'confirmed' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' :
                       'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'

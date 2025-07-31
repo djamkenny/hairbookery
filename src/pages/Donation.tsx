@@ -117,7 +117,7 @@ const Donation = () => {
           
           <Card className="text-center">
             <CardContent className="pt-6">
-              <Target className="h-12 w-12 text-green-500 mx-auto mb-4" />
+              <Target className="h-12 w-12 text-primary mx-auto mb-4" />
               <h3 className="text-xl font-semibold mb-2">Training Programs</h3>
               <p className="text-gray-600">
                 Funding training and skill development for beauty professionals
@@ -207,11 +207,11 @@ const Donation = () => {
 
             {/* Selected Amount Display */}
             {amount > 0 && (
-              <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                 <p className="text-lg font-semibold text-green-800">
-                  Fund Amount: GH₵{amount.toFixed(2)}
-                </p>
-                <p className="text-sm text-green-600 mt-1">
+              <div className="bg-primary/10 p-4 rounded-lg border border-primary/20">
+                 <p className="text-lg font-semibold text-primary">
+                   Fund Amount: GH₵{amount.toFixed(2)}
+                 </p>
+                <p className="text-sm text-primary mt-1">
                   Thank you for your generous support!
                 </p>
               </div>
