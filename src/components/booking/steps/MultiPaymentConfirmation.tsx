@@ -5,7 +5,6 @@ import { CalendarIcon, ClockIcon, UserIcon, Scissors } from "lucide-react";
 import { PaymentButton } from "@/components/payment/PaymentButton";
 import { calculateBookingFee } from "../utils/feeUtils";
 import { format } from "date-fns";
-
 interface MultiPaymentConfirmationProps {
   selectedServices: any[];
   selectedStylist: any;
@@ -20,7 +19,6 @@ interface MultiPaymentConfirmationProps {
   formatPrice?: (price: number) => string;
   formatDuration?: (minutes: number) => string;
 }
-
 const MultiPaymentConfirmation: React.FC<MultiPaymentConfirmationProps> = ({
   selectedServices,
   selectedStylist,
@@ -32,17 +30,17 @@ const MultiPaymentConfirmation: React.FC<MultiPaymentConfirmationProps> = ({
   notes,
   onPaymentSuccess,
   onGoBack,
-  formatPrice = (price) => `GHS ${(price / 100).toFixed(2)}`,
-  formatDuration = (minutes) => `${minutes} min`,
+  formatPrice = price => `GHS ${(price / 100).toFixed(2)}`,
+  formatDuration = minutes => `${minutes} min`
 }) => {
   const totalPrice = selectedServices.reduce((sum, service) => sum + Number(service.price), 0);
   const totalDuration = selectedServices.reduce((sum, service) => sum + Number(service.duration), 0);
-  
-  // Calculate booking fee (₵10 if total ≥ ₵100, otherwise 20%)
-  const { fee: bookingFee, serviceTotal } = calculateBookingFee(totalPrice);
 
-  return (
-    <div className="space-y-6">
+  // Calculate booking fee (20% of total price)
+  const {
+    fee: bookingFee
+  } = calculateBookingFee(totalPrice, 20);
+  return <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -51,15 +49,13 @@ const MultiPaymentConfirmation: React.FC<MultiPaymentConfirmationProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {selectedServices.map((service, index) => (
-            <div key={service.id} className="flex items-center gap-3">
+          {selectedServices.map((service, index) => <div key={service.id} className="flex items-center gap-3">
               <Scissors className="h-4 w-4 text-muted-foreground" />
               <div>
                 <p className="font-medium">{service.name}</p>
                 <p className="text-sm text-muted-foreground">{service.description}</p>
               </div>
-            </div>
-          ))}
+            </div>)}
           
           <div className="flex items-center gap-3">
             <UserIcon className="h-4 w-4 text-muted-foreground" />
@@ -95,12 +91,10 @@ const MultiPaymentConfirmation: React.FC<MultiPaymentConfirmationProps> = ({
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            {selectedServices.map((service) => (
-              <div key={service.id} className="flex justify-between text-sm">
+            {selectedServices.map(service => <div key={service.id} className="flex justify-between text-sm">
                 <span>{service.name}</span>
                 <span>{formatPrice(service.price)}</span>
-              </div>
-            ))}
+              </div>)}
           </div>
           
           <div className="border-t pt-2 space-y-2">
@@ -113,8 +107,8 @@ const MultiPaymentConfirmation: React.FC<MultiPaymentConfirmationProps> = ({
               <span className="font-medium">{formatPrice(bookingFee)}</span>
             </div>
             <div className="flex justify-between text-sm text-muted-foreground">
-              <span>Remaining (Pay at appointment):</span>
-              <span>{formatPrice(serviceTotal)}</span>
+              <span>Pay at appointment:</span>
+              <span>{formatPrice(totalPrice - bookingFee)}</span>
             </div>
           </div>
           
@@ -127,46 +121,33 @@ const MultiPaymentConfirmation: React.FC<MultiPaymentConfirmationProps> = ({
         </CardContent>
       </Card>
 
-      {notes && (
-        <Card>
+      {notes && <Card>
           <CardHeader>
             <CardTitle>Special Requests</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm">{notes}</p>
           </CardContent>
-        </Card>
-      )}
+        </Card>}
 
       <div className="flex gap-4">
-        <Button 
-          variant="outline" 
-          onClick={onGoBack}
-          className="flex-1"
-        >
+        <Button variant="outline" onClick={onGoBack} className="flex-1">
           Back to Booking
         </Button>
         
         <div className="flex-1">
-          <PaymentButton
-            amount={bookingFee}
-            description={`Booking fee for ${selectedServices.map(s => s.name).join(', ')} with ${selectedStylist?.full_name}`}
-            metadata={{
-              serviceIds: selectedServices.map(s => s.id),
-              stylistId: selectedStylist?.id,
-              appointmentDate: date ? format(date, "yyyy-MM-dd") : "",
-              appointmentTime: time,
-              clientName: name,
-              clientEmail: email,
-              clientPhone: phone,
-              notes: notes,
-            }}
-            onPaymentSuccess={onPaymentSuccess}
-          />
+          <PaymentButton amount={bookingFee} description={`Booking fee for ${selectedServices.map(s => s.name).join(', ')} with ${selectedStylist?.full_name}`} metadata={{
+          serviceIds: selectedServices.map(s => s.id),
+          stylistId: selectedStylist?.id,
+          appointmentDate: date ? format(date, "yyyy-MM-dd") : "",
+          appointmentTime: time,
+          clientName: name,
+          clientEmail: email,
+          clientPhone: phone,
+          notes: notes
+        }} onPaymentSuccess={onPaymentSuccess} />
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default MultiPaymentConfirmation;
