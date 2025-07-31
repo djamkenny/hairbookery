@@ -27,11 +27,21 @@ export const paymentSecurity = {
         return { isValid: false, error: 'Service not found' };
       }
 
-      // Verify the expected amount matches the service price
-      if (expectedAmount !== service.price) {
+      // Convert service price from GHS to pesewas for comparison
+      const servicePriceInPesewas = Math.round(service.price * 100);
+      
+      console.log('Payment verification:', {
+        expectedAmount,
+        servicePrice: service.price,
+        servicePriceInPesewas,
+        sessionId
+      });
+      
+      // Verify the expected amount matches the service price (both in pesewas)
+      if (expectedAmount !== servicePriceInPesewas) {
         return { 
           isValid: false, 
-          error: 'Amount mismatch - potential tampering detected' 
+          error: `Amount mismatch - expected ${servicePriceInPesewas} pesewas but got ${expectedAmount} pesewas` 
         };
       }
 
