@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -39,11 +38,20 @@ const AdminLogin = () => {
         toast.success("Successfully logged in!");
         navigate("/admin-dashboard");
       } else {
-        toast.error(response.message || "Invalid credentials");
+        // Provide more specific error messages
+        const errorMessage = response.message || "Invalid credentials";
+        
+        if (errorMessage.includes("too many") || errorMessage.includes("rate")) {
+          toast.error("Too many failed attempts. Please wait 15 minutes before trying again.");
+        } else if (errorMessage.includes("invalid") || errorMessage.includes("Invalid")) {
+          toast.error("Invalid email or password. Please check your admin credentials.");
+        } else {
+          toast.error(errorMessage);
+        }
       }
-    } catch (error) {
-      console.error("Login error:", error);
-      toast.error("An error occurred during login");
+    } catch (error: any) {
+      console.error("Admin login error:", error);
+      toast.error("An error occurred during login. Please try again.");
     } finally {
       setIsSubmitting(false);
     }

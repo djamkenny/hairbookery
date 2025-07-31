@@ -35,27 +35,39 @@ const LoginForm = () => {
       });
       
       if (error) {
-        throw error;
+        console.error("Login error:", error);
+        
+        // Handle different types of authentication errors
+        if (error.message?.includes("Invalid login credentials") || error.message?.includes("invalid_credentials")) {
+          toast.error("Invalid email or password. Please check your credentials and try again.");
+        } else if (error.message?.includes("Email not confirmed")) {
+          setEmailConfirmationError(true);
+          toast.error("Please confirm your email before logging in.");
+        } else if (error.message?.includes("Too many requests")) {
+          toast.error("Too many login attempts. Please wait a moment and try again.");
+        } else if (error.message?.includes("User not found")) {
+          toast.error("No account found with this email address. Please check your email or sign up for a new account.");
+        } else {
+          // Generic error message for other cases
+          toast.error(error.message || "Login failed. Please try again.");
+        }
+        return;
       }
       
-      toast.success("Successfully logged in!");
-      
-      // Redirect based on user role
-      const metadata = data.user?.user_metadata || {};
-      if (metadata.is_stylist) {
-        navigate("/stylist-dashboard");
-      } else {
-        navigate("/profile");
+      if (data.user) {
+        toast.success("Successfully logged in!");
+        
+        // Redirect based on user role
+        const metadata = data.user?.user_metadata || {};
+        if (metadata.is_stylist) {
+          navigate("/stylist-dashboard");
+        } else {
+          navigate("/profile");
+        }
       }
     } catch (error: any) {
-      console.error("Login error:", error);
-      
-      if (error.message?.includes("Email not confirmed")) {
-        setEmailConfirmationError(true);
-        toast.error("Please confirm your email before logging in.");
-      } else {
-        toast.error(error.message || "Invalid email or password. Please try again.");
-      }
+      console.error("Unexpected login error:", error);
+      toast.error("An unexpected error occurred. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
