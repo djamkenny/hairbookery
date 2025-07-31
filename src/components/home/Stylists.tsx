@@ -55,7 +55,7 @@ const StylistCard = ({ id, name, specialty, experience, imageUrl, bio, location 
     
     switch (availabilityStatus.status) {
       case 'available':
-        return "text-green-600";
+        return "text-primary";
       case 'full':
       case 'unavailable':
       default:

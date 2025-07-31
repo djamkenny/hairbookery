@@ -56,8 +56,8 @@ const ForgotPasswordForm = () => {
       <Card className="animate-slide-up">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="bg-green-100 p-3 rounded-full">
-              <CheckCircle className="h-8 w-8 text-green-600" />
+            <div className="bg-primary/10 p-3 rounded-full">
+              <CheckCircle className="h-8 w-8 text-primary" />
             </div>
           </div>
           <CardTitle>Email Sent!</CardTitle>

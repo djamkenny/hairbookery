@@ -25,8 +25,8 @@ const AvailabilityBadge = ({
           text: slotsRemaining && dailyLimit 
             ? `Available (${slotsRemaining}/${dailyLimit} slots)`
             : 'Available',
-          color: 'text-green-600',
-          bgColor: 'bg-green-100 text-green-800'
+          color: 'text-primary',
+          bgColor: 'bg-primary/10 text-primary'
         };
       case 'full':
         return {

@@ -52,7 +52,7 @@ const StylistCard = ({ id, name, role, bio, image, location, className }: Stylis
     
     switch (availabilityStatus.status) {
       case 'available':
-        return "text-green-600";
+        return "text-primary";
       case 'full':
         return "text-orange-600";
       case 'unavailable':
