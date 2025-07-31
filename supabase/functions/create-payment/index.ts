@@ -88,6 +88,10 @@ serve(async (req) => {
         currency: currency,
         description: description,
         status: "pending",
+        stripe_session_id: reference, // Store reference for lookup
+        stripe_payment_intent_id: paystackData.data.access_code,
+        service_id: metadata.service_id || null, // Store service_id if provided
+        appointment_id: metadata.appointment_id || null, // Store appointment_id if provided
         metadata: {
           ...metadata,
           paystack_reference: reference,

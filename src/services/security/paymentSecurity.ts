@@ -16,6 +16,8 @@ export const paymentSecurity = {
     serviceId: string
   ): Promise<PaymentVerificationResult> {
     try {
+      console.log('Payment verification starting:', { sessionId, expectedAmount, serviceId });
+      
       // Get the actual service price from database
       const { data: service, error: serviceError } = await supabase
         .from('services')
@@ -23,8 +25,11 @@ export const paymentSecurity = {
         .eq('id', serviceId)
         .single();
 
+      console.log('Service lookup result:', { service, serviceError });
+
       if (serviceError || !service) {
-        return { isValid: false, error: 'Service not found' };
+        console.error('Service not found:', serviceError);
+        return { isValid: false, error: `Service not found: ${serviceError?.message || 'Unknown error'}` };
       }
 
       // Calculate booking fee (same logic as in feeUtils.ts)

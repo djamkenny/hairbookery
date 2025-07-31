@@ -24,10 +24,18 @@ export function usePaymentStatus(reference: string | null) {
       }
 
       try {
+        console.log('Checking localStorage for payment data...');
+        
+        // Check all possible localStorage keys
+        const allKeys = Object.keys(localStorage);
+        console.log('All localStorage keys:', allKeys);
+        
         // Check if this is a booking payment or regular payment
         let serviceId = localStorage.getItem('bookingServiceId');
         let storedAmount = localStorage.getItem('bookingPaymentAmount');
         let hasCallback = localStorage.getItem('bookingPaymentCallback');
+        
+        console.log('Booking payment data:', { serviceId, storedAmount, hasCallback });
         
         // If not booking payment, fall back to regular payment keys
         if (!serviceId || !storedAmount) {
@@ -35,18 +43,63 @@ export function usePaymentStatus(reference: string | null) {
           storedAmount = localStorage.getItem('paymentAmount');
           hasCallback = localStorage.getItem('paymentSuccessCallback');
           
+          console.log('Regular payment data:', { serviceId, storedAmount, hasCallback });
+          
           // Try to get from serviceIds if still not found
           if (!serviceId) {
             const serviceIds = localStorage.getItem('serviceIds');
             if (serviceIds) {
-              const parsed = JSON.parse(serviceIds);
-              serviceId = Array.isArray(parsed) ? parsed[0] : parsed;
+              try {
+                const parsed = JSON.parse(serviceIds);
+                serviceId = Array.isArray(parsed) ? parsed[0] : parsed;
+                console.log('Parsed serviceId from serviceIds:', serviceId);
+              } catch (e) {
+                console.error('Failed to parse serviceIds:', e);
+              }
             }
           }
         }
         
+        // Try additional fallback keys that might be used
+        if (!serviceId) {
+          serviceId = localStorage.getItem('selectedServiceId') || localStorage.getItem('current_service_id');
+          console.log('Fallback serviceId:', serviceId);
+        }
+        
+        if (!storedAmount) {
+          storedAmount = localStorage.getItem('selectedServiceAmount') || localStorage.getItem('current_payment_amount');
+          console.log('Fallback storedAmount:', storedAmount);
+        }
+        
+        console.log('Final payment data:', { serviceId, storedAmount, hasCallback });
+        
+        // If still missing, try to get from database using the reference
         if (!serviceId || !storedAmount) {
-          setError('Missing payment verification data');
+          console.log('Trying to get payment data from database...');
+          try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+              const { data: paymentData, error: paymentError } = await supabase
+                .from('payments')
+                .select('service_id, amount')
+                .eq('stripe_session_id', reference)
+                .eq('user_id', user.id)
+                .single();
+              
+              if (paymentData && !paymentError) {
+                serviceId = serviceId || paymentData.service_id;
+                storedAmount = storedAmount || paymentData.amount.toString();
+                console.log('Retrieved payment data from database:', { serviceId, storedAmount });
+              }
+            }
+          } catch (dbError) {
+            console.error('Failed to retrieve payment data from database:', dbError);
+          }
+        }
+        
+        if (!serviceId || !storedAmount) {
+          console.error('Missing payment verification data:', { serviceId, storedAmount });
+          setError(`Missing payment verification data. ServiceId: ${serviceId ? 'found' : 'missing'}, Amount: ${storedAmount ? 'found' : 'missing'}`);
           setLoading(false);
           return;
         }

@@ -67,16 +67,53 @@ serve(async (req) => {
     if (transaction.status === 'success') {
       console.log("Updating payment status to completed for session:", session_id);
       
-      const { data: paymentData, error: updateError } = await supabaseService
+      // Try to find payment record by session_id (which is the reference)
+      let paymentData = null;
+      let updateError = null;
+      
+      // First try to find by stripe_session_id (reference)
+      const { data: foundPayment, error: findError } = await supabaseService
         .from("payments")
-        .update({ 
-          status: 'completed',
-          stripe_payment_intent_id: transaction.id,
-          updated_at: new Date().toISOString()
-        })
+        .select('id, appointment_id, user_id, amount, service_id, stripe_session_id')
         .eq('stripe_session_id', session_id)
-        .select('id, appointment_id, user_id, amount, service_id')
         .single();
+      
+      if (findError) {
+        console.log("Payment not found by stripe_session_id, trying by reference in metadata...");
+        
+        // Try to find by reference in metadata as fallback
+        const { data: metadataPayment, error: metadataError } = await supabaseService
+          .from("payments")
+          .select('id, appointment_id, user_id, amount, service_id, stripe_session_id')
+          .contains('metadata', { paystack_reference: session_id })
+          .single();
+        
+        if (metadataError) {
+          console.error("Payment not found by any method:", metadataError);
+          updateError = metadataError;
+        } else {
+          paymentData = metadataPayment;
+        }
+      } else {
+        paymentData = foundPayment;
+      }
+      
+      // Update payment status if found
+      if (paymentData && !updateError) {
+        const { data: updatedPayment, error: updateErr } = await supabaseService
+          .from("payments")
+          .update({ 
+            status: 'completed',
+            stripe_payment_intent_id: transaction.id,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', paymentData.id)
+          .select('id, appointment_id, user_id, amount, service_id')
+          .single();
+        
+        paymentData = updatedPayment;
+        updateError = updateErr;
+      }
 
       if (updateError) {
         console.error("Failed to update payment status:", updateError);

@@ -37,18 +37,31 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
         throw new Error("Payment amount must be at least 1 GHS");
       }
 
-      const result = await createPayment(amountInPesewas, "Appointment Payment");
+      // Get service information from localStorage
+      const serviceIds = localStorage.getItem('serviceIds');
+      let serviceId = null;
+      if (serviceIds) {
+        const parsed = JSON.parse(serviceIds);
+        serviceId = Array.isArray(parsed) ? parsed[0] : parsed;
+      }
+      
+      // Create payment with service metadata
+      const result = await createPayment(
+        amountInPesewas, 
+        "Appointment Payment",
+        undefined,
+        { 
+          service_id: serviceId,
+          booking_type: 'appointment'
+        }
+      );
 
       if (result?.url) {
         // Store payment verification data in localStorage for booking flow
         localStorage.setItem('bookingPaymentCallback', 'true');
         localStorage.setItem('bookingPaymentAmount', amountInPesewas.toString());
         
-        // Get serviceIds from localStorage (stored during booking process)
-        const serviceIds = localStorage.getItem('serviceIds');
-        if (serviceIds) {
-          const parsed = JSON.parse(serviceIds);
-          const serviceId = Array.isArray(parsed) ? parsed[0] : parsed;
+        if (serviceId) {
           localStorage.setItem('bookingServiceId', serviceId);
         }
         
