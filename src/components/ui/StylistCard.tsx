@@ -63,15 +63,10 @@ const StylistCard = ({ id, name, role, bio, image, location, className }: Stylis
 
   return (
     <Card className={`group hover:shadow-lg transition-all duration-300 ${className}`}>
-      <div className="aspect-square overflow-hidden rounded-t-lg">
-        <img
-          src={image || "https://images.unsplash.com/photo-1649972904349-6e44c42644a7?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80"}
-          alt={name}
-          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-          onError={(e) => {
-            e.currentTarget.src = "https://images.unsplash.com/photo-1649972904349-6e44c42644a7?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80";
-          }}
-        />
+      <div className="aspect-square overflow-hidden rounded-t-lg bg-gradient-to-br from-primary/10 via-secondary/20 to-accent/10 flex items-center justify-center">
+        <h2 className="text-2xl font-bold text-center bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent px-4">
+          KnLbookery user
+        </h2>
       </div>
       <CardContent className="p-4">
         <div className="flex items-start justify-between mb-2">
