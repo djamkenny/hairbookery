@@ -112,17 +112,17 @@ const StylistCard = ({ id, name, role, bio, image, location, className }: Stylis
         
         <div className="flex gap-2 mt-4">
           <Link to={`/stylist/${id}`} className="flex-1">
-            <Button variant="outline" size="sm" className="w-full text-xs h-9 px-3">
+            <Button variant="outline" size="sm" className="w-full text-xs h-9 px-3 md:h-7 md:px-2 md:text-[10px]">
               View Profile
             </Button>
           </Link>
           <Link to={`/booking?stylist=${id}`} className="flex-1">
             <Button 
               size="sm" 
-              className="w-full text-xs h-9 px-3"
+              className="w-full text-xs h-9 px-3 md:h-7 md:px-2 md:text-[10px]"
               disabled={!availabilityStatus?.available || availabilityStatus?.status === 'unavailable'}
             >
-              <Calendar className="h-3 w-3 mr-1" />
+              <Calendar className="h-3 w-3 mr-1 md:h-2.5 md:w-2.5" />
               Book Now
             </Button>
           </Link>
