@@ -7,8 +7,8 @@
  */
 export function calculateBookingFee(price: number) {
   // If service cost is ₵100 or more, booking fee is ₵10
-  // Otherwise, booking fee is 20% of service cost
-  const fee = price >= 100 ? 10 : Math.round(price * 0.20 * 100) / 100;
+  // Otherwise, booking fee is 10% of service cost
+  const fee = price >= 100 ? 10 : Math.round(price * 0.10 * 100) / 100;
   
   return {
     fee,
