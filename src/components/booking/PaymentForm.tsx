@@ -40,6 +40,18 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
       const result = await createPayment(amountInPesewas, "Appointment Payment");
 
       if (result?.url) {
+        // Store payment verification data in localStorage
+        localStorage.setItem('paymentSuccessCallback', 'true');
+        localStorage.setItem('paymentAmount', amountInPesewas.toString());
+        
+        // Get serviceIds from localStorage (stored during booking process)
+        const serviceIds = localStorage.getItem('serviceIds');
+        if (serviceIds) {
+          const parsed = JSON.parse(serviceIds);
+          const serviceId = Array.isArray(parsed) ? parsed[0] : parsed;
+          localStorage.setItem('serviceId', serviceId);
+        }
+        
         if (isMobile) {
           toast.success("Redirecting to payment page...");
           setTimeout(() => {
