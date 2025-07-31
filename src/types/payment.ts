@@ -1,76 +1,80 @@
-
-// PSEUDOCODE: Type definitions for payment system
+// Type definitions for Paystack payment system
 
 export interface Payment {
   id: string;
   user_id: string;
-  stripe_session_id: string;
-  stripe_payment_intent_id?: string;
-  amount: number; // Amount in cents
+  amount: number;
   currency: string;
   status: 'pending' | 'completed' | 'failed' | 'canceled';
-  description?: string;
+  paystack_reference: string;
+  paystack_access_code?: string;
   service_id?: string;
   appointment_id?: string;
+  description?: string;
   metadata?: Record<string, any>;
   created_at: string;
   updated_at: string;
 }
 
-export interface Subscriber {
+export interface Subscription {
   id: string;
   user_id: string;
-  email: string;
-  stripe_customer_id?: string;
-  subscribed: boolean;
-  subscription_tier?: 'basic' | 'premium' | 'enterprise';
-  stripe_subscription_id?: string;
-  subscription_status?: string;
-  subscription_start?: string;
-  subscription_end?: string;
-  trial_end?: string;
-  cancel_at_period_end?: boolean;
-  metadata?: Record<string, any>;
+  paystack_customer_id?: string;
+  paystack_plan_id?: string;
+  paystack_subscription_code?: string;
+  status: 'active' | 'canceled' | 'past_due' | 'incomplete';
+  current_period_start: string;
+  current_period_end: string;
+  cancel_at_period_end: boolean;
   created_at: string;
   updated_at: string;
 }
 
-export interface StripeConfig {
-  // PSEUDOCODE: Stripe configuration types
-  publishableKey: string;
-  // Note: Secret key should only be used in edge functions
+export interface PaystackConfig {
+  // Configuration types for Paystack integration
+  public_key: string;
+  secret_key: string;
+  webhook_secret?: string;
 }
 
 export interface PaymentSession {
   url: string;
-  session_id: string;
+  reference: string;
+  access_code: string;
 }
 
 export interface SubscriptionPlan {
   id: string;
   name: string;
   description: string;
-  price: number; // Price in cents
-  interval: 'month' | 'year';
-  stripe_price_id: string;
+  price: number; // Price in kobo (Paystack's smallest currency unit)
+  interval: 'monthly' | 'annually';
+  paystack_plan_code: string;
   features: string[];
   popular?: boolean;
 }
 
-// PSEUDOCODE: Webhook event types
-export interface WebhookEvent {
-  id: string;
-  type: string;
+// Webhook event types for Paystack
+export interface PaystackWebhookEvent {
+  event: string;
   data: {
-    object: any;
+    id: number;
+    reference: string;
+    amount: number;
+    currency: string;
+    status: string;
+    customer: {
+      email: string;
+      customer_code: string;
+    };
+    metadata?: Record<string, any>;
   };
-  created: number;
 }
 
-// PSEUDOCODE: Payment method types for future expansion
+// Payment method types for future expansion
 export interface PaymentMethod {
   id: string;
-  type: 'card' | 'bank_account' | 'wallet';
+  type: 'card' | 'bank_account' | 'mobile_money';
   card?: {
     brand: string;
     last4: string;

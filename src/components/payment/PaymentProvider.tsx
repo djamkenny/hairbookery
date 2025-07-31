@@ -7,10 +7,7 @@ interface PaymentContextType {
   subscriptionTier: string | null;
   subscriptionEnd: string | null;
   loading: boolean;
-  checkSubscription: () => Promise<void>;
   createPayment: (amount: number, description: string, priceId?: string, metadata?: Record<string, any>) => Promise<{ url: string; sessionId: string; reference: string } | null>;
-  createSubscription: (priceId: string, planType: string) => Promise<string | null>;
-  openCustomerPortal: () => Promise<void>;
   checkSessionStatus: (sessionId: string) => Promise<{ status: string; customer_email: string } | null>;
 }
 
@@ -34,24 +31,8 @@ export const PaymentProvider: React.FC<PaymentProviderProps> = ({ children }) =>
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Check subscription status
-  const checkSubscription = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase.functions.invoke('check-subscription');
-      
-      if (error) throw error;
-      
-      setIsSubscribed(data.subscribed || false);
-      setSubscriptionTier(data.subscription_tier || null);
-      setSubscriptionEnd(data.subscription_end || null);
-    } catch (error) {
-      console.error("Subscription check failed:", error);
-      toast.error("Failed to check subscription status");
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Note: Subscription checking would be implemented with Paystack in the future
+  // For now, this is disabled since we removed Stripe-specific edge functions
 
   // Create one-time payment using Paystack
   const createPayment = async (
@@ -109,41 +90,10 @@ export const PaymentProvider: React.FC<PaymentProviderProps> = ({ children }) =>
     }
   };
 
-  // Create subscription (placeholder - Paystack subscriptions work differently)
-  const createSubscription = async (priceId: string, planType: string): Promise<string | null> => {
-    try {
-      // Note: Paystack subscriptions require different setup
-      toast.info("Subscription feature coming soon with Paystack");
-      return null;
-    } catch (error) {
-      console.error("Subscription creation failed:", error);
-      toast.error("Failed to create subscription");
-      return null;
-    }
-  };
 
-  // Open customer portal (Paystack doesn't have equivalent, redirect to dashboard)
-  const openCustomerPortal = async () => {
-    try {
-      toast.info("Please contact support for subscription management");
-    } catch (error) {
-      console.error("Portal creation failed:", error);
-      toast.error("Failed to open customer portal");
-    }
-  };
-
-  // Initialize subscription check on mount
+  // Initialize - set defaults for non-subscription app
   useEffect(() => {
-    const initCheck = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        checkSubscription();
-      } else {
-        setLoading(false);
-      }
-    };
-    
-    initCheck();
+    setLoading(false);
   }, []);
 
   const value: PaymentContextType = {
@@ -151,10 +101,7 @@ export const PaymentProvider: React.FC<PaymentProviderProps> = ({ children }) =>
     subscriptionTier,
     subscriptionEnd,
     loading,
-    checkSubscription,
     createPayment,
-    createSubscription,
-    openCustomerPortal,
     checkSessionStatus,
   };
 

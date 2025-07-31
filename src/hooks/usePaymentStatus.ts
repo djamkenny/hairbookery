@@ -79,16 +79,16 @@ export function usePaymentStatus(reference: string | null) {
           try {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
-              const { data: paymentData, error: paymentError } = await supabase
+              const { data: fetchedPaymentData, error: paymentError } = await supabase
                 .from('payments')
                 .select('service_id, amount')
-                .eq('stripe_session_id', reference)
+                .or(`stripe_session_id.eq.${reference},metadata.cs.{"paystack_reference":"${reference}"}`)
                 .eq('user_id', user.id)
                 .single();
               
-              if (paymentData && !paymentError) {
-                serviceId = serviceId || paymentData.service_id;
-                storedAmount = storedAmount || paymentData.amount.toString();
+              if (fetchedPaymentData && !paymentError) {
+                serviceId = serviceId || fetchedPaymentData.service_id;
+                storedAmount = storedAmount || fetchedPaymentData.amount.toString();
                 console.log('Retrieved payment data from database:', { serviceId, storedAmount });
               }
             }

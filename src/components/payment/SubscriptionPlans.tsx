@@ -1,34 +1,31 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Check } from "lucide-react";
-import { usePayment } from "./PaymentProvider";
+import { toast } from "sonner";
 
 interface PlanFeature {
   name: string;
   included: boolean;
 }
 
-interface SubscriptionPlan {
+interface PaystackPlan {
   id: string;
   name: string;
   price: number;
-  priceId: string;
   interval: string;
   features: PlanFeature[];
   popular?: boolean;
 }
 
-// PSEUDOCODE: Define subscription plans
-const plans: SubscriptionPlan[] = [
-  // TODO: Replace with actual Stripe price IDs
+// Note: Subscription functionality would need to be implemented with Paystack
+// This is a placeholder component for future Paystack subscription integration
+const plans: PaystackPlan[] = [
   {
     id: 'basic',
     name: 'Basic',
     price: 9.99,
-    priceId: 'price_basic_monthly', // TODO: Replace with actual Stripe price ID
     interval: 'month',
     features: [
       { name: 'Up to 5 appointments per month', included: true },
@@ -38,27 +35,39 @@ const plans: SubscriptionPlan[] = [
       { name: 'Priority support', included: false },
     ],
   },
-  // TODO: Add Premium and Enterprise plans
+  {
+    id: 'premium',
+    name: 'Premium', 
+    price: 19.99,
+    interval: 'month',
+    popular: true,
+    features: [
+      { name: 'Unlimited appointments', included: true },
+      { name: 'All Basic features', included: true },
+      { name: 'Advanced analytics', included: true },
+      { name: 'Priority support', included: true },
+      { name: 'Custom branding', included: false },
+    ]
+  },
+  {
+    id: 'enterprise',
+    name: 'Enterprise',
+    price: 49.99,
+    interval: 'month',
+    features: [
+      { name: 'Everything in Premium', included: true },
+      { name: 'Custom branding', included: true },
+      { name: 'API access', included: true },
+      { name: 'Dedicated support', included: true },
+      { name: 'Custom integrations', included: true },
+    ]
+  }
 ];
 
 export const SubscriptionPlans: React.FC = () => {
-  const { createSubscription, isSubscribed, subscriptionTier, loading } = usePayment();
-
-  // PSEUDOCODE: Handle plan selection
-  const handleSelectPlan = async (plan: SubscriptionPlan) => {
-    // TODO: Check if user is already subscribed to this plan
-    // TODO: Show confirmation dialog for plan changes
-    // TODO: Call createSubscription with plan details
-    // TODO: Redirect to Stripe checkout
-    
-    try {
-      const checkoutUrl = await createSubscription(plan.priceId, plan.id);
-      if (checkoutUrl) {
-        window.open(checkoutUrl, '_blank');
-      }
-    } catch (error) {
-      console.error("Plan selection failed:", error);
-    }
+  const handleSelectPlan = (planName: string) => {
+    // TODO: Implement Paystack subscription checkout
+    toast.info(`Paystack subscription for ${planName} plan coming soon`);
   };
 
   return (
@@ -109,21 +118,23 @@ export const SubscriptionPlans: React.FC = () => {
 
               <Button
                 className="w-full"
-                onClick={() => handleSelectPlan(plan)}
-                disabled={loading || (isSubscribed && subscriptionTier === plan.id)}
-                variant={subscriptionTier === plan.id ? "outline" : "default"}
+                onClick={() => handleSelectPlan(plan.name)}
               >
-                {/* PSEUDOCODE: Button text logic */}
-                {loading 
-                  ? "Loading..." 
-                  : subscriptionTier === plan.id 
-                    ? "Current Plan" 
-                    : `Select ${plan.name}`
-                }
+                Select {plan.name}
               </Button>
             </CardContent>
           </Card>
         ))}
+      </div>
+
+      {/* Subscription management would be implemented with Paystack */}
+      <div className="text-center mt-8">
+        <Button 
+          onClick={() => toast.info("Paystack subscription management coming soon")}
+          variant="outline"
+        >
+          Manage Subscription
+        </Button>
       </div>
     </div>
   );

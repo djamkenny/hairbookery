@@ -71,20 +71,20 @@ serve(async (req) => {
       let paymentData = null;
       let updateError = null;
       
-      // First try to find by stripe_session_id (reference)
+      // First try to find by paystack_reference
       const { data: foundPayment, error: findError } = await supabaseService
         .from("payments")
-        .select('id, appointment_id, user_id, amount, service_id, stripe_session_id')
-        .eq('stripe_session_id', session_id)
+        .select('id, appointment_id, user_id, amount, service_id, paystack_reference')
+        .eq('paystack_reference', session_id)
         .single();
       
       if (findError) {
-        console.log("Payment not found by stripe_session_id, trying by reference in metadata...");
+        console.log("Payment not found by paystack_reference, trying by reference in metadata...");
         
         // Try to find by reference in metadata as fallback
         const { data: metadataPayment, error: metadataError } = await supabaseService
           .from("payments")
-          .select('id, appointment_id, user_id, amount, service_id, stripe_session_id')
+          .select('id, appointment_id, user_id, amount, service_id, paystack_reference')
           .contains('metadata', { paystack_reference: session_id })
           .single();
         
@@ -104,7 +104,7 @@ serve(async (req) => {
           .from("payments")
           .update({ 
             status: 'completed',
-            stripe_payment_intent_id: transaction.id,
+            paystack_transaction_id: transaction.id,
             updated_at: new Date().toISOString()
           })
           .eq('id', paymentData.id)

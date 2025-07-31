@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,23 +5,18 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar, CreditCard, Settings } from "lucide-react";
 import { usePayment } from "./PaymentProvider";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 export const SubscriptionStatus: React.FC = () => {
   const { 
     isSubscribed, 
     subscriptionTier, 
     subscriptionEnd, 
-    loading,
-    checkSubscription,
-    openCustomerPortal 
+    loading
   } = usePayment();
 
-  // PSEUDOCODE: Format subscription end date
+  // Format subscription end date
   const formatSubscriptionEnd = (endDate: string | null) => {
-    // TODO: Parse and format the end date
-    // TODO: Handle null or invalid dates
-    // TODO: Return user-friendly date string
-    
     if (!endDate) return "N/A";
     
     try {
@@ -30,6 +24,16 @@ export const SubscriptionStatus: React.FC = () => {
     } catch {
       return "Invalid date";
     }
+  };
+
+  const handleRefreshStatus = () => {
+    // Note: Subscription checking would be implemented with Paystack in the future
+    toast.info("Subscription status refresh coming soon with Paystack integration");
+  };
+
+  const handleManageSubscription = () => {
+    // Note: Paystack doesn't have a direct equivalent to Stripe's customer portal
+    toast.info("Please contact support for subscription management");
   };
 
   if (loading) {
@@ -80,7 +84,7 @@ export const SubscriptionStatus: React.FC = () => {
           <Button
             variant="outline"
             size="sm"
-            onClick={checkSubscription}
+            onClick={handleRefreshStatus}
             disabled={loading}
           >
             Refresh Status
@@ -90,7 +94,7 @@ export const SubscriptionStatus: React.FC = () => {
             <Button
               variant="outline"
               size="sm"
-              onClick={openCustomerPortal}
+              onClick={handleManageSubscription}
               className="flex items-center gap-1"
             >
               <Settings className="h-4 w-4" />
@@ -104,8 +108,9 @@ export const SubscriptionStatus: React.FC = () => {
             <p className="text-sm text-muted-foreground mb-2">
               No active subscription found
             </p>
-            {/* PSEUDOCODE: Link to subscription plans */}
-            {/* TODO: Add navigation to subscription plans page */}
+            <p className="text-xs text-muted-foreground">
+              Subscription features coming soon with Paystack integration
+            </p>
           </div>
         )}
       </CardContent>
