@@ -64,7 +64,7 @@ export const PaymentProvider: React.FC<PaymentProviderProps> = ({ children }) =>
       if (amount <= 0) {
         throw new Error("Amount must be positive");
       }
-      // Convert amount to pesewas (Paystack expects smallest currency unit)
+      // The amount is already in pesewas when passed from PaymentForm
       const amountInPesewas = Math.round(amount);
 
       const { data, error } = await supabase.functions.invoke('create-payment', {
