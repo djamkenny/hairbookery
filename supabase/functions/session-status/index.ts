@@ -162,11 +162,13 @@ serve(async (req) => {
     }
 
     // Return status and customer email
+    // Note: Paystack returns amounts in kobo (1/100 of Naira) for all currencies
+    // For GHS, 1 pesewa = 1 kobo, so amounts should match
     return new Response(JSON.stringify({ 
       status: paymentStatus,
       customer_email: transaction.customer?.email || '',
       transaction_reference: transaction.reference,
-      amount: transaction.amount,
+      amount: transaction.amount, // This is already in pesewas (kobo equivalent)
       currency: transaction.currency,
       success: transaction.status === 'success'
     }), {

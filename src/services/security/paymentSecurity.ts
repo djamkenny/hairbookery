@@ -27,21 +27,26 @@ export const paymentSecurity = {
         return { isValid: false, error: 'Service not found' };
       }
 
-      // Convert service price from GHS to pesewas for comparison
-      const servicePriceInPesewas = Math.round(service.price * 100);
+      // Calculate booking fee (same logic as in feeUtils.ts)
+      const servicePrice = service.price;
+      const bookingFee = servicePrice >= 100 ? 10 : Math.round(servicePrice * 0.10 * 100) / 100;
+      
+      // Convert booking fee from GHS to pesewas for comparison
+      const bookingFeeInPesewas = Math.round(bookingFee * 100);
       
       console.log('Payment verification:', {
         expectedAmount,
         servicePrice: service.price,
-        servicePriceInPesewas,
+        bookingFee,
+        bookingFeeInPesewas,
         sessionId
       });
       
-      // Verify the expected amount matches the service price (both in pesewas)
-      if (expectedAmount !== servicePriceInPesewas) {
+      // Verify the expected amount matches the booking fee (both in pesewas)
+      if (expectedAmount !== bookingFeeInPesewas) {
         return { 
           isValid: false, 
-          error: `Amount mismatch - expected ${servicePriceInPesewas} pesewas but got ${expectedAmount} pesewas` 
+          error: `Amount mismatch - expected ${bookingFeeInPesewas} pesewas (booking fee) but got ${expectedAmount} pesewas` 
         };
       }
 
@@ -62,7 +67,7 @@ export const paymentSecurity = {
         };
       }
 
-      // Verify the payment amount matches what was charged
+      // Verify the payment amount matches what was charged (booking fee)
       if (data.amount && data.amount !== expectedAmount) {
         return { 
           isValid: false, 
