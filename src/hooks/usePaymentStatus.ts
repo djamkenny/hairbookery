@@ -24,7 +24,16 @@ export function usePaymentStatus(reference: string | null) {
       }
 
       try {
-        const serviceId = localStorage.getItem('serviceId');
+        // Try to get serviceId from different possible keys
+        let serviceId = localStorage.getItem('serviceId');
+        if (!serviceId) {
+          const serviceIds = localStorage.getItem('serviceIds');
+          if (serviceIds) {
+            const parsed = JSON.parse(serviceIds);
+            serviceId = Array.isArray(parsed) ? parsed[0] : parsed;
+          }
+        }
+        
         const storedAmount = localStorage.getItem('paymentAmount');
         
         if (!serviceId || !storedAmount) {

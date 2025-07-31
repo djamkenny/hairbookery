@@ -49,6 +49,7 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
           localStorage.setItem('paymentSuccessCallback', 'true');
           localStorage.setItem('appointmentId', appointmentId || '');
           localStorage.setItem('serviceId', serviceId || '');
+          localStorage.setItem('paymentAmount', amountInPesewas.toString());
         }
         if (isMobile) {
           window.location.href = result.url;
