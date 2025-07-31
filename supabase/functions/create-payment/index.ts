@@ -50,7 +50,7 @@ serve(async (req) => {
     }
 
     // Generate unique reference
-    const reference = `donation_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const reference = `ref_${Date.now()}_${Math.floor(Math.random() * 100000000)}`;
 
     // Initialize Paystack payment
     const paystackResponse = await fetch("https://api.paystack.co/transaction/initialize", {
