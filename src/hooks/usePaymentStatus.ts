@@ -76,9 +76,13 @@ export function usePaymentStatus(reference: string | null) {
           // Get user
           const { data: { user } } = await supabase.auth.getUser();
           if (user) {
-            // Validate appointment data
+            // Validate appointment data - compare dates only, not time
             const currentDate = new Date();
             const selectedDate = new Date(appointmentDate);
+            
+            // Set both dates to midnight for fair comparison
+            currentDate.setHours(0, 0, 0, 0);
+            selectedDate.setHours(0, 0, 0, 0);
             
             if (selectedDate < currentDate) {
               setError('Invalid appointment date');
