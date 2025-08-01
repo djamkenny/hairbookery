@@ -51,6 +51,7 @@ export const useBookingSubmission = ({
     try {
       // Store booking details in localStorage for after payment
       localStorage.setItem('serviceIds', JSON.stringify(services));
+      localStorage.setItem('bookingServiceId', services[0]); // Store the first service ID separately for payment verification
       localStorage.setItem('stylistId', stylist);
       localStorage.setItem('appointmentDate', date.toISOString().split('T')[0]);
       localStorage.setItem('appointmentTime', time);
