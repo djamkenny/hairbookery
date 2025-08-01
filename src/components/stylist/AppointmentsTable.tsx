@@ -49,7 +49,7 @@ const AppointmentsTable: React.FC<AppointmentsTableProps> = ({
           <p className="text-center text-muted-foreground py-4">No appointments found</p>
         ) : (
           sortedAppointments.map((appointment) => (
-            <Card key={appointment.id} className={`border border-border/30 w-full ${appointment.status !== 'completed' ? 'bg-muted/30' : ''}`}>
+            <Card key={appointment.id} className={`border border-border/30 w-full ${appointment.status !== 'completed' ? 'bg-green-50 dark:bg-green-950/20' : ''}`}>
               <CardContent className="p-4 space-y-3">
                 <div className="flex justify-between items-start">
                   <div className="max-w-[60%]">
