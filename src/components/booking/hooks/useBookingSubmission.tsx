@@ -1,6 +1,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { useBookingPayment } from "@/hooks/useBookingPayment";
 
 interface UseBookingSubmissionProps {
   currentUser: any;
@@ -32,6 +33,7 @@ export const useBookingSubmission = ({
   setNotes
 }: UseBookingSubmissionProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { initiatePayment } = useBookingPayment();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,18 +51,7 @@ export const useBookingSubmission = ({
     setIsSubmitting(true);
     
     try {
-      // Store booking details in localStorage for after payment
-      localStorage.setItem('serviceIds', JSON.stringify(services));
-      localStorage.setItem('bookingServiceId', services[0]); // Store the first service ID separately for payment verification
-      localStorage.setItem('bookingPaymentCallback', 'true'); // Mark this as a booking payment
-      localStorage.setItem('stylistId', stylist);
-      localStorage.setItem('appointmentDate', date.toISOString().split('T')[0]);
-      localStorage.setItem('appointmentTime', time);
-      localStorage.setItem('appointmentNotes', notes || '');
-      
-      console.log('Booking details stored for payment completion');
-      
-      // Move to payment step
+      // Move to payment step with booking data ready
       setStep(2);
       toast.success('Appointment details saved! Please complete payment.');
       

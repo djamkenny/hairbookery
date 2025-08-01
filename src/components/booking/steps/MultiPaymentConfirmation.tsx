@@ -2,7 +2,7 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CalendarIcon, ClockIcon, UserIcon, Scissors } from "lucide-react";
-import { PaymentButton } from "@/components/payment/PaymentButton";
+import { BookingPaymentButton } from "@/components/booking/BookingPaymentButton";
 import { calculateBookingFee } from "../utils/feeUtils";
 import { format } from "date-fns";
 interface MultiPaymentConfirmationProps {
@@ -136,16 +136,15 @@ const MultiPaymentConfirmation: React.FC<MultiPaymentConfirmationProps> = ({
         </Button>
         
         <div className="flex-1">
-          <PaymentButton amount={bookingFee} description={`Booking fee for ${selectedServices.map(s => s.name).join(', ')} with ${selectedStylist?.full_name}`} metadata={{
-          serviceIds: selectedServices.map(s => s.id),
-          stylistId: selectedStylist?.id,
-          appointmentDate: date ? format(date, "yyyy-MM-dd") : "",
-          appointmentTime: time,
-          clientName: name,
-          clientEmail: email,
-          clientPhone: phone,
-          notes: notes
-        }} onPaymentSuccess={onPaymentSuccess} />
+          <BookingPaymentButton 
+            services={selectedServices}
+            stylistId={selectedStylist?.id || ''}
+            appointmentDate={date || new Date()}
+            appointmentTime={time}
+            notes={notes}
+            totalAmount={bookingFee / 100}
+            onPaymentSuccess={onPaymentSuccess}
+          />
         </div>
       </div>
     </div>;

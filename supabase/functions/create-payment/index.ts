@@ -90,7 +90,7 @@ serve(async (req) => {
         status: "pending",
         paystack_reference: reference,
         paystack_access_code: paystackData.data.access_code,
-        service_id: metadata.service_id || null, // Store service_id if provided
+        service_id: metadata.serviceIds?.[0] || metadata.service_id || null, // Store first service_id if provided
         appointment_id: metadata.appointment_id || null, // Store appointment_id if provided
         metadata: {
           ...metadata,
