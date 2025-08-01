@@ -33,6 +33,7 @@ import CustomerServiceWidget from './components/customer-service/CustomerService
 import { ThemeProvider } from './components/theme/ThemeProvider';
 import { PaymentProvider } from './components/payment/PaymentProvider';
 import { Toaster } from 'sonner';
+import { RatingNotificationHandler } from './components/notifications/RatingNotificationHandler';
 
 const App: React.FC = () => {
   return (
@@ -113,6 +114,7 @@ const AppContent: React.FC = () => {
         <Route path="*" element={<NotFound />} />
       </Routes>
       {user && <CustomerServiceWidget />}
+      {user && <RatingNotificationHandler />}
       <Toaster />
     </>
   );

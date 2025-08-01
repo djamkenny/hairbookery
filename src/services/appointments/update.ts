@@ -115,6 +115,37 @@ export const updateAppointmentStatus = async (
         console.error("Error sending notification:", notificationError);
       }
     }
+
+    // Send completion notification to client when appointment is completed
+    if (newStatus === "completed" && appointmentInfo) {
+      // Get stylist info for rating
+      const { data: stylistData } = await supabase
+        .from('profiles')
+        .select('full_name, id')
+        .eq('id', (await supabase.from('appointments').select('stylist_id').eq('id', appointmentId).single()).data?.stylist_id)
+        .single();
+
+      const { error: completionNotificationError } = await supabase
+        .from('notifications')
+        .insert([{
+          user_id: clientId,
+          message: `Your appointment for ${appointmentInfo.service} on ${appointmentInfo.date} at ${appointmentInfo.time} has been completed. Thank you for choosing our services!`,
+          type: 'appointment_completed',
+          is_read: false,
+          related_id: appointmentId,
+          action_url: `/profile?tab=appointments`,
+          metadata: {
+            shouldShowRating: true,
+            specialistId: stylistData?.id,
+            specialistName: stylistData?.full_name || 'Specialist',
+            serviceName: appointmentInfo.service
+          }
+        }]);
+        
+      if (completionNotificationError) {
+        console.error("Error sending completion notification:", completionNotificationError);
+      }
+    }
   } catch (error) {
     console.error('Error updating appointment status:', error);
     throw error;

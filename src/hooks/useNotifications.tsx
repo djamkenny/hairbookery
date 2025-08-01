@@ -1,6 +1,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useNotificationSound } from "./useNotificationSound";
 
 export interface Notification {
   id: string;
@@ -11,11 +12,13 @@ export interface Notification {
   action_url?: string | null;
   priority?: string | null;
   type: string;
+  metadata?: any;
 }
 
 export function useNotifications() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
+  const { playNotificationSound } = useNotificationSound();
 
   useEffect(() => {
     let mounted = true;
@@ -68,6 +71,9 @@ export function useNotifications() {
         },
         (payload) => {
           console.log("Notification change detected:", payload);
+          if (payload.eventType === 'INSERT') {
+            playNotificationSound();
+          }
           fetchNotifications();
         }
       )
