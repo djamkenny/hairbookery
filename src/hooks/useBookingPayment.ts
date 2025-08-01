@@ -102,53 +102,61 @@ export const useBookingPayment = () => {
       // Generate order ID
       const { data: orderId } = await supabase.rpc("generate_appointment_reference");
 
-      // Create appointments for each service
-      const appointments = [];
-      for (const serviceId of metadata.serviceIds) {
-        const { data: appointment, error: appointmentError } = await supabase
-          .from('appointments')
-          .insert({
-            client_id: user.id,
-            service_id: serviceId,
-            stylist_id: metadata.stylistId,
-            appointment_date: metadata.appointmentDate,
-            appointment_time: metadata.appointmentTime,
-            notes: metadata.notes || '',
-            status: 'confirmed',
-            order_id: orderId || null
-          })
-          .select()
-          .single();
+      // Create a single appointment for multiple services
+      const { data: appointment, error: appointmentError } = await supabase
+        .from('appointments')
+        .insert({
+          client_id: user.id,
+          service_id: null, // No specific service for multi-service appointments
+          stylist_id: metadata.stylistId,
+          appointment_date: metadata.appointmentDate,
+          appointment_time: metadata.appointmentTime,
+          notes: metadata.notes || '',
+          status: 'confirmed',
+          order_id: orderId || null
+        })
+        .select()
+        .single();
 
-        if (appointmentError) {
-          console.error('Appointment creation error:', appointmentError);
-          throw new Error('Failed to create appointment');
-        }
-
-        appointments.push(appointment);
+      if (appointmentError) {
+        console.error('Appointment creation error:', appointmentError);
+        throw new Error('Failed to create appointment');
       }
 
-      // Link payment to first appointment
-      if (appointments.length > 0) {
-        await supabase
-          .from('payments')
-          .update({ 
-            appointment_id: appointments[0].id,
-            status: 'completed'
-          })
-          .eq('id', payment.id);
+      // Link all services to the single appointment
+      const appointmentServices = metadata.serviceIds.map(serviceId => ({
+        appointment_id: appointment.id,
+        service_id: serviceId
+      }));
 
-        // Process earnings for the stylist
-        try {
-          await supabase.functions.invoke('process-earnings', {
-            body: { appointment_id: appointments[0].id }
-          });
-        } catch (earningsError) {
-          console.error('Earnings processing error:', earningsError);
-        }
+      const { error: servicesError } = await supabase
+        .from('appointment_services')
+        .insert(appointmentServices);
+
+      if (servicesError) {
+        console.error('Appointment services linking error:', servicesError);
+        throw new Error('Failed to link services to appointment');
       }
 
-      toast.success(`Successfully booked ${appointments.length} appointment(s)!`);
+      // Link payment to the appointment
+      await supabase
+        .from('payments')
+        .update({ 
+          appointment_id: appointment.id,
+          status: 'completed'
+        })
+        .eq('id', payment.id);
+
+      // Process earnings for the stylist
+      try {
+        await supabase.functions.invoke('process-earnings', {
+          body: { appointment_id: appointment.id }
+        });
+      } catch (earningsError) {
+        console.error('Earnings processing error:', earningsError);
+      }
+
+      toast.success(`Successfully booked appointment with ${metadata.serviceIds.length} service(s)!`);
       return true;
 
     } catch (error: any) {
