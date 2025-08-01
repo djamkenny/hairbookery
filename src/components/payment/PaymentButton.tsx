@@ -46,10 +46,21 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
 
       if (result?.url) {
         if (onPaymentSuccess) {
-          localStorage.setItem('paymentSuccessCallback', 'true');
-          localStorage.setItem('appointmentId', appointmentId || '');
-          localStorage.setItem('serviceId', serviceId || '');
-          localStorage.setItem('paymentAmount', amountInPesewas.toString());
+          // Check if this is a booking payment (has booking metadata)
+          const isBookingPayment = metadata?.serviceIds || metadata?.stylistId;
+          
+          if (isBookingPayment) {
+            localStorage.setItem('bookingPaymentCallback', 'true');
+            localStorage.setItem('bookingPaymentAmount', amountInPesewas.toString());
+            if (metadata?.serviceIds && Array.isArray(metadata.serviceIds)) {
+              localStorage.setItem('bookingServiceId', metadata.serviceIds[0]);
+            }
+          } else {
+            localStorage.setItem('paymentSuccessCallback', 'true');
+            localStorage.setItem('appointmentId', appointmentId || '');
+            localStorage.setItem('serviceId', serviceId || '');
+            localStorage.setItem('paymentAmount', amountInPesewas.toString());
+          }
         }
         if (isMobile) {
           window.location.href = result.url;
