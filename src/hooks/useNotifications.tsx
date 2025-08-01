@@ -72,6 +72,7 @@ export function useNotifications() {
         (payload) => {
           console.log("Notification change detected:", payload);
           if (payload.eventType === 'INSERT') {
+            console.log("New notification received, playing sound");
             playNotificationSound();
           }
           fetchNotifications();

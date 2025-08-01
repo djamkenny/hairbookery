@@ -30,7 +30,23 @@ export const RatingNotificationHandler = () => {
     }
   }, [notifications]);
 
-  const handleCloseRating = () => {
+  const handleCloseRating = async () => {
+    // Mark the rating notification as read
+    const ratingNotification = notifications.find(
+      (notification) =>
+        notification.type === 'appointment_completed' &&
+        !notification.is_read &&
+        notification.metadata?.shouldShowRating
+    );
+
+    if (ratingNotification) {
+      const { supabase } = await import("@/integrations/supabase/client");
+      await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('id', ratingNotification.id);
+    }
+
     setRatingDialog(null);
   };
 

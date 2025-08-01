@@ -276,6 +276,7 @@ export type Database = {
           id: string
           is_read: boolean
           message: string
+          metadata: Json | null
           priority: string | null
           related_id: string | null
           title: string | null
@@ -289,6 +290,7 @@ export type Database = {
           id?: string
           is_read?: boolean
           message: string
+          metadata?: Json | null
           priority?: string | null
           related_id?: string | null
           title?: string | null
@@ -302,6 +304,7 @@ export type Database = {
           id?: string
           is_read?: boolean
           message?: string
+          metadata?: Json | null
           priority?: string | null
           related_id?: string | null
           title?: string | null
