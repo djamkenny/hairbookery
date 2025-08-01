@@ -10,16 +10,18 @@ const NotificationBell: React.FC = () => {
   const [open, setOpen] = useState(false);
   const { notifications, loading } = useNotifications();
 
-  // Mark all as read when opening panel
-  const markAllAsRead = async () => {
+  // Mark only general notifications as read when opening panel, but preserve rating notifications
+  const markGeneralNotificationsAsRead = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
+    // Only mark non-rating notifications as read
     await supabase
       .from("notifications")
       .update({ is_read: true })
       .eq("user_id", user.id)
-      .eq("is_read", false);
+      .eq("is_read", false)
+      .neq("type", "appointment_completed"); // Don't mark rating notifications as read
   };
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
@@ -27,7 +29,7 @@ const NotificationBell: React.FC = () => {
   const handleToggle = async () => {
     setOpen(!open);
     if (!open) {
-      await markAllAsRead();
+      await markGeneralNotificationsAsRead();
     }
   };
 
