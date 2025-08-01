@@ -3,7 +3,6 @@ import React from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useStylistRevenue } from "@/hooks/useStylistRevenue";
 import { useStylistAnalytics } from "@/hooks/useStylistAnalytics";
-import RealTimeBalance from "./RealTimeBalance";
 import AnalyticsHeader from "./AnalyticsHeader";
 import RevenueCards from "./RevenueCards";
 import ServicePerformanceTable from "./ServicePerformanceTable";
@@ -28,12 +27,6 @@ const AnalyticsTab = () => {
     <div className="space-y-6">
       <AnalyticsHeader />
 
-      {/* Revenue Summary Cards */}
-      {user && (
-        <div className="mb-6">
-          <RealTimeBalance stylistId={user.id} />
-        </div>
-      )}
 
       {/* Revenue Overview Cards */}
       <RevenueCards revenueSummary={revenueSummary} loading={loading} />
