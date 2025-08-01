@@ -52,7 +52,7 @@ const AppointmentRow: React.FC<AppointmentRowProps> = ({
   };
 
   return (
-    <TableRow key={appointment.id}>
+    <TableRow key={appointment.id} className={appointment.status !== 'completed' ? 'bg-muted/30' : ''}>
       <TableCell className="font-medium text-xs md:text-sm">{appointment.client}</TableCell>
       <TableCell className="text-xs md:text-sm">{appointment.service}</TableCell>
       <TableCell className="text-xs md:text-sm">{appointment.date}</TableCell>
