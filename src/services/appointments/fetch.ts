@@ -15,12 +15,11 @@ export const fetchStylistAppointments = async (): Promise<Appointment[]> => {
 
     console.log("Fetching appointments for stylist:", user.id);
 
-    // 1. Fetch appointments for this stylist with service info only (no payments join!)
+    // 1. Fetch appointments for this stylist
     const { data, error } = await supabase
       .from('appointments')
       .select(`
-        *,
-        services:service_id(name)
+        *
       `)
       .eq('stylist_id', user.id)
       .is('canceled_at', null);
@@ -35,9 +34,34 @@ export const fetchStylistAppointments = async (): Promise<Appointment[]> => {
       return [];
     }
 
-    // 2. Fetch payments for these appointments (grab all appointment IDs)
+    // 2. Fetch services for all appointments
     const appointmentIds = data.map((apt: any) => apt.id);
+    
+    let servicesMap: Record<string, any[]> = {};
+    if (appointmentIds.length > 0) {
+      const { data: appointmentServicesData, error: servicesError } = await supabase
+        .from('appointment_services')
+        .select(`
+          appointment_id,
+          services:service_id(name, price, duration)
+        `)
+        .in('appointment_id', appointmentIds);
 
+      if (servicesError) {
+        console.error("Error fetching appointment services:", servicesError);
+      }
+      if (appointmentServicesData) {
+        servicesMap = appointmentServicesData.reduce((map, item) => {
+          if (!map[item.appointment_id]) {
+            map[item.appointment_id] = [];
+          }
+          map[item.appointment_id].push(item.services);
+          return map;
+        }, {} as Record<string, any[]>);
+      }
+    }
+
+    // 3. Fetch payments for these appointments
     let paymentsMap: Record<string, { amount: number }> = {};
     if (appointmentIds.length > 0) {
       const { data: paymentsData, error: paymentsError } = await supabase
@@ -89,12 +113,22 @@ export const fetchStylistAppointments = async (): Promise<Appointment[]> => {
       // Get the actual client name from the profile or fall back to "Unknown Client"
       const clientName = clientProfile.full_name || "Unknown Client";
       
-      console.log(`Appointment ${appointment.id}: client_id=${appointment.client_id}, clientName=${clientName}`);
+      // Get services for this appointment
+      const appointmentServices = servicesMap[appointment.id] || [];
+      const serviceNames = appointmentServices.map(s => s?.name).filter(Boolean);
+      const serviceName = serviceNames.length > 0 
+        ? serviceNames.length === 1 
+          ? serviceNames[0] 
+          : `${serviceNames.length} Services: ${serviceNames.join(', ')}`
+        : "Service";
+      
+      console.log(`Appointment ${appointment.id}: client_id=${appointment.client_id}, clientName=${clientName}, services=${serviceNames.join(', ')}`);
 
       return {
         id: appointment.id,
         client: clientName, // Use the actual client name here
-        service: appointment.services?.name || "Service",
+        service: serviceName,
+        services: appointmentServices, // Add full services array
         date: format(new Date(appointment.appointment_date), "MMMM dd, yyyy"),
         time: appointment.appointment_time,
         status: appointment.status,

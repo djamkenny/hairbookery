@@ -38,6 +38,7 @@ const AppointmentDetailsContent: React.FC<AppointmentDetailsContentProps> = ({
         )}
         <ServiceStatusCard 
           service={appointment.service}
+          services={(appointment as any).services}
           status={appointment.status}
         />
       </div>
