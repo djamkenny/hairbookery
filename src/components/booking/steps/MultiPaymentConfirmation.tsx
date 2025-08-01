@@ -142,7 +142,7 @@ const MultiPaymentConfirmation: React.FC<MultiPaymentConfirmationProps> = ({
             appointmentDate={date || new Date()}
             appointmentTime={time}
             notes={notes}
-            totalAmount={bookingFee / 100}
+            totalAmount={bookingFee}
             onPaymentSuccess={onPaymentSuccess}
           />
         </div>
