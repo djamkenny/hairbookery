@@ -37,7 +37,7 @@ export function usePaymentStatus(reference: string | null): PaymentStatusResult 
     };
 
     checkPaymentStatus();
-  }, [reference, processPaymentSuccess]);
+  }, [reference]); // Removed processPaymentSuccess from dependencies to prevent re-runs
 
   return { loading, success, error };
 }

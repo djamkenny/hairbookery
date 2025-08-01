@@ -88,6 +88,12 @@ export const useBookingPayment = () => {
         throw new Error('Payment not found');
       }
 
+      // Check if payment is already processed to prevent duplicates
+      if (payment.status === 'completed') {
+        console.log('Payment already processed, skipping appointment creation');
+        return true;
+      }
+
       const metadata = payment.metadata as any;
       if (metadata?.type !== 'booking') {
         throw new Error('Invalid payment type');
