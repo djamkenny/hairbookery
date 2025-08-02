@@ -741,51 +741,6 @@ export type Database = {
         }
         Relationships: []
       }
-      withdrawal_requests: {
-        Row: {
-          account_name: string | null
-          account_number: string | null
-          amount: number
-          bank_name: string | null
-          created_at: string
-          id: string
-          notes: string | null
-          processed_at: string | null
-          processed_by: string | null
-          status: string
-          stylist_id: string | null
-          updated_at: string
-        }
-        Insert: {
-          account_name?: string | null
-          account_number?: string | null
-          amount: number
-          bank_name?: string | null
-          created_at?: string
-          id?: string
-          notes?: string | null
-          processed_at?: string | null
-          processed_by?: string | null
-          status?: string
-          stylist_id?: string | null
-          updated_at?: string
-        }
-        Update: {
-          account_name?: string | null
-          account_number?: string | null
-          amount?: number
-          bank_name?: string | null
-          created_at?: string
-          id?: string
-          notes?: string | null
-          processed_at?: string | null
-          processed_by?: string | null
-          status?: string
-          stylist_id?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
     }
     Views: {
       [_ in never]: never
