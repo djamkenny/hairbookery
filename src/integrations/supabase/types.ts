@@ -789,6 +789,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_admin_total_users_count: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       get_stylist_available_balance: {
         Args: { stylist_uuid: string }
         Returns: number
