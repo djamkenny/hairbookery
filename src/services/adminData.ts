@@ -4,10 +4,13 @@ import { supabase } from '@/integrations/supabase/client';
 export const adminDataService = {
   getDashboardOverview: async () => {
     try {
-      // Get total users count
-      const { count: totalUsers } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true });
+      // Get total users count using secure admin function
+      const { data: totalUsersData, error: usersError } = await supabase
+        .rpc('get_admin_total_users_count');
+
+      if (usersError) {
+        console.error('Error fetching total users:', usersError);
+      }
 
       // Get total bookings count
       const { count: totalBookings } = await supabase
@@ -21,12 +24,13 @@ export const adminDataService = {
       
       const totalRevenue = revenueData?.reduce((sum, record) => sum + (record.total_revenue || 0), 0) || 0;
 
-      // Get active stylists count
-      const { count: activeStylists } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true })
-        .eq('is_stylist', true)
-        .eq('availability', true);
+      // Get active stylists count using secure admin function
+      const { data: activeStylistsData, error: stylistsError } = await supabase
+        .rpc('get_admin_active_stylists_count');
+
+      if (stylistsError) {
+        console.error('Error fetching active stylists:', stylistsError);
+      }
 
       // Get recent direct messages for activity
       const { data: recentMessages } = await supabase
@@ -67,10 +71,10 @@ export const adminDataService = {
       }
 
       return {
-        totalUsers: totalUsers || 0,
+        totalUsers: totalUsersData || 0,
         totalBookings: totalBookings || 0,
         totalRevenue: Math.round(totalRevenue),
-        activeStylists: activeStylists || 0,
+        activeStylists: activeStylistsData || 0,
         recentActivity: recentActivity.slice(0, 5)
       };
     } catch (error) {
