@@ -14,18 +14,14 @@ import {
   Activity,
   UserCheck,
   MessageSquare,
-  Settings,
   ArrowLeft,
   LogOut,
-  BarChart3,
-  Shield,
   Database,
   Bell,
   FileText,
   CreditCard,
   Star,
-  Clock,
-  AlertCircle
+  Clock
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -78,76 +74,12 @@ const AdminDashboard = () => {
 
   const adminActions = [
     {
-      title: 'User Management',
-      description: 'Manage users, stylists, and account settings',
-      icon: Users,
-      onClick: () => navigate('/admin/users'),
-      color: 'bg-blue-500',
-      disabled: true
-    },
-    {
-      title: 'Booking Management',
-      description: 'View and manage all bookings and appointments',
-      icon: Calendar,
-      onClick: () => navigate('/admin/bookings'),
-      color: 'bg-primary',
-      disabled: true
-    },
-    {
-      title: 'Financial Overview',
-      description: 'Revenue tracking, payments, and analytics',
-      icon: DollarSign,
-      onClick: () => navigate('/admin/finance'),
-      color: 'bg-yellow-500',
-      disabled: true
-    },
-    {
       title: 'Live Chat',
       description: 'Direct messaging with customers',
       icon: MessageSquare,
       onClick: () => navigate('/admin-chat'),
       color: 'bg-purple-500',
       disabled: false
-    },
-    {
-      title: 'Customer Service',
-      description: 'Manage support tickets and customer communications',
-      icon: MessageSquare,
-      onClick: () => navigate('/customer-service-management'),
-      color: 'bg-purple-500',
-      disabled: false
-    },
-    {
-      title: 'Support Dashboard',
-      description: 'Advanced support analytics and metrics',
-      icon: Activity,
-      onClick: () => navigate('/admin-support'),
-      color: 'bg-indigo-500',
-      disabled: false
-    },
-    {
-      title: 'Analytics & Reports',
-      description: 'Business intelligence and reporting tools',
-      icon: BarChart3,
-      onClick: () => navigate('/admin/analytics'),
-      color: 'bg-orange-500',
-      disabled: true
-    },
-    {
-      title: 'Security Center',
-      description: 'Security settings and access controls',
-      icon: Shield,
-      onClick: () => navigate('/admin/security'),
-      color: 'bg-red-500',
-      disabled: true
-    },
-    {
-      title: 'System Settings',
-      description: 'Platform configuration and preferences',
-      icon: Settings,
-      onClick: () => navigate('/admin/settings'),
-      color: 'bg-gray-500',
-      disabled: true
     }
   ];
 
@@ -315,7 +247,7 @@ const AdminDashboard = () => {
         {/* Admin Actions Grid */}
         <div className="mb-8">
           <h2 className="text-2xl font-semibold mb-4">Admin Tools</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {adminActions.map((action, index) => (
               <Card 
                 key={index}
