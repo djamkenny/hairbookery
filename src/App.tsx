@@ -29,7 +29,7 @@ import Contact from './pages/Contact';
 import StylistDetail from './pages/StylistDetail';
 import PaymentReturn from './pages/PaymentReturn';
 import NotFound from './pages/NotFound';
-import CustomerServiceWidget from './components/customer-service/CustomerServiceWidget';
+import EnhancedCustomerServiceWidget from './components/customer-service/EnhancedCustomerServiceWidget';
 import { ThemeProvider } from './components/theme/ThemeProvider';
 import { PaymentProvider } from './components/payment/PaymentProvider';
 import { Toaster } from 'sonner';
@@ -113,7 +113,7 @@ const AppContent: React.FC = () => {
         <Route path="/admin-chat" element={<AdminChatPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
-      {user && <CustomerServiceWidget />}
+      {user && <EnhancedCustomerServiceWidget />}
       {user && <RatingNotificationHandler />}
       <Toaster />
     </>

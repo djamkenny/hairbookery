@@ -4,7 +4,7 @@ import { useSecurityMiddleware } from "@/hooks/useSecurityMiddleware";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
-import AdminChatInterface from "@/components/customer-service/AdminChatInterface";
+import EnhancedAdminChatInterface from "@/components/customer-service/EnhancedAdminChatInterface";
 
 const AdminChatPage = () => {
   const { isAuthorized } = useSecurityMiddleware(true);
@@ -45,7 +45,7 @@ const AdminChatPage = () => {
           </div>
         </div>
       </header>
-      <AdminChatInterface />
+      <EnhancedAdminChatInterface />
     </div>
   );
 };
