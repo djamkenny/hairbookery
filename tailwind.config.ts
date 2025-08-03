@@ -95,9 +95,9 @@ export default {
 				'gradient-card-premium': 'linear-gradient(135deg, hsla(240, 10%, 5.9%, 0.9) 0%, hsla(263, 70%, 8%, 0.8) 25%, hsla(270, 50%, 6%, 0.9) 50%, hsla(260, 60%, 7%, 0.85) 75%, hsla(240, 10%, 5.9%, 0.9) 100%)',
 			},
 			borderRadius: {
-				lg: 'var(--radius)',
-				md: 'calc(var(--radius) - 2px)',
-				sm: 'calc(var(--radius) - 4px)'
+				lg: '0',
+				md: '0',
+				sm: '0'
 			},
 			boxShadow: {
 				'web3': '0 4px 20px rgba(139, 92, 246, 0.15), 0 0 40px rgba(59, 130, 246, 0.1)',
