@@ -131,12 +131,21 @@ export const useRealtimeChat = (userId?: string, isAdmin = false) => {
         }));
       })
       .subscribe((status) => {
+        console.log('Subscription status:', status);
         if (status === 'SUBSCRIBED') {
           setChatState(prev => ({ ...prev, isConnected: true }));
           processMessageQueue();
-        } else if (status === 'CHANNEL_ERROR') {
+          reconnectAttempts.current = 0;
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
           setChatState(prev => ({ ...prev, isConnected: false }));
-          console.error('Channel subscription error');
+          console.log('Channel subscription issue - will retry:', status);
+          // Don't spam reconnections, wait a moment
+          if (reconnectAttempts.current < 3) {
+            setTimeout(() => {
+              reconnectAttempts.current++;
+              setupRealtimeSubscription();
+            }, 2000);
+          }
         }
       });
 
