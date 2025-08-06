@@ -531,8 +531,39 @@ export type Database = {
           },
         ]
       }
+      service_categories: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          display_order: number | null
+          icon: string | null
+          id: string
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          icon?: string | null
+          id?: string
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          icon?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       services: {
         Row: {
+          category: string | null
           created_at: string | null
           description: string | null
           duration: number
@@ -544,6 +575,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          category?: string | null
           created_at?: string | null
           description?: string | null
           duration: number
@@ -555,6 +587,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          category?: string | null
           created_at?: string | null
           description?: string | null
           duration?: number
@@ -738,6 +771,36 @@ export type Database = {
           subject?: string
           updated_at?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_service_preferences: {
+        Row: {
+          created_at: string | null
+          id: string
+          last_selected_at: string | null
+          preference_order: number | null
+          service_id: string
+          stylist_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          last_selected_at?: string | null
+          preference_order?: number | null
+          service_id: string
+          stylist_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          last_selected_at?: string | null
+          preference_order?: number | null
+          service_id?: string
+          stylist_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }

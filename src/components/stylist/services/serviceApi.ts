@@ -27,7 +27,8 @@ export const fetchServices = async (): Promise<Service[]> => {
     price: service.price.toString(),
     duration: service.duration.toString(),
     stylist_id: service.stylist_id,
-    image_urls: service.image_urls || []
+    image_urls: service.image_urls || [],
+    category: service.category || 'Hair Cutting & Styling'
   }));
 };
 
@@ -45,6 +46,7 @@ export const createService = async (serviceData: ServiceFormValues): Promise<Ser
       description: serviceData.description || null,
       price: parseFloat(serviceData.price),
       duration: parseInt(serviceData.duration),
+      category: serviceData.category,
       stylist_id: user.id,
       image_urls: []
     }])
@@ -62,7 +64,8 @@ export const createService = async (serviceData: ServiceFormValues): Promise<Ser
     price: data.price.toString(),
     duration: data.duration.toString(),
     stylist_id: data.stylist_id,
-    image_urls: data.image_urls || []
+    image_urls: data.image_urls || [],
+    category: data.category || 'Hair Cutting & Styling'
   };
 };
 
@@ -73,7 +76,8 @@ export const updateService = async (id: string, serviceData: ServiceFormValues):
       name: serviceData.name,
       description: serviceData.description || null,
       price: parseFloat(serviceData.price),
-      duration: parseInt(serviceData.duration)
+      duration: parseInt(serviceData.duration),
+      category: serviceData.category
     })
     .eq("id", id)
     .select()
@@ -90,7 +94,8 @@ export const updateService = async (id: string, serviceData: ServiceFormValues):
     price: data.price.toString(),
     duration: data.duration.toString(),
     stylist_id: data.stylist_id,
-    image_urls: data.image_urls || []
+    image_urls: data.image_urls || [],
+    category: data.category || 'Hair Cutting & Styling'
   };
 };
 

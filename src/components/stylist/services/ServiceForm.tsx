@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Clock, DollarSign } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -9,16 +9,26 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ServiceImageUpload } from "./ServiceImageUpload";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const serviceFormSchema = z.object({
   name: z.string().min(1, "Service name is required"),
   description: z.string().optional(),
   duration: z.string().min(1, "Duration is required"),
-  price: z.string().min(1, "Price is required")
+  price: z.string().min(1, "Price is required"),
+  category: z.string().min(1, "Category is required")
 });
 
 export type ServiceFormValues = z.infer<typeof serviceFormSchema>;
+
+interface ServiceCategory {
+  id: string;
+  name: string;
+  description: string;
+}
 
 interface ServiceFormProps {
   defaultValues?: ServiceFormValues;
@@ -40,6 +50,8 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
   onImagesUpdate
 }) => {
   const [localImages, setLocalImages] = useState<string[]>(currentImages);
+  const [categories, setCategories] = useState<ServiceCategory[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
   
   const form = useForm<ServiceFormValues>({
     resolver: zodResolver(serviceFormSchema),
@@ -47,9 +59,32 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
       name: "",
       description: "",
       duration: "",
-      price: ""
+      price: "",
+      category: ""
     }
   });
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setLoadingCategories(true);
+        const { data, error } = await supabase
+          .from('service_categories')
+          .select('id, name, description')
+          .order('display_order');
+        
+        if (error) throw error;
+        setCategories(data || []);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+        toast.error('Failed to load service categories');
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   const handleImagesUpdate = (images: string[]) => {
     setLocalImages(images);
@@ -79,6 +114,35 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
                   <FormLabel>Service Name</FormLabel>
                   <FormControl>
                     <Input placeholder="e.g. Haircut & Styling" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="category"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Category</FormLabel>
+                  <FormControl>
+                    <Select 
+                      value={field.value} 
+                      onValueChange={field.onChange}
+                      disabled={loadingCategories}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((category) => (
+                          <SelectItem key={category.id} value={category.name}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>

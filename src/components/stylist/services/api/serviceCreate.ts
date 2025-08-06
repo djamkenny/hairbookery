@@ -67,6 +67,7 @@ export const addService = async (formData: ServiceFormValues): Promise<Service |
         description: formData.description || null,
         price: priceValue,
         duration: durationValue,
+        category: formData.category,
         stylist_id: userId,
         image_urls: []
       })
@@ -92,7 +93,8 @@ export const addService = async (formData: ServiceFormValues): Promise<Service |
       duration: `${newService.duration}`,
       price: `${newService.price}`,
       stylist_id: newService.stylist_id,
-      image_urls: newService.image_urls || []
+      image_urls: newService.image_urls || [],
+      category: newService.category || 'Hair Cutting & Styling'
     };
   } catch (error: any) {
     console.error("Error in addService:", error);

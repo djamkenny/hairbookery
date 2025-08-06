@@ -85,12 +85,13 @@ export const ServiceList: React.FC<ServiceListProps> = ({
   if (editingService) {
     return (
       <ServiceForm
-        defaultValues={{
-          name: editingService.name,
-          description: editingService.description || "",
-          duration: editingService.duration,
-          price: editingService.price
-        }}
+          defaultValues={{
+            name: editingService.name,
+            description: editingService.description || "",
+            duration: editingService.duration,
+            price: editingService.price,
+            category: editingService.category || 'Hair Cutting & Styling'
+          }}
         onSubmit={handleUpdateService}
         onCancel={() => {
           setEditingService(null);

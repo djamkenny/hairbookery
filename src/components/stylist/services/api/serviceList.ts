@@ -36,7 +36,8 @@ export const fetchServices = async (): Promise<Service[]> => {
       duration: `${service.duration}`,
       price: `${service.price}`,
       stylist_id: service.stylist_id,
-      image_urls: service.image_urls || []
+      image_urls: service.image_urls || [],
+      category: service.category || 'Hair Cutting & Styling'
     }));
   } catch (error) {
     console.error("Error in fetchServices:", error);

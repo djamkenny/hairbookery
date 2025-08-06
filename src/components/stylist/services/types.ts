@@ -7,4 +7,5 @@ export interface Service {
   price: string;
   stylist_id: string;
   image_urls: string[];
+  category: string;
 }

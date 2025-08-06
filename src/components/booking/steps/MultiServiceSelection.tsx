@@ -24,6 +24,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { ChevronRight } from "lucide-react";
 import MultiBookingSummary from "./MultiBookingSummary";
+import { CategorizedServiceSelection } from "../CategorizedServiceSelection";
 
 // Time slots available for booking
 const timeSlots = [
@@ -191,59 +192,13 @@ const MultiServiceSelection: React.FC<MultiServiceSelectionProps> = ({
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label>Selected Services</Label>
-            <div className="min-h-[100px] border rounded-md p-3 space-y-2">
-              {selectedServices.length === 0 ? (
-                <p className="text-muted-foreground text-sm">No services selected</p>
-              ) : (
-                selectedServices.map((service) => (
-                  <div
-                    key={service.id}
-                    className="flex items-center justify-between bg-primary/5 rounded-md p-2"
-                  >
-                    <div className="flex-1">
-                      <p className="font-medium">{service.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {formatPrice(service.price)} • {formatDuration(service.duration)}
-                      </p>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleRemoveService(service.id)}
-                      className="h-8 w-8 p-0"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-
-          {unselectedServices.length > 0 && stylist && (
-            <div className="space-y-2">
-              <Label>Add More Services</Label>
-              <Select onValueChange={handleAddService}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Choose additional services" />
-                </SelectTrigger>
-                <SelectContent>
-                  {unselectedServices.map((service) => (
-                    <SelectItem key={service.id} value={service.id}>
-                      <div className="flex items-center justify-between w-full">
-                        <span>{service.name}</span>
-                        <span className="ml-2 text-sm text-muted-foreground">
-                          {formatPrice(service.price)}
-                        </span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          {stylist && (
+            <CategorizedServiceSelection
+              stylistId={stylist}
+              selectedServices={services}
+              onServicesChange={setServices}
+              currentUser={currentUser}
+            />
           )}
           
           <div className="space-y-2">
