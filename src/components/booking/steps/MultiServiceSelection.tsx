@@ -24,7 +24,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { ChevronRight } from "lucide-react";
 import MultiBookingSummary from "./MultiBookingSummary";
-import { CategorizedServiceSelection } from "../CategorizedServiceSelection";
+import { CategoryServiceFlow } from "../CategoryServiceFlow";
 
 // Time slots available for booking
 const timeSlots = [
@@ -193,7 +193,7 @@ const MultiServiceSelection: React.FC<MultiServiceSelectionProps> = ({
           </div>
 
           {stylist && (
-            <CategorizedServiceSelection
+            <CategoryServiceFlow
               stylistId={stylist}
               selectedServices={services}
               onServicesChange={setServices}
