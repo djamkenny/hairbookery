@@ -561,6 +561,47 @@ export type Database = {
         }
         Relationships: []
       }
+      service_types: {
+        Row: {
+          created_at: string
+          description: string | null
+          duration: number
+          id: string
+          name: string
+          price: number
+          service_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          duration: number
+          id?: string
+          name: string
+          price: number
+          service_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          duration?: number
+          id?: string
+          name?: string
+          price?: number
+          service_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_service_types_service_id"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       services: {
         Row: {
           category: string | null
@@ -569,6 +610,7 @@ export type Database = {
           duration: number
           id: string
           image_urls: string[] | null
+          is_base_service: boolean | null
           name: string
           price: number
           stylist_id: string | null
@@ -581,6 +623,7 @@ export type Database = {
           duration: number
           id?: string
           image_urls?: string[] | null
+          is_base_service?: boolean | null
           name: string
           price: number
           stylist_id?: string | null
@@ -593,6 +636,7 @@ export type Database = {
           duration?: number
           id?: string
           image_urls?: string[] | null
+          is_base_service?: boolean | null
           name?: string
           price?: number
           stylist_id?: string | null

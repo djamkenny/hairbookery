@@ -1,5 +1,5 @@
 import React from "react";
-import { Clock, DollarSign, Edit, Trash2, Image as ImageIcon } from "lucide-react";
+import { Clock, DollarSign, Edit, Trash2, Image as ImageIcon, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +10,7 @@ interface ServiceCardProps {
   service: Service;
   onEdit: (service: Service) => void;
   onDelete: (id: string) => void;
+  onManageTypes: (service: Service) => void;
   isEditing: boolean;
 }
 
@@ -17,6 +18,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
   service,
   onEdit,
   onDelete,
+  onManageTypes,
   isEditing
 }) => {
   const hasImages = service.image_urls && service.image_urls.length > 0;
@@ -52,6 +54,16 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
             )}
           </div>
           <div className="flex gap-1 ml-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onManageTypes(service)}
+              disabled={isEditing}
+              className="h-8 w-8"
+              title="Manage Service Types"
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
             <Button
               variant="ghost"
               size="icon"

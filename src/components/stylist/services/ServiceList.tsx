@@ -4,6 +4,7 @@ import { Service } from "./types";
 import { ServiceCard } from "./ServiceCard";
 import { ServiceForm } from "./ServiceForm";
 import { ServiceGallery } from "./ServiceGallery";
+import ServiceTypesManager from "./ServiceTypesManager";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Grid, List } from "lucide-react";
@@ -26,6 +27,7 @@ export const ServiceList: React.FC<ServiceListProps> = ({
 }) => {
   const [isCreating, setIsCreating] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
+  const [managingTypesService, setManagingTypesService] = useState<Service | null>(null);
   const [currentImages, setCurrentImages] = useState<string[]>([]);
 
   const handleCreateService = async (data: any) => {
@@ -68,9 +70,23 @@ export const ServiceList: React.FC<ServiceListProps> = ({
     setCurrentImages(service.image_urls || []);
   };
 
+  const handleManageTypes = (service: Service) => {
+    setManagingTypesService(service);
+  };
+
   const handleImagesUpdate = (images: string[]) => {
     setCurrentImages(images);
   };
+
+  if (managingTypesService) {
+    return (
+      <ServiceTypesManager
+        serviceId={managingTypesService.id}
+        serviceName={managingTypesService.name}
+        onClose={() => setManagingTypesService(null)}
+      />
+    );
+  }
 
   if (isCreating) {
     return (
@@ -147,6 +163,7 @@ export const ServiceList: React.FC<ServiceListProps> = ({
                   service={service}
                   onEdit={handleEditService}
                   onDelete={handleDeleteService}
+                  onManageTypes={handleManageTypes}
                   isEditing={!!editingService}
                 />
               ))}
