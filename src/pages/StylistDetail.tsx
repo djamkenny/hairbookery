@@ -231,9 +231,53 @@ const SpecialistDetail = () => {
                 />
               </div>
               
-              <div className="animate-fade-in">
-                <h2 className="text-lg lg:text-xl font-semibold mb-4 lg:mb-6">Services & Portfolio</h2>
-                <ServiceGallery services={services} />
+              <div className="animate-fade-in space-y-6">
+                <h2 className="text-lg lg:text-xl font-semibold mb-4 lg:mb-6">Services</h2>
+                {services.length > 0 ? (
+                  <div className="grid gap-4 md:gap-6">
+                    {services.map((service) => (
+                      <div key={service.id} className="grid grid-cols-1 lg:grid-cols-2 gap-4 p-4 border rounded-lg bg-card">
+                        <div>
+                          <h3 className="text-lg font-semibold mb-2">{service.name}</h3>
+                          <p className="text-muted-foreground text-sm mb-3">
+                            {service.description || "Professional service with attention to detail."}
+                          </p>
+                          <div className="flex items-center gap-4 text-sm">
+                            <div className="flex items-center gap-1">
+                              <ClockIcon className="h-4 w-4 text-muted-foreground" />
+                              <span>{service.duration} minutes</span>
+                            </div>
+                            <div className="font-semibold text-primary">
+                              GHS {service.price}
+                            </div>
+                          </div>
+                        </div>
+                        {service.image_urls && service.image_urls.length > 0 && (
+                          <div className="grid grid-cols-2 gap-2">
+                            {service.image_urls.slice(0, 4).map((imageUrl, index) => (
+                              <div key={index} className="aspect-square overflow-hidden rounded-lg">
+                                <img
+                                  src={imageUrl}
+                                  alt={`${service.name} ${index + 1}`}
+                                  className="w-full h-full object-cover transition-transform hover:scale-105"
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">No services available yet.</p>
+                  </div>
+                )}
+                
+                <div className="mt-8">
+                  <h2 className="text-lg lg:text-xl font-semibold mb-4 lg:mb-6">Portfolio Gallery</h2>
+                  <ServiceGallery services={services} />
+                </div>
               </div>
             </div>
           </div>
