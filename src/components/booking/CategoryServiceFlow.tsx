@@ -6,14 +6,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
+interface ServiceType {
+  id: string;
+  name: string;
+  description: string | null;
+  duration: number;
+  price: number;
+  service_id: string;
+}
+
 interface Service {
   id: string;
   name: string;
   description: string | null;
-  duration: string;
-  price: string;
-  stylist_id: string;
   category: string;
+  stylist_id: string;
 }
 
 interface ServiceCategory {
@@ -50,6 +57,7 @@ export const CategoryServiceFlow: React.FC<CategoryServiceFlowProps> = ({
 }) => {
   const [categories, setCategories] = useState<ServiceCategory[]>([]);
   const [services, setServices] = useState<Service[]>([]);
+  const [serviceTypes, setServiceTypes] = useState<ServiceType[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<ServiceCategory | null>(null);
   const [userPreferences, setUserPreferences] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -76,28 +84,42 @@ export const CategoryServiceFlow: React.FC<CategoryServiceFlowProps> = ({
           .order('name');
         
         if (servicesError) throw servicesError;
-        const transformedServices = (servicesData || []).map(service => ({
-          id: service.id,
-          name: service.name,
-          description: service.description,
-          duration: service.duration.toString(),
-          price: service.price.toString(),
-          stylist_id: service.stylist_id,
-          category: service.category || 'Hair Cutting & Styling'
-        }));
-        setServices(transformedServices);
+        setServices(servicesData || []);
+
+        // Fetch service types for these services
+        if (servicesData && servicesData.length > 0) {
+          const serviceIds = servicesData.map(s => s.id);
+          const { data: serviceTypesData, error: serviceTypesError } = await supabase
+            .from('service_types')
+            .select('*')
+            .in('service_id', serviceIds)
+            .order('name');
+          
+          if (serviceTypesError) throw serviceTypesError;
+          setServiceTypes(serviceTypesData || []);
+        }
 
         // Fetch user preferences if logged in
-        if (currentUser) {
-          const { data: preferencesData, error: preferencesError } = await supabase
-            .from('user_service_preferences')
-            .select('service_id')
-            .eq('user_id', currentUser.id)
-            .eq('stylist_id', stylistId);
+        if (currentUser && servicesData && servicesData.length > 0) {
+          const serviceIds = servicesData.map(s => s.id);
+          const { data: serviceTypesForPrefs } = await supabase
+            .from('service_types')
+            .select('id')
+            .in('service_id', serviceIds);
           
-          if (preferencesError) throw preferencesError;
-          const preferredServices = preferencesData?.map(p => p.service_id) || [];
-          setUserPreferences(preferredServices);
+          if (serviceTypesForPrefs && serviceTypesForPrefs.length > 0) {
+            const serviceTypeIds = serviceTypesForPrefs.map(st => st.id);
+            const { data: preferencesData, error: preferencesError } = await supabase
+              .from('user_service_preferences')
+              .select('service_id')
+              .eq('user_id', currentUser.id)
+              .eq('stylist_id', stylistId)
+              .in('service_id', serviceTypeIds);
+            
+            if (preferencesError) throw preferencesError;
+            const preferredServices = preferencesData?.map(p => p.service_id) || [];
+            setUserPreferences(preferredServices);
+          }
         }
         
       } catch (error) {
@@ -154,17 +176,19 @@ export const CategoryServiceFlow: React.FC<CategoryServiceFlowProps> = ({
     savePreferences(newSelected);
   };
 
-  const getServicesByCategory = (categoryName: string) => {
-    return services.filter(service => service.category === categoryName);
+  const getServiceTypesByCategory = (categoryName: string) => {
+    const categoryServices = services.filter(service => service.category === categoryName);
+    const serviceIds = categoryServices.map(s => s.id);
+    return serviceTypes.filter(serviceType => serviceIds.includes(serviceType.service_id));
   };
 
   const getCategoryStats = (categoryName: string) => {
-    const categoryServices = getServicesByCategory(categoryName);
-    const prices = categoryServices.map(s => parseFloat(s.price));
-    const durations = categoryServices.map(s => parseInt(s.duration));
+    const categoryServiceTypes = getServiceTypesByCategory(categoryName);
+    const prices = categoryServiceTypes.map(st => st.price);
+    const durations = categoryServiceTypes.map(st => st.duration);
     
     return {
-      count: categoryServices.length,
+      count: categoryServiceTypes.length,
       priceRange: prices.length > 0 ? {
         min: Math.min(...prices),
         max: Math.max(...prices)
@@ -204,11 +228,11 @@ export const CategoryServiceFlow: React.FC<CategoryServiceFlowProps> = ({
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {categories.map((category) => {
-              const categoryServices = getServicesByCategory(category.name);
+              const categoryServiceTypes = getServiceTypesByCategory(category.name);
               const stats = getCategoryStats(category.name);
-              const selectedInCategory = categoryServices.filter(s => selectedServices.includes(s.id));
+              const selectedInCategory = categoryServiceTypes.filter(st => selectedServices.includes(st.id));
               
-              if (categoryServices.length === 0) return null;
+              if (categoryServiceTypes.length === 0) return null;
 
               return (
                 <Card 
@@ -273,8 +297,8 @@ export const CategoryServiceFlow: React.FC<CategoryServiceFlowProps> = ({
     );
   }
 
-  // Service selection within category
-  const categoryServices = getServicesByCategory(selectedCategory.name);
+  // Service type selection within category
+  const categoryServiceTypes = getServiceTypesByCategory(selectedCategory.name);
   
   return (
     <Card>
@@ -301,24 +325,24 @@ export const CategoryServiceFlow: React.FC<CategoryServiceFlowProps> = ({
       </CardHeader>
       <CardContent>
         <div className="grid gap-3">
-          {categoryServices.map((service) => {
-            const isSelected = selectedServices.includes(service.id);
-            const isPreferred = userPreferences.includes(service.id);
+          {categoryServiceTypes.map((serviceType) => {
+            const isSelected = selectedServices.includes(serviceType.id);
+            const isPreferred = userPreferences.includes(serviceType.id);
             
             return (
               <div
-                key={service.id}
+                key={serviceType.id}
                 className={`relative p-4 border rounded-lg cursor-pointer transition-all ${
                   isSelected 
                     ? 'border-primary bg-primary/5 ring-1 ring-primary' 
                     : 'border-border hover:border-primary/50'
                 }`}
-                onClick={() => handleServiceToggle(service.id)}
+                onClick={() => handleServiceToggle(serviceType.id)}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
-                      <h4 className="font-medium">{service.name}</h4>
+                      <h4 className="font-medium">{serviceType.name}</h4>
                       {isPreferred && !isSelected && (
                         <Badge variant="outline" className="text-xs">
                           Previously selected
@@ -328,19 +352,19 @@ export const CategoryServiceFlow: React.FC<CategoryServiceFlowProps> = ({
                         <Check className="h-4 w-4 text-primary" />
                       )}
                     </div>
-                    {service.description && (
+                    {serviceType.description && (
                       <p className="text-sm text-muted-foreground mb-3">
-                        {service.description}
+                        {serviceType.description}
                       </p>
                     )}
                     <div className="flex items-center gap-4 text-sm">
                       <div className="flex items-center gap-1">
                         <DollarSign className="h-3 w-3 text-primary" />
-                        <span className="font-medium text-primary">₵{service.price}</span>
+                        <span className="font-medium text-primary">₵{serviceType.price}</span>
                       </div>
                       <div className="flex items-center gap-1">
                         <Clock className="h-3 w-3 text-muted-foreground" />
-                        <span className="text-muted-foreground">{service.duration} mins</span>
+                        <span className="text-muted-foreground">{serviceType.duration} mins</span>
                       </div>
                     </div>
                   </div>
@@ -352,7 +376,7 @@ export const CategoryServiceFlow: React.FC<CategoryServiceFlowProps> = ({
 
         <div className="mt-6 flex justify-between items-center">
           <div className="text-sm text-muted-foreground">
-            {selectedServices.filter(id => categoryServices.some(s => s.id === id)).length} of {categoryServices.length} selected
+            {selectedServices.filter(id => categoryServiceTypes.some(st => st.id === id)).length} of {categoryServiceTypes.length} selected
           </div>
           <Button 
             variant="outline" 
@@ -366,14 +390,14 @@ export const CategoryServiceFlow: React.FC<CategoryServiceFlowProps> = ({
           <div className="mt-6 p-4 bg-muted/30 rounded-lg">
             <h4 className="font-medium mb-2">Total Selected Services</h4>
             <div className="space-y-2">
-              {selectedServices.map((serviceId) => {
-                const service = services.find(s => s.id === serviceId);
-                if (!service) return null;
+              {selectedServices.map((serviceTypeId) => {
+                const serviceType = serviceTypes.find(st => st.id === serviceTypeId);
+                if (!serviceType) return null;
                 
                 return (
-                  <div key={serviceId} className="flex justify-between text-sm">
-                    <span>{service.name}</span>
-                    <span className="font-medium">₵{service.price}</span>
+                  <div key={serviceTypeId} className="flex justify-between text-sm">
+                    <span>{serviceType.name}</span>
+                    <span className="font-medium">₵{serviceType.price}</span>
                   </div>
                 );
               })}
@@ -382,9 +406,9 @@ export const CategoryServiceFlow: React.FC<CategoryServiceFlowProps> = ({
               <span>Total</span>
               <span className="text-primary">
                 ₵{selectedServices
-                    .reduce((total, serviceId) => {
-                      const service = services.find(s => s.id === serviceId);
-                      return total + (service ? parseFloat(service.price) : 0);
+                    .reduce((total, serviceTypeId) => {
+                      const serviceType = serviceTypes.find(st => st.id === serviceTypeId);
+                      return total + (serviceType ? serviceType.price : 0);
                     }, 0)
                     .toFixed(2)}
               </span>
