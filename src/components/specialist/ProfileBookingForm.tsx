@@ -45,6 +45,7 @@ const ProfileBookingForm: React.FC<ProfileBookingFormProps> = ({
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
   // Fetch available time slots when date changes
   useEffect(() => {
@@ -85,6 +86,9 @@ const ProfileBookingForm: React.FC<ProfileBookingFormProps> = ({
   const totalPrice = selectedServices.reduce((sum, service) => sum + service.price, 0);
   const totalDuration = selectedServices.reduce((sum, service) => sum + service.duration, 0);
 
+  // Calculate booking payment based on totalPrice
+  const bookingPayment = totalPrice < 100 ? Math.round(totalPrice * 0.1) : 10;
+
   const canProceedToDateStep = selectedServiceTypes.length > 0;
   const canProceedToConfirm = canProceedToDateStep && selectedDate && selectedTime;
 
@@ -101,14 +105,14 @@ const ProfileBookingForm: React.FC<ProfileBookingFormProps> = ({
 
     setSubmitting(true);
     try {
-      // Create the payment directly with all booking details
+      // Use bookingPayment instead of totalPrice
       const result = await initiatePayment({
         serviceIds: selectedServiceTypes,
         stylistId,
         appointmentDate: format(selectedDate!, 'yyyy-MM-dd'),
         appointmentTime: selectedTime,
         notes,
-        totalAmount: totalPrice
+        totalAmount: bookingPayment
       });
       
       if (result.success && result.paymentUrl) {
@@ -131,54 +135,72 @@ const ProfileBookingForm: React.FC<ProfileBookingFormProps> = ({
       case 1:
         return (
           <div className="space-y-6">
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Select Services</h3>
-              <div className="space-y-4">
-                {serviceCategories.map((category) => (
-                  <div key={category.name} className="border rounded-lg p-4">
-                    <h4 className="font-medium mb-3">{category.name}</h4>
-                    <div className="space-y-2">
-                      {category.serviceTypes.map((serviceType) => (
-                        <div 
-                          key={serviceType.id} 
-                          className={`p-3 border rounded cursor-pointer transition-all ${
-                            selectedServiceTypes.includes(serviceType.id)
-                              ? 'border-primary bg-primary/5'
-                              : 'border-border hover:border-primary/50'
-                          }`}
+            {/* Category Selection */}
+            {!activeCategory ? (
+              <div>
+                <h4 className="font-medium mb-2">Select Service Category</h4>
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {serviceCategories.map((category) => (
+                    <Button
+                      key={category.name}
+                      variant="outline"
+                      onClick={() => setActiveCategory(category.name)}
+                      className="capitalize"
+                    >
+                      {category.name}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="mb-4"
+                  onClick={() => setActiveCategory(null)}
+                >
+                  ← Back to Categories
+                </Button>
+                <h5 className="font-medium mb-2">Available Services in {activeCategory}</h5>
+                <div className="space-y-2">
+                  {serviceCategories
+                    .find(cat => cat.name === activeCategory)
+                    ?.serviceTypes.map(serviceType => (
+                      <div
+                        key={serviceType.id}
+                        className={`flex items-center justify-between p-3 rounded-lg border ${
+                          selectedServiceTypes.includes(serviceType.id)
+                            ? "border-primary bg-primary/10"
+                            : "border-muted"
+                        }`}
+                      >
+                        <div>
+                          <span className="font-semibold">{serviceType.name}</span>
+                          <span className="ml-2 text-sm text-muted-foreground">
+                            GHS {serviceType.price} • {serviceType.duration} min
+                          </span>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant={selectedServiceTypes.includes(serviceType.id) ? "default" : "outline"}
                           onClick={() => onServiceToggle(serviceType.id)}
                         >
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              {selectedServiceTypes.includes(serviceType.id) && (
-                                <CheckCircle2 className="h-4 w-4 text-primary" />
-                              )}
-                              <div>
-                                <p className="font-medium">{serviceType.name}</p>
-                                {serviceType.description && (
-                                  <p className="text-sm text-muted-foreground">{serviceType.description}</p>
-                                )}
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <p className="font-semibold">GHS {serviceType.price}</p>
-                              <p className="text-sm text-muted-foreground">{serviceType.duration} min</p>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
+                          {selectedServiceTypes.includes(serviceType.id) ? "Selected" : "Select"}
+                        </Button>
+                      </div>
+                    ))}
+                </div>
               </div>
-            </div>
+            )}
 
+            {/* Selected Services Summary */}
             {selectedServiceTypes.length > 0 && (
-              <div className="p-4 bg-primary/5 rounded-lg">
+              <div className="p-4 bg-primary/5 rounded-lg mt-4">
                 <h4 className="font-medium mb-2">Selected Services ({selectedServiceTypes.length})</h4>
                 <div className="flex flex-wrap gap-2 mb-3">
                   {selectedServices.map(service => (
-                    <Badge key={service.id} variant="default">
+                    <Badge key={service.id} className="capitalize">
                       {service.name}
                     </Badge>
                   ))}
@@ -393,7 +415,7 @@ const ProfileBookingForm: React.FC<ProfileBookingFormProps> = ({
               ) : (
                 <>
                   <CreditCard className="h-4 w-4 mr-2" />
-                  Pay GHS {totalPrice}
+                  Pay GHS {bookingPayment}
                 </>
               )}
             </Button>
