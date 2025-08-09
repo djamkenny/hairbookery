@@ -3,13 +3,13 @@ import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { CalendarIcon, ClockIcon, MapPin } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { CalendarIcon, ClockIcon, MapPin, CheckCircle2 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import { ServiceGallery } from "@/components/stylist/services/ServiceGallery";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Service } from "@/components/stylist/services/types";
+import { ServiceType } from "@/components/stylist/services/types";
 import RatingComponent from "@/components/specialist/RatingComponent";
 import AvailabilityBadge from "@/components/ui/AvailabilityBadge";
 import AvailabilityCalendar from "@/components/specialist/AvailabilityCalendar";
@@ -27,10 +27,22 @@ interface SpecialistProfile {
   phone: string | null;
 }
 
+interface ServiceCategory {
+  name: string;
+  description?: string;
+  serviceTypes: ServiceType[];
+}
+
+interface ServiceTypeWithCategory extends ServiceType {
+  category: string;
+}
+
 const SpecialistDetail = () => {
   const { id } = useParams();
   const [specialist, setSpecialist] = useState<SpecialistProfile | null>(null);
-  const [services, setServices] = useState<Service[]>([]);
+  const [serviceCategories, setServiceCategories] = useState<ServiceCategory[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedServiceTypes, setSelectedServiceTypes] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const { availabilityStatus, loading: availabilityLoading } = useAvailabilityStatus(id);
   
@@ -64,31 +76,51 @@ const SpecialistDetail = () => {
           return;
         }
 
-        // Fetch specialist's services
-        const { data: servicesData, error: servicesError } = await supabase
-          .from('services')
-          .select('*')
-          .eq('stylist_id', id)
-          .order('name');
+        // Fetch service types through services join
+        const { data: serviceTypesData, error: serviceTypesError } = await supabase
+          .from('service_types')
+          .select(`
+            *,
+            services!inner (
+              category,
+              stylist_id
+            )
+          `)
+          .eq('services.stylist_id', id);
 
-        if (servicesError) {
-          console.error("Error fetching services:", servicesError);
+        if (serviceTypesError) {
+          console.error("Error fetching service types:", serviceTypesError);
           toast.error("Failed to load services");
           return;
         }
 
-        if (servicesData) {
-          const formattedServices = servicesData.map(service => ({
-            id: service.id,
-            name: service.name,
-            description: service.description,
-            duration: `${service.duration}`,
-            price: `${service.price}`,
-            stylist_id: service.stylist_id,
-            image_urls: service.image_urls || [],
-            category: service.category || 'Hair Cutting & Styling'
+        if (serviceTypesData) {
+          // Group service types by category
+          const categoryMap = new Map<string, ServiceType[]>();
+          
+          serviceTypesData.forEach((serviceType: any) => {
+            const category = serviceType.services.category || 'Other';
+            if (!categoryMap.has(category)) {
+              categoryMap.set(category, []);
+            }
+            categoryMap.get(category)!.push({
+              id: serviceType.id,
+              service_id: serviceType.service_id,
+              name: serviceType.name,
+              description: serviceType.description,
+              price: serviceType.price,
+              duration: serviceType.duration,
+              created_at: serviceType.created_at,
+              updated_at: serviceType.updated_at
+            });
+          });
+
+          const categories: ServiceCategory[] = Array.from(categoryMap.entries()).map(([name, serviceTypes]) => ({
+            name,
+            serviceTypes
           }));
-          setServices(formattedServices);
+
+          setServiceCategories(categories);
         }
         
       } catch (error) {
@@ -101,6 +133,26 @@ const SpecialistDetail = () => {
     
     fetchSpecialistAndServices();
   }, [id]);
+
+  const handleServiceTypeToggle = (serviceTypeId: string) => {
+    setSelectedServiceTypes(prev => 
+      prev.includes(serviceTypeId) 
+        ? prev.filter(id => id !== serviceTypeId)
+        : [...prev, serviceTypeId]
+    );
+  };
+
+  const handleBookAppointment = () => {
+    const searchParams = new URLSearchParams({
+      stylist: id!,
+    });
+    
+    if (selectedServiceTypes.length > 0) {
+      searchParams.set('services', selectedServiceTypes.join(','));
+    }
+    
+    window.location.href = `/booking?${searchParams.toString()}`;
+  };
   
   if (loading) {
     return (
@@ -192,15 +244,17 @@ const SpecialistDetail = () => {
                       <RatingComponent specialistId={id!} showSubmissionForm={false} />
                     </div>
                     
-                    <Link to={`/booking?stylist=${id}`}>
-                      <Button 
-                        className="w-full mb-3 text-sm lg:text-base"
-                        disabled={availabilityStatus?.status === 'unavailable'}
-                      >
-                        <CalendarIcon className="h-4 w-4 mr-2" />
-                        {availabilityStatus?.status === 'full' ? 'Fully Booked Today' : 'Book Appointment'}
-                      </Button>
-                    </Link>
+                    <Button 
+                      onClick={handleBookAppointment}
+                      className="w-full mb-3 text-sm lg:text-base"
+                      disabled={availabilityStatus?.status === 'unavailable'}
+                    >
+                      <CalendarIcon className="h-4 w-4 mr-2" />
+                      {selectedServiceTypes.length > 0 
+                        ? `Book ${selectedServiceTypes.length} Service${selectedServiceTypes.length > 1 ? 's' : ''}`
+                        : availabilityStatus?.status === 'full' ? 'Fully Booked Today' : 'Book Appointment'
+                      }
+                    </Button>
                   </CardContent>
                 </Card>
               </div>
@@ -232,67 +286,112 @@ const SpecialistDetail = () => {
               </div>
               
               <div className="animate-fade-in space-y-6">
-                <h2 className="text-lg lg:text-xl font-semibold mb-4 lg:mb-6">Service Categories</h2>
-                {services.length > 0 ? (
-                  <div className="grid gap-4 md:gap-6">
-                    {/* Group services by category */}
-                    {Object.entries(
-                      services.reduce((acc, service) => {
-                        const category = service.category || 'Other';
-                        if (!acc[category]) acc[category] = [];
-                        acc[category].push(service);
-                        return acc;
-                      }, {} as Record<string, typeof services>)
-                    ).map(([category, categoryServices]) => (
-                      <div key={category} className="border rounded-lg bg-card p-4">
-                        <h3 className="text-lg font-semibold mb-4">{category}</h3>
-                        <div className="grid gap-3">
-                          {categoryServices.map((service) => (
-                            <div key={service.id} className="grid grid-cols-1 lg:grid-cols-2 gap-4 p-3 border rounded bg-muted/20">
-                              <div>
-                                <h4 className="font-medium mb-2">{service.name}</h4>
-                                <p className="text-muted-foreground text-sm mb-3">
-                                  {service.description || "Professional service with attention to detail."}
-                                </p>
-                                <div className="flex items-center gap-4 text-sm">
-                                  <div className="flex items-center gap-1">
-                                    <ClockIcon className="h-4 w-4 text-muted-foreground" />
-                                    <span>{service.duration} minutes</span>
+                <h2 className="text-lg lg:text-xl font-semibold mb-4 lg:mb-6">Services</h2>
+                
+                {selectedServiceTypes.length > 0 && (
+                  <div className="mb-6 p-4 bg-primary/5 rounded-lg border border-primary/20">
+                    <h3 className="font-medium mb-2">Selected Services ({selectedServiceTypes.length})</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedServiceTypes.map(serviceTypeId => {
+                        const serviceType = serviceCategories
+                          .flatMap(cat => cat.serviceTypes)
+                          .find(st => st.id === serviceTypeId);
+                        return serviceType ? (
+                          <Badge key={serviceTypeId} variant="default" className="flex items-center gap-1">
+                            <CheckCircle2 className="h-3 w-3" />
+                            {serviceType.name}
+                          </Badge>
+                        ) : null;
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {serviceCategories.length > 0 ? (
+                  <div className="space-y-6">
+                    {!selectedCategory ? (
+                      // Category selection view
+                      <div className="grid gap-4 md:grid-cols-2">
+                        {serviceCategories.map((category) => (
+                          <Card 
+                            key={category.name} 
+                            className="cursor-pointer hover:shadow-md transition-shadow border-2 hover:border-primary/20"
+                            onClick={() => setSelectedCategory(category.name)}
+                          >
+                            <CardContent className="p-6">
+                              <h3 className="text-lg font-semibold mb-2">{category.name}</h3>
+                              <p className="text-muted-foreground text-sm mb-3">
+                                {category.serviceTypes.length} service{category.serviceTypes.length !== 1 ? 's' : ''} available
+                              </p>
+                              <div className="text-sm text-primary">
+                                Click to view services →
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    ) : (
+                      // Service types selection view
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-4 mb-6">
+                          <Button 
+                            variant="outline" 
+                            onClick={() => setSelectedCategory(null)}
+                            className="text-sm"
+                          >
+                            ← Back to Categories
+                          </Button>
+                          <h3 className="text-xl font-semibold">{selectedCategory}</h3>
+                        </div>
+                        
+                        <div className="grid gap-4">
+                          {serviceCategories
+                            .find(cat => cat.name === selectedCategory)
+                            ?.serviceTypes.map((serviceType) => (
+                            <div 
+                              key={serviceType.id} 
+                              className={`p-4 border rounded-lg cursor-pointer transition-all ${
+                                selectedServiceTypes.includes(serviceType.id)
+                                  ? 'border-primary bg-primary/5 shadow-sm'
+                                  : 'border-border hover:border-primary/50 hover:bg-muted/20'
+                              }`}
+                              onClick={() => handleServiceTypeToggle(serviceType.id)}
+                            >
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <h4 className="font-medium">{serviceType.name}</h4>
+                                    {selectedServiceTypes.includes(serviceType.id) && (
+                                      <CheckCircle2 className="h-4 w-4 text-primary" />
+                                    )}
                                   </div>
-                                  <div className="font-semibold text-primary">
-                                    GHS {service.price}
+                                  {serviceType.description && (
+                                    <p className="text-muted-foreground text-sm mb-3">
+                                      {serviceType.description}
+                                    </p>
+                                  )}
+                                  <div className="flex items-center gap-4 text-sm">
+                                    <div className="flex items-center gap-1">
+                                      <ClockIcon className="h-4 w-4 text-muted-foreground" />
+                                      <span>{serviceType.duration} minutes</span>
+                                    </div>
+                                    <div className="font-semibold text-primary">
+                                      GHS {serviceType.price}
+                                    </div>
                                   </div>
                                 </div>
                               </div>
-                              {service.image_urls && service.image_urls.length > 0 && (
-                                <div className="grid grid-cols-2 gap-2">
-                                  {service.image_urls.slice(0, 4).map((imageUrl, index) => (
-                                    <div key={index} className="aspect-square overflow-hidden rounded-lg">
-                                      <img
-                                        src={imageUrl}
-                                        alt={`${service.name} ${index + 1}`}
-                                        className="w-full h-full object-cover transition-transform hover:scale-105"
-                                      />
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
                             </div>
                           ))}
                         </div>
                       </div>
-                    ))}
+                    )}
                   </div>
                 ) : (
                   <div className="text-center py-8">
                     <p className="text-muted-foreground">No services available yet.</p>
                   </div>
                 )}
-                
-                <div className="mt-8">
-                  <h2 className="text-lg lg:text-xl font-semibold mb-4 lg:mb-6">Portfolio Gallery</h2>
-                  <ServiceGallery services={services} />
-                </div>
               </div>
             </div>
           </div>
