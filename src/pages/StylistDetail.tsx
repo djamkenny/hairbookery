@@ -7,12 +7,12 @@ import { Badge } from "@/components/ui/badge";
 import { CalendarIcon, ClockIcon, MapPin, CheckCircle2 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import ProfileBookingForm from "@/components/specialist/ProfileBookingForm";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ServiceType } from "@/components/stylist/services/types";
 import RatingComponent from "@/components/specialist/RatingComponent";
 import AvailabilityBadge from "@/components/ui/AvailabilityBadge";
-import AvailabilityCalendar from "@/components/specialist/AvailabilityCalendar";
 import { useAvailabilityStatus } from "@/hooks/useAvailabilityStatus";
 
 interface SpecialistProfile {
@@ -244,17 +244,7 @@ const SpecialistDetail = () => {
                       <RatingComponent specialistId={id!} showSubmissionForm={false} />
                     </div>
                     
-                    <Button 
-                      onClick={handleBookAppointment}
-                      className="w-full mb-3 text-sm lg:text-base"
-                      disabled={availabilityStatus?.status === 'unavailable'}
-                    >
-                      <CalendarIcon className="h-4 w-4 mr-2" />
-                      {selectedServiceTypes.length > 0 
-                        ? `Book ${selectedServiceTypes.length} Service${selectedServiceTypes.length > 1 ? 's' : ''}`
-                        : availabilityStatus?.status === 'full' ? 'Fully Booked Today' : 'Book Appointment'
-                      }
-                    </Button>
+                    {/* Booking component will handle all booking functionality */}
                   </CardContent>
                 </Card>
               </div>
@@ -268,25 +258,19 @@ const SpecialistDetail = () => {
                   {specialist.bio || "Professional specialist with years of experience in the industry."}
                 </p>
               </div>
-              
+
+              {/* Integrated Booking Form */}
               <div className="animate-fade-in">
-                <h2 className="text-lg lg:text-xl font-semibold mb-4 lg:mb-6">Availability Calendar</h2>
-                <AvailabilityCalendar 
-                  specialistId={id!} 
-                  onDateTimeSelect={(date, time) => {
-                    // Navigate to booking page with pre-selected date/time
-                    const searchParams = new URLSearchParams({
-                      stylist: id!,
-                      date: date.toISOString().split('T')[0],
-                      time: time
-                    });
-                    window.location.href = `/booking?${searchParams.toString()}`;
-                  }}
+                <ProfileBookingForm 
+                  stylistId={id!}
+                  serviceCategories={serviceCategories}
+                  selectedServiceTypes={selectedServiceTypes}
+                  onServiceToggle={handleServiceTypeToggle}
                 />
               </div>
               
               <div className="animate-fade-in space-y-6">
-                <h2 className="text-lg lg:text-xl font-semibold mb-4 lg:mb-6">Services</h2>
+                <h2 className="text-lg lg:text-xl font-semibold mb-4 lg:mb-6">Services Overview</h2>
                 
                 {selectedServiceTypes.length > 0 && (
                   <div className="mb-6 p-4 bg-primary/5 rounded-lg border border-primary/20">
@@ -308,76 +292,42 @@ const SpecialistDetail = () => {
                 )}
 
                 {serviceCategories.length > 0 ? (
-                  <div className="space-y-6">
-                    {!selectedCategory ? (
-                      // Category selection view
-                      <div className="grid gap-4 md:grid-cols-2">
-                        {serviceCategories.map((category) => (
-                          <Card 
-                            key={category.name} 
-                            className="cursor-pointer hover:shadow-md transition-shadow border-2 hover:border-primary/20"
-                            onClick={() => setSelectedCategory(category.name)}
-                          >
-                            <CardContent className="p-6">
-                              <h3 className="text-lg font-semibold mb-2">{category.name}</h3>
-                              <p className="text-muted-foreground text-sm mb-3">
-                                {category.serviceTypes.length} service{category.serviceTypes.length !== 1 ? 's' : ''} available
-                              </p>
-                              <div className="text-sm text-primary">
-                                Click to view services →
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </div>
-                    ) : (
-                      // Service types selection view
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-4 mb-6">
-                          <Button 
-                            variant="outline" 
-                            onClick={() => setSelectedCategory(null)}
-                            className="text-sm"
-                          >
-                            ← Back to Categories
-                          </Button>
-                          <h3 className="text-xl font-semibold">{selectedCategory}</h3>
-                        </div>
-                        
-                        <div className="grid gap-4">
-                          {serviceCategories
-                            .find(cat => cat.name === selectedCategory)
-                            ?.serviceTypes.map((serviceType) => (
+                  <div className="space-y-4">
+                    {serviceCategories.map((category) => (
+                      <div key={category.name} className="border rounded-lg p-4">
+                        <h3 className="text-lg font-semibold mb-3">{category.name}</h3>
+                        <div className="grid gap-3">
+                          {category.serviceTypes.map((serviceType) => (
                             <div 
                               key={serviceType.id} 
-                              className={`p-4 border rounded-lg cursor-pointer transition-all ${
+                              className={`p-3 border rounded cursor-pointer transition-all ${
                                 selectedServiceTypes.includes(serviceType.id)
                                   ? 'border-primary bg-primary/5 shadow-sm'
                                   : 'border-border hover:border-primary/50 hover:bg-muted/20'
                               }`}
                               onClick={() => handleServiceTypeToggle(serviceType.id)}
                             >
-                              <div className="flex items-start justify-between">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2 mb-2">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  {selectedServiceTypes.includes(serviceType.id) && (
+                                    <CheckCircle2 className="h-4 w-4 text-primary" />
+                                  )}
+                                  <div>
                                     <h4 className="font-medium">{serviceType.name}</h4>
-                                    {selectedServiceTypes.includes(serviceType.id) && (
-                                      <CheckCircle2 className="h-4 w-4 text-primary" />
+                                    {serviceType.description && (
+                                      <p className="text-muted-foreground text-sm">
+                                        {serviceType.description}
+                                      </p>
                                     )}
                                   </div>
-                                  {serviceType.description && (
-                                    <p className="text-muted-foreground text-sm mb-3">
-                                      {serviceType.description}
-                                    </p>
-                                  )}
-                                  <div className="flex items-center gap-4 text-sm">
-                                    <div className="flex items-center gap-1">
-                                      <ClockIcon className="h-4 w-4 text-muted-foreground" />
-                                      <span>{serviceType.duration} minutes</span>
-                                    </div>
-                                    <div className="font-semibold text-primary">
-                                      GHS {serviceType.price}
-                                    </div>
+                                </div>
+                                <div className="text-right">
+                                  <div className="font-semibold text-primary">
+                                    GHS {serviceType.price}
+                                  </div>
+                                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                    <ClockIcon className="h-3 w-3" />
+                                    <span>{serviceType.duration} min</span>
                                   </div>
                                 </div>
                               </div>
@@ -385,7 +335,7 @@ const SpecialistDetail = () => {
                           ))}
                         </div>
                       </div>
-                    )}
+                    ))}
                   </div>
                 ) : (
                   <div className="text-center py-8">
