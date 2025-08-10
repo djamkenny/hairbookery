@@ -106,8 +106,12 @@ const ProfileBookingForm: React.FC<ProfileBookingFormProps> = ({
     setSubmitting(true);
     try {
       // Use bookingPayment instead of totalPrice
+      const serviceIds = selectedServices.map(s => s.service_id);
+      if (serviceIds.length === 0) {
+        throw new Error('No valid services selected');
+      }
       const result = await initiatePayment({
-        serviceIds: selectedServiceTypes,
+        serviceIds,
         stylistId,
         appointmentDate: format(selectedDate!, 'yyyy-MM-dd'),
         appointmentTime: selectedTime,
