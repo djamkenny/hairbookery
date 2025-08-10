@@ -74,7 +74,7 @@ const FavoritesTab = ({ favoriteSylists, removeFavoriteStylist }: FavoritesTabPr
         {favoriteSylists.length === 0 && (
           <div className="text-center py-8 bg-muted/30 rounded-lg">
             <p className="text-muted-foreground mb-4">You don't have any favorite stylists yet.</p>
-            <Link to="/booking">
+            <Link to="/specialists">
               <Button>Browse Stylists</Button>
             </Link>
           </div>

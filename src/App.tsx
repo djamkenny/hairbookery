@@ -13,7 +13,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Index from './pages/Index';
 import Profile from './pages/Profile';
-import Booking from './pages/Booking';
+
 import StylistDashboard from './pages/StylistDashboard';
 import StylistRegister from './pages/StylistRegister';
 import AdminLogin from './pages/AdminLogin';
@@ -92,11 +92,6 @@ const AppContent: React.FC = () => {
         <Route path="/profile" element={
           <ProtectedRoute>
             <Profile />
-          </ProtectedRoute>
-        } />
-        <Route path="/booking" element={
-          <ProtectedRoute>
-            <Booking />
           </ProtectedRoute>
         } />
         <Route path="/stylist-dashboard" element={

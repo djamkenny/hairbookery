@@ -12,7 +12,7 @@ const QuickActions = () => {
         <CardTitle className="text-lg">Quick Actions</CardTitle>
       </CardHeader>
       <CardContent className="grid grid-cols-2 gap-3">
-        <Link to="/booking" className="col-span-1">
+        <Link to="/specialists" className="col-span-1">
           <Button variant="outline" className="w-full h-auto flex flex-col items-center justify-center gap-2 py-4 hover:border-primary/50 hover:bg-primary/5">
             <CalendarDaysIcon className="h-5 w-5" />
             <span>Book Appointment</span>

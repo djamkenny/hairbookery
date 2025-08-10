@@ -17,7 +17,7 @@ const EmptyAppointmentsState = ({ type }: EmptyAppointmentsStateProps) => {
         <p className="text-muted-foreground text-sm md:text-base mb-3 md:mb-4">
           You don't have any upcoming appointments.
         </p>
-        <Link to="/booking">
+        <Link to="/specialists">
           <Button size={isMobile ? "sm" : "default"}>Book an Appointment</Button>
         </Link>
       </div>

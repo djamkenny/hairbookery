@@ -31,7 +31,7 @@ export const Hero = () => {
             We provide exceptional service tailored to your unique style.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-slide-up">
-            <Link to="/booking" className="w-full sm:w-auto">
+            <Link to="/specialists" className="w-full sm:w-auto">
               <Button size={isMobile ? "default" : "lg"} className="w-full">
                 <Calendar className="mr-2 h-4 w-4" />
                 Book Appointment

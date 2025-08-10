@@ -111,7 +111,7 @@ const DashboardTab = ({
           ) : (
             <div className="text-center py-6">
               <p className="text-muted-foreground mb-3">You don't have any upcoming appointments.</p>
-              <Link to="/booking">
+              <Link to="/specialists">
                 <Button size="sm">Book an Appointment</Button>
               </Link>
             </div>

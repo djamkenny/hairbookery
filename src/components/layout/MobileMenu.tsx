@@ -41,7 +41,7 @@ const MobileMenu = ({ isOpen, links, user, isStylist, onLinkClick }: MobileMenuP
           ) : (
             <LoginMenu isMobile={true} />
           )}
-          <Link to="/booking" className="col-span-1" onClick={onLinkClick}>
+          <Link to="/specialists" className="col-span-1" onClick={onLinkClick}>
             <Button className="w-full">
               <Calendar className="h-4 w-4 mr-2" />
               Book Now

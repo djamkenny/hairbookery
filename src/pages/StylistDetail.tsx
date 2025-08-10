@@ -142,17 +142,6 @@ const SpecialistDetail = () => {
     );
   };
 
-  const handleBookAppointment = () => {
-    const searchParams = new URLSearchParams({
-      stylist: id!,
-    });
-    
-    if (selectedServiceTypes.length > 0) {
-      searchParams.set('services', selectedServiceTypes.join(','));
-    }
-    
-    window.location.href = `/booking?${searchParams.toString()}`;
-  };
   
   if (loading) {
     return (

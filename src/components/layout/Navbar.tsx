@@ -43,7 +43,7 @@ export const Navbar = () => {
             ) : (
               <LoginMenu />
             )}
-            <Link to="/booking">
+            <Link to="/specialists">
               <Button size="sm" className="flex items-center space-x-1">
                 <Calendar className="h-4 w-4 mr-1" />
                 <span>Book Now</span>

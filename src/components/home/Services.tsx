@@ -198,7 +198,7 @@ export const Services = () => {
         </div>
         
         <div className="text-center">
-          <Link to="/booking">
+          <Link to="/specialists">
             <Button size="lg" className="animate-fade-in">
               Book a Service
             </Button>
