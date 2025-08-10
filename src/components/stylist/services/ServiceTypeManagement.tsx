@@ -57,28 +57,43 @@ const ServiceTypeManagement: React.FC<ServiceTypeManagementProps> = ({
       
       setCategories(categoriesData || []);
 
-      // Fetch stylist's services
-      const { data: servicesData } = await supabase
-        .from('services')
-        .select('*')
-        .order('name');
-      
-      setServices(servicesData || []);
+      // Fetch current user and stylist's services
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setServices([]);
+      } else {
+        const { data: servicesData } = await supabase
+          .from('services')
+          .select('*')
+          .eq('stylist_id', user.id)
+          .order('name');
+        setServices(servicesData || []);
+      }
 
       // Fetch all service types for this stylist
-      if (servicesData && servicesData.length > 0) {
-        const serviceIds = servicesData.map(s => s.id);
-        const { data: serviceTypesData, error } = await supabase
-          .from('service_types')
-          .select(`
-            *,
-            services!inner(name, category, stylist_id)
-          `)
-          .in('service_id', serviceIds)
-          .order('name');
+      if (user) {
+        const { data: servicesForIds } = await supabase
+          .from('services')
+          .select('id')
+          .eq('stylist_id', user.id);
+        const serviceIds = (servicesForIds || []).map(s => s.id);
+        if (serviceIds.length > 0) {
+          const { data: serviceTypesData, error } = await supabase
+            .from('service_types')
+            .select(`
+              *,
+              services!inner(name, category, stylist_id)
+            `)
+            .in('service_id', serviceIds)
+            .order('name');
 
-        if (error) throw error;
-        setServiceTypes(serviceTypesData || []);
+          if (error) throw error;
+          setServiceTypes(serviceTypesData || []);
+        } else {
+          setServiceTypes([]);
+        }
+      } else {
+        setServiceTypes([]);
       }
     } catch (error: any) {
       console.error("Error fetching data:", error);
@@ -96,6 +111,9 @@ const ServiceTypeManagement: React.FC<ServiceTypeManagementProps> = ({
     }
 
     // Create a base service for this category
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("Not authenticated");
+
     const { data, error } = await supabase
       .from('services')
       .insert({
@@ -105,6 +123,7 @@ const ServiceTypeManagement: React.FC<ServiceTypeManagementProps> = ({
         price: 0,
         duration: 0,
         is_base_service: true,
+        stylist_id: user.id,
       })
       .select()
       .single();
