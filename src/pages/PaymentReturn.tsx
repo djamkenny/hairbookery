@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const PaymentReturn = () => {
   const [searchParams] = useSearchParams();
-  const reference = searchParams.get('reference');
+  const reference = searchParams.get('reference') || searchParams.get('trxref');
   const navigate = useNavigate();
 
   const { loading, success, error } = usePaymentStatus(reference);

@@ -138,6 +138,13 @@ serve(async (req) => {
       });
     }
 
+    // Deduplicate by service_id to avoid unique constraint (appointment_id, service_id)
+    const uniqueByService = new Map<string, { service_id: string; service_type_id: string }>();
+    for (const r of filtered) {
+      if (!uniqueByService.has(r.service_id)) uniqueByService.set(r.service_id, r);
+    }
+    const toLink = Array.from(uniqueByService.values());
+
     // 5) Create appointment
     const { data: orderId } = await supabase.rpc("generate_appointment_reference");
 
@@ -165,7 +172,7 @@ serve(async (req) => {
     }
 
     // 6) Link services
-    const rows = filtered.map((r) => ({
+    const rows = toLink.map((r) => ({
       appointment_id: appointment.id,
       service_id: r.service_id,
       service_type_id: r.service_type_id,
