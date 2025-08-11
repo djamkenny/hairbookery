@@ -38,7 +38,7 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
             Complete information about this appointment
           </DialogDescription>
         </DialogHeader>
-        <ScrollArea className="flex-1 px-6 pb-6">
+        <ScrollArea type="always" className="flex-1 px-6 pb-6">
           <AppointmentDetailsContent
             appointment={appointment}
             onUpdateStatus={onUpdateStatus}
