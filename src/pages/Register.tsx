@@ -3,7 +3,7 @@ import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import RegisterForm from "@/components/auth/RegisterForm";
+import PhoneRegisterForm from "@/components/auth/PhoneRegisterForm";
 
 const Register = () => {
   useEffect(() => {
@@ -33,7 +33,7 @@ const Register = () => {
             <p className="text-muted-foreground">Join us to start booking appointments with our stylists</p>
           </div>
           
-          <RegisterForm />
+          <PhoneRegisterForm />
           
           <div className="text-center text-sm mt-4 space-y-2">
             <div>
