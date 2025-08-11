@@ -56,18 +56,21 @@ export type Database = {
           created_at: string
           id: string
           service_id: string
+          service_type_id: string | null
         }
         Insert: {
           appointment_id: string
           created_at?: string
           id?: string
           service_id: string
+          service_type_id?: string | null
         }
         Update: {
           appointment_id?: string
           created_at?: string
           id?: string
           service_id?: string
+          service_type_id?: string | null
         }
         Relationships: [
           {
@@ -82,6 +85,13 @@ export type Database = {
             columns: ["service_id"]
             isOneToOne: false
             referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointment_services_service_type_id_fkey"
+            columns: ["service_type_id"]
+            isOneToOne: false
+            referencedRelation: "service_types"
             referencedColumns: ["id"]
           },
         ]
