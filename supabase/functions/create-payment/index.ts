@@ -24,7 +24,8 @@ serve(async (req) => {
     if (!paystackSecretKey) {
       throw new Error("Paystack secret key not configured");
     }
-
+    const isTestMode = paystackSecretKey.startsWith("sk_test");
+    console.log("Paystack mode:", isTestMode ? "TEST" : "LIVE");
     // Create Supabase client for database operations
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",

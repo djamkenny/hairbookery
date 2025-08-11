@@ -29,7 +29,8 @@ serve(async (req) => {
       console.error("Paystack secret key not configured");
       throw new Error("Paystack secret key not configured");
     }
-
+    const isTestMode = paystackSecretKey.startsWith("sk_test");
+    console.log("Paystack mode:", isTestMode ? "TEST" : "LIVE");
     // Verify transaction with Paystack
     const verifyResponse = await fetch(`https://api.paystack.co/transaction/verify/${session_id}`, {
       method: "GET",
