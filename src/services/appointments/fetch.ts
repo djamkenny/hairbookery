@@ -43,7 +43,10 @@ export const fetchStylistAppointments = async (): Promise<Appointment[]> => {
         .from('appointment_services')
         .select(`
           appointment_id,
-          services:service_id(name, price, duration)
+          service_id,
+          service_type_id,
+          services:service_id(name, price, duration),
+          service_types:service_type_id(name, price, duration)
         `)
         .in('appointment_id', appointmentIds);
 
@@ -51,11 +54,20 @@ export const fetchStylistAppointments = async (): Promise<Appointment[]> => {
         console.error("Error fetching appointment services:", servicesError);
       }
       if (appointmentServicesData) {
-        servicesMap = appointmentServicesData.reduce((map, item) => {
+        servicesMap = appointmentServicesData.reduce((map, item: any) => {
           if (!map[item.appointment_id]) {
             map[item.appointment_id] = [];
           }
-          map[item.appointment_id].push(item.services);
+          const base = item.services || {};
+          const type = item.service_types || {};
+          const display = {
+            name: (type?.name || base?.name) as string,
+            baseServiceName: base?.name as string | undefined,
+            typeName: type?.name as string | undefined,
+            price: Number(type?.price ?? base?.price ?? 0),
+            duration: Number(type?.duration ?? base?.duration ?? 0),
+          };
+          map[item.appointment_id].push(display);
           return map;
         }, {} as Record<string, any[]>);
       }

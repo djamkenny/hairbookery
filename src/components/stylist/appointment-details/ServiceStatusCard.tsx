@@ -44,16 +44,21 @@ const ServiceStatusCard: React.FC<ServiceStatusCardProps> = ({ service, services
       
       {services && services.length > 0 ? (
         <div className="space-y-1">
-          {services.map((serviceItem, index) => (
-            <div key={index} className="text-sm text-muted-foreground">
-              <span className="font-medium">{serviceItem?.name || "Service"}</span>
-              {serviceItem?.price && (
-                <span className="ml-2 text-xs">
-                  (GH₵{Number(serviceItem.price).toFixed(2)})
-                </span>
-              )}
-            </div>
-          ))}
+          {services.map((serviceItem, index) => {
+            const label = serviceItem?.typeName
+              ? `${serviceItem?.baseServiceName ? serviceItem.baseServiceName + ' — ' : ''}${serviceItem.typeName}`
+              : (serviceItem?.name || "Service");
+            return (
+              <div key={index} className="text-sm text-muted-foreground">
+                <span className="font-medium">{label}</span>
+                {serviceItem?.price !== undefined && (
+                  <span className="ml-2 text-xs">
+                    (GH₵{Number(serviceItem.price).toFixed(2)})
+                  </span>
+                )}
+              </div>
+            );
+          })}
         </div>
       ) : (
         <p className="text-sm text-muted-foreground">{service}</p>
