@@ -914,6 +914,21 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: number
       }
+      get_public_stylists: {
+        Args: { p_id?: string }
+        Returns: {
+          id: string
+          full_name: string
+          specialty: string
+          experience: string
+          bio: string
+          avatar_url: string
+          card_image_url: string
+          location: string
+          availability: boolean
+          availability_status: string
+        }[]
+      }
       get_stylist_available_balance: {
         Args: { stylist_uuid: string }
         Returns: number
