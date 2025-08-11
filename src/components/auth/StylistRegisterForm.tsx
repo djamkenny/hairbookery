@@ -104,6 +104,7 @@ const SpecialistRegisterForm = () => {
         email,
         password,
         options: {
+          emailRedirectTo: `${window.location.origin}/login`,
           data: {
             full_name: name,
             is_stylist: true,
