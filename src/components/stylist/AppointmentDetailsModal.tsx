@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Appointment } from "@/types/appointment";
 import AppointmentDetailsContent from "./appointment-details/AppointmentDetailsContent";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface AppointmentDetailsModalProps {
   appointment: Appointment | null;
@@ -30,20 +31,21 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
+<DialogContent className="sm:max-w-md max-h-[80vh] p-0">
+        <DialogHeader className="px-6 pt-4">
           <DialogTitle className="text-xl">Appointment Details</DialogTitle>
           <DialogDescription>
             Complete information about this appointment
           </DialogDescription>
         </DialogHeader>
-        
-        <AppointmentDetailsContent
-          appointment={appointment}
-          onUpdateStatus={onUpdateStatus}
-          onCancelAppointment={onCancelAppointment}
-          onClose={onClose}
-        />
+        <ScrollArea className="max-h-[70vh] px-6 pb-6">
+          <AppointmentDetailsContent
+            appointment={appointment}
+            onUpdateStatus={onUpdateStatus}
+            onCancelAppointment={onCancelAppointment}
+            onClose={onClose}
+          />
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
