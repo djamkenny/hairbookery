@@ -76,21 +76,43 @@ export const useBookingPayment = () => {
         throw new Error('User not authenticated');
       }
 
-      // Get payment data
-      const { data: payment, error: paymentError } = await supabase
+      // Get payment data by reference (avoid user filter in case record was created as guest)
+      let payment: any = null;
+      let { data: foundPayment, error: paymentError } = await supabase
         .from('payments')
         .select('*')
         .eq('paystack_reference', reference)
-        .eq('user_id', user.id)
         .single();
 
-      if (paymentError || !payment) {
+      if (paymentError || !foundPayment) {
+        // Try to verify with Paystack and refresh payment, then refetch
+        try {
+          await supabase.functions.invoke('session-status', { body: { session_id: reference } });
+          const { data: refreshedPayment } = await supabase
+            .from('payments')
+            .select('*')
+            .eq('paystack_reference', reference)
+            .single();
+          payment = refreshedPayment;
+        } catch (e) {
+          console.error('Payment refresh error:', e);
+        }
+      } else {
+        payment = foundPayment;
+      }
+
+      if (!payment) {
         throw new Error('Payment not found');
       }
 
+      // Security: ensure payment belongs to current user when available
+      if (payment.user_id && payment.user_id !== user.id) {
+        throw new Error('Payment does not belong to current user');
+      }
+
       // Check if payment is already processed to prevent duplicates
-      if (payment.status === 'completed') {
-        console.log('Payment already processed, skipping appointment creation');
+      if (payment.status === 'completed' && payment.appointment_id) {
+        console.log('Payment already processed and appointment exists, skipping');
         return true;
       }
 
