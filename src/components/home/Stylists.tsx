@@ -125,11 +125,7 @@ const Stylists = () => {
         setIsLoading(true);
         console.log("Fetching registered specialists for featured section...");
         
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('id, full_name, specialty, experience, bio, avatar_url, card_image_url, location')
-          .eq('is_stylist', true)
-          .not('full_name', 'is', null);
+        const { data, error } = await supabase.rpc('get_public_stylists');
         
         if (error) {
           console.error("Error fetching specialists:", error);
@@ -138,8 +134,10 @@ const Stylists = () => {
         
         console.log("Fetched specialists for featured section:", data);
         
+        const list = (Array.isArray(data) ? data : []).filter((s: any) => s.full_name);
+        
         // Transform the data to match the expected format
-        const transformedStylists = data?.map(stylist => ({
+        const transformedStylists = list.map((stylist: any) => ({
           id: stylist.id,
           full_name: stylist.full_name || "Unnamed Specialist",
           specialty: stylist.specialty || "Specialist",
@@ -148,7 +146,7 @@ const Stylists = () => {
           avatar_url: stylist.avatar_url,
           bio: stylist.bio || "Professional specialist with expertise in modern techniques.",
           location: stylist.location || "Location not specified"
-        })) || [];
+        }));
         
         setStylists(transformedStylists);
       } catch (error) {

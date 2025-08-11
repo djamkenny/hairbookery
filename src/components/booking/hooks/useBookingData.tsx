@@ -31,18 +31,16 @@ export const useBookingData = () => {
         if (servicesError) throw servicesError;
         setAllServices(servicesData || []);
         
-        // Fetch stylists (users who are stylists)
         const { data: stylistsData, error: stylistsError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('is_stylist', true);
+          .rpc('get_public_stylists');
           
         if (stylistsError) throw stylistsError;
-        setStylists(stylistsData || []);
+        const stylistsList = Array.isArray(stylistsData) ? stylistsData : [];
+        setStylists(stylistsList);
 
         // Pre-select stylist if provided in URL
-        if (preSelectedStylistId && stylistsData) {
-          const matchingStylist = stylistsData.find(s => s.id === preSelectedStylistId);
+        if (preSelectedStylistId) {
+          const matchingStylist = stylistsList.find((s: any) => s.id === preSelectedStylistId);
           if (matchingStylist) {
             toast.success(`${matchingStylist.full_name} has been pre-selected for you!`);
           }

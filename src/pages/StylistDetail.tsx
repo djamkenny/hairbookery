@@ -54,13 +54,8 @@ const SpecialistDetail = () => {
         setLoading(true);
         console.log("Fetching specialist with ID:", id);
         
-        // Fetch specialist profile
-        const { data: specialistData, error: specialistError } = await supabase
-          .from('profiles')
-          .select('id, full_name, specialty, bio, avatar_url, location, experience, email, phone')
-          .eq('id', id)
-          .eq('is_stylist', true)
-          .single();
+        // Fetch specialist profile (safe, public fields only)
+        const { data: rpcData, error: specialistError } = await supabase.rpc('get_public_stylists', { p_id: id });
         
         if (specialistError) {
           console.error("Error fetching specialist:", specialistError);
@@ -68,14 +63,26 @@ const SpecialistDetail = () => {
           return;
         }
         
-        if (specialistData) {
-          console.log("Fetched specialist data:", specialistData);
-          setSpecialist(specialistData);
+        const specialistRow: any = Array.isArray(rpcData) ? rpcData[0] : null;
+        
+        if (specialistRow) {
+          console.log("Fetched specialist data:", specialistRow);
+          setSpecialist({
+            id: specialistRow.id,
+            full_name: specialistRow.full_name,
+            specialty: specialistRow.specialty,
+            bio: specialistRow.bio,
+            avatar_url: specialistRow.avatar_url,
+            location: specialistRow.location,
+            experience: specialistRow.experience,
+            email: null,
+            phone: null
+          });
         } else {
           toast.error("Specialist not found");
           return;
         }
-
+        
         // Fetch service types through services join
         const { data: serviceTypesData, error: serviceTypesError } = await supabase
           .from('service_types')

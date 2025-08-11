@@ -20,11 +20,7 @@ const Specialists = () => {
       try {
         console.log("Fetching registered specialists...");
         
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('id, full_name, specialty, bio, avatar_url, location')
-          .eq('is_stylist', true)
-          .not('full_name', 'is', null); // Only get specialists with names
+        const { data, error } = await supabase.rpc('get_public_stylists');
         
         if (error) {
           console.error("Error fetching specialists:", error);

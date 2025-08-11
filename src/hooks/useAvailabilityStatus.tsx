@@ -28,13 +28,16 @@ export const useAvailabilityStatus = (stylistId: string | undefined, checkDate?:
         setLoading(true);
         setError(null);
 
-        // First check the stylist's basic availability setting
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('availability, availability_status, daily_appointment_limit')
-          .eq('id', stylistId)
-          .eq('is_stylist', true)
-          .single();
+        // First check the stylist's basic availability setting (public-safe RPC)
+        const { data: rpcData, error: profileError } = await supabase
+          .rpc('get_public_stylists', { p_id: stylistId });
+        
+        if (profileError) {
+          console.error("Error fetching profile:", profileError);
+          throw profileError;
+        }
+        
+        const profileData: any = Array.isArray(rpcData) ? rpcData[0] : null;
 
         if (profileError) {
           console.error("Error fetching profile:", profileError);
@@ -90,13 +93,12 @@ export const useAvailabilityStatus = (stylistId: string | undefined, checkDate?:
       try {
         setLoading(true);
         
-        // First check the stylist's basic availability setting
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('availability, availability_status, daily_appointment_limit')
-          .eq('id', stylistId)
-          .eq('is_stylist', true)
-          .single();
+        // First check the stylist's basic availability setting (public-safe RPC)
+        const { data: rpcData, error: profileError } = await supabase
+          .rpc('get_public_stylists', { p_id: stylistId });
+
+        if (profileError) throw profileError;
+        const profileData: any = Array.isArray(rpcData) ? rpcData[0] : null;
 
         if (profileError) throw profileError;
 
