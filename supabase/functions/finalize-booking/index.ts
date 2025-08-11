@@ -138,12 +138,13 @@ serve(async (req) => {
       });
     }
 
-    // Deduplicate by service_id to avoid unique constraint (appointment_id, service_id)
-    const uniqueByService = new Map<string, { service_id: string; service_type_id: string }>();
-    for (const r of filtered) {
-      if (!uniqueByService.has(r.service_id)) uniqueByService.set(r.service_id, r);
-    }
-    const toLink = Array.from(uniqueByService.values());
+// Deduplicate by pair (service_id, service_type_id) so multiple types under the same base service are kept
+const uniqueByPair = new Map<string, { service_id: string; service_type_id: string }>();
+for (const r of filtered) {
+  const key = `${r.service_id}:${r.service_type_id}`;
+  if (!uniqueByPair.has(key)) uniqueByPair.set(key, r);
+}
+const toLink = Array.from(uniqueByPair.values());
 
     // 5) Create appointment
     const { data: orderId } = await supabase.rpc("generate_appointment_reference");
