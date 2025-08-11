@@ -30,7 +30,7 @@ export const BookingPaymentButton: React.FC<BookingPaymentButtonProps> = ({
   const handlePayment = async () => {
     try {
       const result = await initiatePayment({
-        serviceIds: services.map(s => s.id),
+        serviceTypeIds: services.map(s => s.id),
         stylistId,
         appointmentDate: appointmentDate.toISOString().split('T')[0],
         appointmentTime,

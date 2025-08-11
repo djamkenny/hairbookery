@@ -1,4 +1,5 @@
-
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { useBookingData } from "./useBookingData";
 import { useBookingFormState } from "./useBookingFormState";
 import { useBookingSubmission } from "./useBookingSubmission";
@@ -50,9 +51,28 @@ export const useBookingForm = () => {
     ? allServices.filter(s => s.stylist_id === stylist)
     : allServices;
   
-  const selectedServices = services.map(serviceId => 
-    allServices.find(s => s.id === serviceId)
-  ).filter(Boolean);
+  // Load selected service TYPES (not base services)
+  const [selectedServices, setSelectedServices] = useState<any[]>([]);
+
+  useEffect(() => {
+    const loadServiceTypes = async () => {
+      if (!services || services.length === 0) {
+        setSelectedServices([]);
+        return;
+      }
+      const { data, error } = await supabase
+        .from('service_types')
+        .select('id, name, description, price, duration')
+        .in('id', services);
+      if (error) {
+        console.error('Failed to load selected service types:', error);
+        setSelectedServices([]);
+        return;
+      }
+      setSelectedServices(data || []);
+    };
+    loadServiceTypes();
+  }, [services]);
 
   return {
     // Form state

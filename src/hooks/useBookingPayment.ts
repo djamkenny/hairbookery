@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 interface BookingData {
-  serviceIds: string[];
+  serviceTypeIds: string[];
   stylistId: string;
   appointmentDate: string;
   appointmentTime: string;
@@ -34,11 +34,11 @@ export const useBookingPayment = () => {
       const { data, error } = await supabase.functions.invoke('create-payment', {
         body: {
           amount: Math.round(bookingData.totalAmount * 100), // Convert to pesewas
-          description: `Booking payment for ${bookingData.serviceIds.length} service(s)`,
+          description: `Booking payment for ${bookingData.serviceTypeIds.length} service(s)`,
           currency: 'GHS',
           metadata: {
             type: 'booking',
-            serviceIds: bookingData.serviceIds,
+            serviceTypeIds: bookingData.serviceTypeIds,
             stylistId: bookingData.stylistId,
             appointmentDate: bookingData.appointmentDate,
             appointmentTime: bookingData.appointmentTime,
@@ -123,10 +123,21 @@ export const useBookingPayment = () => {
         throw new Error('Failed to create appointment');
       }
 
-      // Link all services to the single appointment
-      const appointmentServices = metadata.serviceIds.map(serviceId => ({
+      // Link all services and their types to the single appointment
+      const { data: typeMappings, error: typeFetchError } = await supabase
+        .from('service_types')
+        .select('id, service_id')
+        .in('id', (metadata.serviceTypeIds || []));
+
+      if (typeFetchError) {
+        console.error('Failed to fetch service type mappings:', typeFetchError);
+        throw new Error('Failed to link services to appointment');
+      }
+
+      const appointmentServices = (typeMappings || []).map((st: any) => ({
         appointment_id: appointment.id,
-        service_id: serviceId
+        service_id: st.service_id,
+        service_type_id: st.id
       }));
 
       const { error: servicesError } = await supabase
@@ -156,7 +167,7 @@ export const useBookingPayment = () => {
         console.error('Earnings processing error:', earningsError);
       }
 
-      toast.success(`Successfully booked appointment with ${metadata.serviceIds.length} service(s)!`);
+      toast.success(`Successfully booked appointment with ${(metadata.serviceTypeIds || []).length} service(s)!`);
       return true;
 
     } catch (error: any) {
