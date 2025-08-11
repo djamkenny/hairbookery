@@ -9,13 +9,14 @@ import { Loader2 } from "lucide-react";
 import TermsCheckbox from "@/components/auth/TermsCheckbox";
 import { supabase } from "@/integrations/supabase/client";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
-
+import { validateEmail } from "@/utils/formValidation";
 interface PhoneRegisterFormProps {
   className?: string;
 }
 
 interface FormErrors {
   name?: string;
+  email?: string;
   phone?: string;
   terms?: string;
   code?: string;
@@ -27,6 +28,7 @@ const PhoneRegisterForm = ({ className }: PhoneRegisterFormProps) => {
   const navigate = useNavigate();
 
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
@@ -70,6 +72,14 @@ const PhoneRegisterForm = ({ className }: PhoneRegisterFormProps) => {
       valid = false;
     }
 
+    if (!email.trim()) {
+      nextErrors.email = "Email is required";
+      valid = false;
+    } else if (!validateEmail(email)) {
+      nextErrors.email = "Enter a valid email address";
+      valid = false;
+    }
+
     if (!phone.trim()) {
       nextErrors.phone = "Phone number is required";
       valid = false;
@@ -100,6 +110,8 @@ const PhoneRegisterForm = ({ className }: PhoneRegisterFormProps) => {
           shouldCreateUser: true,
           data: {
             full_name: name,
+            email,
+            phone,
             is_stylist: false,
           },
         },
@@ -136,6 +148,16 @@ const PhoneRegisterForm = ({ className }: PhoneRegisterFormProps) => {
         type: "sms",
       });
       if (error) throw error;
+
+      // Attempt to persist email to profile without triggering email verification
+      try {
+        const userId = data.user?.id;
+        if (userId && email) {
+          await supabase.from("profiles").update({ email }).eq("id", userId);
+        }
+      } catch (profileErr) {
+        console.warn("Profile email update skipped/failed:", profileErr);
+      }
 
       toast.success("Phone verified! You're all set.");
       navigate("/");
@@ -184,6 +206,19 @@ const PhoneRegisterForm = ({ className }: PhoneRegisterFormProps) => {
                 className={errors.name ? "border-destructive" : ""}
               />
               {errors.name && <p className="text-sm text-destructive mt-1">{errors.name}</p>}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="email">Email (no verification)</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className={errors.email ? "border-destructive" : ""}
+              />
+              {errors.email && <p className="text-sm text-destructive mt-1">{errors.email}</p>}
             </div>
 
             <div className="space-y-2">

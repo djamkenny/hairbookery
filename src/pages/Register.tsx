@@ -11,7 +11,7 @@ const Register = () => {
 
     const desc = document.querySelector('meta[name="description"]') || document.createElement('meta');
     desc.setAttribute('name', 'description');
-    desc.setAttribute('content', 'Create your client account to book appointments with top stylists. Fast, secure registration.');
+    desc.setAttribute('content', 'Create your client account to book appointments with top stylists using phone OTP. Email collected without verification.');
     if (!desc.parentNode) document.head.appendChild(desc);
 
     let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
