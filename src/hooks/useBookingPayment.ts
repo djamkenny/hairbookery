@@ -156,11 +156,25 @@ export const useBookingPayment = () => {
         throw new Error('Failed to link services to appointment');
       }
 
-      const appointmentServices = (typeMappings || []).map((st: any) => ({
-        appointment_id: appointment.id,
-        service_id: st.service_id,
-        service_type_id: st.id
-      }));
+      // Guard against empty or invalid mappings (prevents empty insert errors)
+      if (!typeMappings || typeMappings.length === 0) {
+        console.error('No service type mappings found for IDs:', metadata.serviceTypeIds);
+        throw new Error('Selected services could not be found');
+      }
+
+      const appointmentServices = typeMappings
+        .map((st: any) => ({
+          appointment_id: appointment.id,
+          service_id: st.service_id,
+          service_type_id: st.id,
+        }))
+        // Filter out any unexpected nulls to avoid FK violations
+        .filter((row: any) => row.service_id && row.service_type_id);
+
+      if (appointmentServices.length === 0) {
+        console.error('All service mappings were invalid after filtering:', typeMappings);
+        throw new Error('Invalid service selection');
+      }
 
       const { error: servicesError } = await supabase
         .from('appointment_services')
