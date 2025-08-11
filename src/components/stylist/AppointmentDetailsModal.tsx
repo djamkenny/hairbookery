@@ -31,7 +31,7 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-<DialogContent className="sm:max-w-md max-h-[90vh] p-0">
+<DialogContent className="sm:max-w-md max-h-[80vh] p-0">
         <DialogHeader className="px-6 pt-4">
           <DialogTitle className="text-xl">Appointment Details</DialogTitle>
           <DialogDescription>
