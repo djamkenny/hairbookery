@@ -127,14 +127,19 @@ export const fetchStylistAppointments = async (): Promise<Appointment[]> => {
       
       // Get services for this appointment
       const appointmentServices = servicesMap[appointment.id] || [];
-      const serviceNames = appointmentServices.map(s => s?.name).filter(Boolean);
-      const serviceName = serviceNames.length > 0 
-        ? serviceNames.length === 1 
-          ? serviceNames[0] 
-          : `${serviceNames.length} Services: ${serviceNames.join(', ')}`
+      const serviceLabels = appointmentServices.map(s => {
+        if (s?.typeName) {
+          return `${s.baseServiceName ? s.baseServiceName + ' — ' : ''}${s.typeName}`;
+        }
+        return s?.name || "Service";
+      }).filter(Boolean);
+      const serviceName = serviceLabels.length > 0
+        ? serviceLabels.length === 1
+          ? serviceLabels[0]
+          : `${serviceLabels.length} Services: ${serviceLabels.join(', ')}`
         : "Service";
       
-      console.log(`Appointment ${appointment.id}: client_id=${appointment.client_id}, clientName=${clientName}, services=${serviceNames.join(', ')}`);
+      console.log(`Appointment ${appointment.id}: client_id=${appointment.client_id}, clientName=${clientName}, services=${serviceLabels.join(', ')}`);
 
       return {
         id: appointment.id,
