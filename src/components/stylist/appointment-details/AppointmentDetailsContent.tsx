@@ -1,12 +1,13 @@
 
 import React from "react";
 import { Separator } from "@/components/ui/separator";
-import { Appointment } from "@/types/appointment";
+import { Appointment, AppointmentServiceDisplay } from "@/types/appointment";
 import ClientInfoCard from "./ClientInfoCard";
 import DateTimeCards from "./DateTimeCards";
 import OrderIdCard from "./OrderIdCard";
 import ServiceStatusCard from "./ServiceStatusCard";
 import AppointmentActions from "./AppointmentActions";
+import TotalAmountCard from "./TotalAmountCard";
 
 interface AppointmentDetailsContentProps {
   appointment: Appointment;
@@ -21,6 +22,12 @@ const AppointmentDetailsContent: React.FC<AppointmentDetailsContentProps> = ({
   onCancelAppointment,
   onClose
 }) => {
+  // Calculate total amount: prefer appointment.amount (pesewas) else sum of service prices
+  const services = (appointment as any).services as AppointmentServiceDisplay[] | undefined;
+  const totalAmount = typeof appointment.amount === "number" && !isNaN(appointment.amount)
+    ? appointment.amount / 100
+    : (services?.reduce((sum, s) => sum + (s.price ?? 0), 0) ?? 0);
+
   return (
     <>
       <div className="grid gap-4 py-3">
@@ -35,6 +42,9 @@ const AppointmentDetailsContent: React.FC<AppointmentDetailsContentProps> = ({
         />
         {appointment.order_id && (
           <OrderIdCard orderId={appointment.order_id} />
+        )}
+        {totalAmount > 0 && (
+          <TotalAmountCard total={totalAmount} />
         )}
         <ServiceStatusCard 
           service={appointment.service}
