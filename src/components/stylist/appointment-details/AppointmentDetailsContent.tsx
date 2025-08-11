@@ -22,11 +22,12 @@ const AppointmentDetailsContent: React.FC<AppointmentDetailsContentProps> = ({
   onCancelAppointment,
   onClose
 }) => {
-  // Calculate total amount: prefer appointment.amount (pesewas) else sum of service prices
+  // Calculate total amount: sum of service prices; fallback to appointment.amount (pesewas)
   const services = (appointment as any).services as AppointmentServiceDisplay[] | undefined;
-  const totalAmount = typeof appointment.amount === "number" && !isNaN(appointment.amount)
-    ? appointment.amount / 100
-    : (services?.reduce((sum, s) => sum + (s.price ?? 0), 0) ?? 0);
+  const totalFromServices = services?.reduce((sum, s) => sum + (Number(s.price) || 0), 0) ?? 0;
+  const totalAmount = totalFromServices > 0
+    ? totalFromServices
+    : (typeof appointment.amount === "number" && !isNaN(appointment.amount) ? appointment.amount / 100 : 0);
 
   return (
     <>
