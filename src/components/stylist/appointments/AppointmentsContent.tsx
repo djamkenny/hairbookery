@@ -103,7 +103,17 @@ const AppointmentsContent: React.FC<AppointmentsContentProps> = ({
             filteredAppointments.map((appointment) => (
               <TableRow key={appointment.id}>
                 <TableCell className="font-medium">{appointment.client}</TableCell>
-                <TableCell>{appointment.service}</TableCell>
+                <TableCell>{(() => {
+                  const svcs = (appointment as any).services;
+                  if (Array.isArray(svcs) && svcs.length > 0) {
+                    if (svcs.length === 1) {
+                      const s = svcs[0];
+                      return s?.baseServiceName || s?.name || 'Service';
+                    }
+                    return `${svcs.length} services`;
+                  }
+                  return appointment.service;
+                })()}</TableCell>
                 <TableCell>{appointment.date}</TableCell>
                 <TableCell>{appointment.time}</TableCell>
                 <TableCell>
