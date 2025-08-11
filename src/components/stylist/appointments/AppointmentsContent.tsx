@@ -104,13 +104,10 @@ const AppointmentsContent: React.FC<AppointmentsContentProps> = ({
               <TableRow key={appointment.id}>
                 <TableCell className="font-medium">{appointment.client}</TableCell>
                 <TableCell>{(() => {
-                  const svcs = (appointment as any).services;
+                  const svcs = (appointment as any).services || [];
                   if (Array.isArray(svcs) && svcs.length > 0) {
-                    if (svcs.length === 1) {
-                      const s = svcs[0];
-                      return s?.baseServiceName || s?.name || 'Service';
-                    }
-                    return `${svcs.length} services`;
+                    const names = svcs.map((s: any) => s?.typeName || s?.name || s?.baseServiceName || 'Service');
+                    return names.join(', ');
                   }
                   return appointment.service;
                 })()}</TableCell>

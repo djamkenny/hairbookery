@@ -1,3 +1,11 @@
+export interface AppointmentServiceDisplay {
+  name?: string;
+  baseServiceName?: string;
+  typeName?: string;
+  price?: number;   // in base currency units
+  duration?: number; // in minutes
+}
+
 export interface Appointment {
   id: string;
   client: string;
@@ -12,4 +20,5 @@ export interface Appointment {
   stylist?: string;
   order_id?: string; // Unique order ID for client identification
   amount?: number;   // <----- new field: payment amount in pesewas
+  services?: AppointmentServiceDisplay[]; // Detailed list of booked service types
 }
