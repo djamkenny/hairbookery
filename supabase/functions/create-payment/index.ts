@@ -26,6 +26,13 @@ serve(async (req) => {
     }
     const isTestMode = paystackSecretKey.startsWith("sk_test");
     console.log("Paystack mode:", isTestMode ? "TEST" : "LIVE");
+
+    // Safety guard: prevent live charges if test mode is explicitly requested
+    if ((metadata as any)?.force_test && !isTestMode) {
+      throw new Error(
+        "Test mode requested but a LIVE Paystack secret is configured. Please set PAYSTACK_SECRET_KEY to a sk_test... key."
+      );
+    }
     // Create Supabase client for database operations
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -110,6 +117,8 @@ serve(async (req) => {
         url: paystackData.data.authorization_url,
         reference: reference,
         sessionId: paystackData.data.access_code,
+        environment: isTestMode ? 'test' : 'live',
+        isTestMode: isTestMode
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
