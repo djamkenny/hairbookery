@@ -10,6 +10,7 @@ import TermsCheckbox from "@/components/auth/TermsCheckbox";
 import { supabase } from "@/integrations/supabase/client";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { validateEmail } from "@/utils/formValidation";
+import PasswordInput from "@/components/auth/PasswordInput";
 interface PhoneRegisterFormProps {
   className?: string;
 }
@@ -18,6 +19,8 @@ interface FormErrors {
   name?: string;
   email?: string;
   phone?: string;
+  password?: string;
+  confirmPassword?: string;
   terms?: string;
   code?: string;
 }
@@ -30,6 +33,8 @@ const PhoneRegisterForm = ({ className }: PhoneRegisterFormProps) => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
 
@@ -88,6 +93,16 @@ const PhoneRegisterForm = ({ className }: PhoneRegisterFormProps) => {
       valid = false;
     }
 
+    if (password.length < 8) {
+      nextErrors.password = "Password must be at least 8 characters";
+      valid = false;
+    }
+
+    if (password !== confirmPassword) {
+      nextErrors.confirmPassword = "Passwords do not match";
+      valid = false;
+    }
+
     if (!acceptTerms) {
       nextErrors.terms = "You must accept the terms and conditions";
       valid = false;
@@ -103,11 +118,10 @@ const PhoneRegisterForm = ({ className }: PhoneRegisterFormProps) => {
 
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.auth.signInWithOtp({
+      const { error } = await supabase.auth.signUp({
         phone,
+        password,
         options: {
-          channel: "sms",
-          shouldCreateUser: true,
           data: {
             full_name: name,
             email,
@@ -175,7 +189,7 @@ const PhoneRegisterForm = ({ className }: PhoneRegisterFormProps) => {
     try {
       const { error } = await supabase.auth.signInWithOtp({
         phone,
-        options: { channel: "sms", shouldCreateUser: true },
+        options: { channel: "sms", shouldCreateUser: false },
       });
       if (error) throw error;
       toast.success("Code resent. Check your SMS.");
@@ -234,6 +248,29 @@ const PhoneRegisterForm = ({ className }: PhoneRegisterFormProps) => {
               />
               <p className="text-xs text-muted-foreground">Use international format with country code</p>
               {errors.phone && <p className="text-sm text-destructive mt-1">{errors.phone}</p>}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <PasswordInput
+                id="password"
+                placeholder="Create a password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                error={errors.password}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <PasswordInput
+                id="confirmPassword"
+                placeholder="Re-enter your password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                error={errors.confirmPassword}
+                confirmPassword
+              />
             </div>
 
             <TermsCheckbox checked={acceptTerms} onCheckedChange={setAcceptTerms} error={errors.terms} />
