@@ -2,7 +2,7 @@
 import React from "react";
 import { Scissors } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-
+import { formatPrice } from "@/components/booking/utils/formatUtils";
 interface ServiceStatusCardProps {
   service: string;
   services?: any[];
@@ -29,41 +29,46 @@ const ServiceStatusCard: React.FC<ServiceStatusCardProps> = ({ service, services
   };
 
   return (
-    <div className="flex flex-col gap-2 border rounded-lg p-3 bg-background/50">
-      <div className="flex justify-between items-center">
+    <article className="rounded-lg border bg-card p-4">
+      <header className="flex justify-between items-center mb-1.5">
         <div className="flex items-center gap-2">
           <Scissors className="h-4 w-4 text-muted-foreground" />
           <h4 className="text-sm font-semibold">
-            {services && services.length > 1 ? "Services" : "Service"}
+            {services && services.length > 1 ? `Services (${services.length})` : "Service"}
           </h4>
         </div>
         <Badge variant={getBadgeVariant(status)}>
           {getStatusLabel(status)}
         </Badge>
-      </div>
-      
+      </header>
+
       {services && services.length > 0 ? (
-        <div className="space-y-1">
+        <ul className="divide-y divide-border">
           {services.map((serviceItem, index) => {
-            const label = serviceItem?.typeName
-              ? `${serviceItem?.baseServiceName ? serviceItem.baseServiceName + ' — ' : ''}${serviceItem.typeName}`
-              : (serviceItem?.name || "Service");
+            const base = serviceItem?.baseServiceName || serviceItem?.name || "Service";
+            const type = serviceItem?.typeName;
+            const price = serviceItem?.price;
             return (
-              <div key={index} className="text-sm text-muted-foreground">
-                <span className="font-medium">{label}</span>
-                {serviceItem?.price !== undefined && (
-                  <span className="ml-2 text-xs">
-                    (GH₵{Number(serviceItem.price).toFixed(2)})
-                  </span>
+              <li key={index} className="flex items-start justify-between py-2">
+                <div>
+                  <p className="text-sm font-medium">{base}</p>
+                  {type && (
+                    <p className="text-xs text-muted-foreground">{type}</p>
+                  )}
+                </div>
+                {price !== undefined && (
+                  <Badge variant="outline" className="shrink-0">
+                    {formatPrice(Number(price))}
+                  </Badge>
                 )}
-              </div>
+              </li>
             );
           })}
-        </div>
+        </ul>
       ) : (
         <p className="text-sm text-muted-foreground">{service}</p>
       )}
-    </div>
+    </article>
   );
 };
 
