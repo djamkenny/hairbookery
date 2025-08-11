@@ -30,6 +30,10 @@ const RegisterForm = ({ className }: RegisterFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [formErrors, setFormErrors] = useState<RegisterFormErrors>(createEmptyFormErrors());
+  const [canResend, setCanResend] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+
 
   const validateForm = () => {
     const errors = createEmptyFormErrors();
@@ -70,6 +74,32 @@ const RegisterForm = ({ className }: RegisterFormProps) => {
     return isValid;
   };
 
+  const startCooldown = () => {
+    setResendCooldown(30);
+    const interval = setInterval(() => {
+      setResendCooldown((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  const handleResend = async () => {
+    if (!email || resendCooldown > 0) return;
+    try {
+      const { error } = await supabase.auth.resend({ type: "signup", email });
+      if (error) throw error;
+      toast.success("Verification email resent. Please check your inbox (and spam).");
+      startCooldown();
+    } catch (err: any) {
+      console.error("Resend error:", err);
+      toast.error(err?.message || "Could not resend email. Try again later.");
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -87,6 +117,7 @@ const RegisterForm = ({ className }: RegisterFormProps) => {
           emailRedirectTo: `${window.location.origin}/login`,
           data: {
             full_name: name,
+            is_stylist: false,
           },
         },
       });
@@ -95,16 +126,19 @@ const RegisterForm = ({ className }: RegisterFormProps) => {
         throw error;
       }
       
-      toast.success("Account created successfully! Please check your email to verify your account.");
+      setCanResend(true);
+      toast.success("Account created! Please verify via the email we sent.");
       navigate("/login");
     } catch (error: any) {
       console.error("Registration error:", error);
-      
-      const errorMessage = error.message || "Registration failed. Please try again.";
-      if (errorMessage.includes("already registered")) {
-        toast.error("This email is already registered. Please use a different email or try to login.");
+      const msg = String(error?.message || "Registration failed. Please try again.");
+      if (msg.toLowerCase().includes("already registered")) {
+        toast.error("This email is already registered. Please login instead.");
+      } else if (error?.status === 504 || msg.includes("504") || msg.toLowerCase().includes("timeout") || msg.toLowerCase().includes("context deadline exceeded")) {
+        setCanResend(true);
+        toast.error("We're experiencing delays. If you got a verification email, please use it. You can also resend.");
       } else {
-        toast.error(errorMessage);
+        toast.error(msg);
       }
     } finally {
       setIsSubmitting(false);
@@ -196,6 +230,21 @@ const RegisterForm = ({ className }: RegisterFormProps) => {
               "Create Account"
             )}
           </Button>
+
+          {canResend && (
+            <div className="text-center text-sm">
+              Didn't receive the verification email?{" "}
+              <Button
+                type="button"
+                variant="link"
+                className="px-1"
+                onClick={handleResend}
+                disabled={resendCooldown > 0}
+              >
+                {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend email"}
+              </Button>
+            </div>
+          )}
         </CardFooter>
       </form>
     </Card>
