@@ -31,14 +31,14 @@ const AppointmentDetailsModal: React.FC<AppointmentDetailsModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-<DialogContent className="sm:max-w-md max-h-[90vh] p-0">
-        <DialogHeader className="px-6 pt-4">
+<DialogContent className="sm:max-w-md max-h-[90vh] p-0 flex flex-col">
+        <DialogHeader className="px-6 pt-4 shrink-0">
           <DialogTitle className="text-xl">Appointment Details</DialogTitle>
           <DialogDescription>
             Complete information about this appointment
           </DialogDescription>
         </DialogHeader>
-        <ScrollArea className="max-h-[82vh] px-6 pb-6">
+        <ScrollArea className="flex-1 px-6 pb-6">
           <AppointmentDetailsContent
             appointment={appointment}
             onUpdateStatus={onUpdateStatus}
