@@ -52,6 +52,11 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
   const [localImages, setLocalImages] = useState<string[]>(currentImages);
   const [categories, setCategories] = useState<ServiceCategory[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
+  const [hiddenCategoryNames, setHiddenCategoryNames] = useState<string[]>([]);
+  const [showCustomCategory, setShowCustomCategory] = useState(false);
+  const [customCategory, setCustomCategory] = useState("");
+  const [durationHours, setDurationHours] = useState<number>(0);
+  const [durationMinutes, setDurationMinutes] = useState<number>(0);
   
   const form = useForm<ServiceFormValues>({
     resolver: zodResolver(serviceFormSchema),
@@ -72,7 +77,6 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
           .from('service_categories')
           .select('id, name, description')
           .order('display_order');
-        
         if (error) throw error;
         setCategories(data || []);
       } catch (error) {
@@ -83,8 +87,26 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
       }
     };
 
+    // Load hidden categories
+    const saved = localStorage.getItem('hidden_categories');
+    if (saved) {
+      try { setHiddenCategoryNames(JSON.parse(saved)); } catch {}
+    }
+
+    // Initialize duration fields from default values
+    const initialMinutes = parseInt((defaultValues?.duration as string) || '0');
+    if (!isNaN(initialMinutes) && initialMinutes > 0) {
+      setDurationHours(Math.floor(initialMinutes / 60));
+      setDurationMinutes(initialMinutes % 60);
+    }
+
     fetchCategories();
-  }, []);
+  }, [defaultValues]);
+
+  // Keep form duration in sync
+  useEffect(() => {
+    form.setValue('duration', String(durationHours * 60 + durationMinutes));
+  }, [durationHours, durationMinutes]);
 
   const handleImagesUpdate = (images: string[]) => {
     setLocalImages(images);
@@ -127,22 +149,71 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
                 <FormItem>
                   <FormLabel>Category</FormLabel>
                   <FormControl>
-                    <Select 
-                      value={field.value} 
-                      onValueChange={field.onChange}
-                      disabled={loadingCategories}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map((category) => (
-                          <SelectItem key={category.id} value={category.name}>
-                            {category.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div>
+                      <Select 
+                        value={field.value} 
+                        onValueChange={field.onChange}
+                        disabled={loadingCategories}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categories
+                            .filter((category) => !hiddenCategoryNames.includes(category.name))
+                            .map((category) => (
+                              <SelectItem key={category.id} value={category.name}>
+                                {category.name}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                      <div className="flex items-center gap-2 mt-2">
+                        <Button type="button" variant="outline" size="sm" onClick={() => setShowCustomCategory((v) => !v)}>
+                          {showCustomCategory ? "Cancel" : "Add custom category"}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={!field.value}
+                          onClick={() => {
+                            const toHide = field.value as string;
+                            if (toHide && !hiddenCategoryNames.includes(toHide)) {
+                              const updated = [...hiddenCategoryNames, toHide];
+                              setHiddenCategoryNames(updated);
+                              localStorage.setItem('hidden_categories', JSON.stringify(updated));
+                              field.onChange("");
+                              toast.error ? toast.error(`Hidden category: ${toHide}`) : null;
+                            }
+                          }}
+                        >
+                          Hide selected
+                        </Button>
+                      </div>
+                      {showCustomCategory && (
+                        <div className="mt-2 flex gap-2">
+                          <Input
+                            placeholder="Type new category"
+                            value={customCategory}
+                            onChange={(e) => setCustomCategory(e.target.value)}
+                          />
+                          <Button
+                            type="button"
+                            onClick={() => {
+                              const value = customCategory.trim();
+                              if (value) {
+                                field.onChange(value);
+                                setShowCustomCategory(false);
+                                setCustomCategory("");
+                              }
+                            }}
+                          >
+                            Use
+                          </Button>
+                        </div>
+                      )}
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -168,22 +239,46 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
             />
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="duration"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Duration (minutes)</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Clock className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input placeholder="e.g. 45" className="pl-8" {...field} />
+            <FormField
+              control={form.control}
+              name="duration"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Duration</FormLabel>
+                  <FormControl>
+                    <div>
+                      <input type="hidden" {...field} value={String(durationHours * 60 + durationMinutes)} />
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="relative">
+                          <Clock className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            placeholder="Hours"
+                            className="pl-8"
+                            type="number"
+                            min={0}
+                            value={durationHours}
+                            onChange={(e) => setDurationHours(Math.max(0, parseInt(e.target.value || '0')))}
+                          />
+                        </div>
+                        <div className="relative">
+                          <Clock className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            placeholder="Minutes"
+                            className="pl-8"
+                            type="number"
+                            min={0}
+                            max={59}
+                            value={durationMinutes}
+                            onChange={(e) => setDurationMinutes(Math.max(0, Math.min(59, parseInt(e.target.value || '0'))))}
+                          />
+                        </div>
                       </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
               
               <FormField
                 control={form.control}

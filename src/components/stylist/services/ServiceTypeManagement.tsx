@@ -53,6 +53,15 @@ const ServiceTypeManagement: React.FC<ServiceTypeManagementProps> = ({
     fetchData();
   }, []);
 
+  useEffect(() => {
+    const saved = localStorage.getItem("hidden_categories");
+    if (saved) {
+      try {
+        setHiddenCategoryNames(JSON.parse(saved));
+      } catch {}
+    }
+  }, []);
+
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -147,13 +156,13 @@ const ServiceTypeManagement: React.FC<ServiceTypeManagementProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name.trim() || !formData.price || !formData.duration || !formData.category) {
+    if (!formData.name.trim() || !formData.price || (!durationHours && !durationMinutes) || !formData.category) {
       toast({ variant: "destructive", description: "Please fill in all required fields" });
       return;
     }
 
     const priceValue = parseFloat(formData.price);
-    const durationValue = parseInt(formData.duration);
+    const durationValue = durationHours * 60 + durationMinutes;
 
     if (isNaN(priceValue) || priceValue <= 0) {
       toast({ variant: "destructive", description: "Please enter a valid price" });
@@ -175,23 +184,6 @@ const ServiceTypeManagement: React.FC<ServiceTypeManagementProps> = ({
             description: formData.description.trim() || null,
             price: priceValue,
             duration: durationValue,
-          })
-          .eq('id', editingId);
-
-        if (error) throw error;
-        toast({ description: "Service type updated successfully" });
-      } else {
-        // Create new service type
-        const serviceId = await createBaseServiceIfNeeded(formData.category);
-        
-        const { error } = await supabase
-          .from('service_types')
-          .insert({
-            service_id: serviceId,
-            name: formData.name.trim(),
-            description: formData.description.trim() || null,
-            price: priceValue,
-            duration: durationValue,
           });
 
         if (error) throw error;
@@ -199,6 +191,8 @@ const ServiceTypeManagement: React.FC<ServiceTypeManagementProps> = ({
       }
 
       setFormData({ name: "", description: "", price: "", duration: "", category: "" });
+      setDurationHours(0);
+      setDurationMinutes(0);
       setIsAdding(false);
       setEditingId(null);
       fetchData();
@@ -218,6 +212,8 @@ const ServiceTypeManagement: React.FC<ServiceTypeManagementProps> = ({
       duration: serviceType.duration.toString(),
       category: service?.category || "",
     });
+    setDurationHours(Math.floor(serviceType.duration / 60));
+    setDurationMinutes(serviceType.duration % 60);
     setEditingId(serviceType.id);
     setIsAdding(true);
   };
@@ -243,6 +239,8 @@ const ServiceTypeManagement: React.FC<ServiceTypeManagementProps> = ({
 
   const handleCancel = () => {
     setFormData({ name: "", description: "", price: "", duration: "", category: "" });
+    setDurationHours(0);
+    setDurationMinutes(0);
     setIsAdding(false);
     setEditingId(null);
   };
@@ -297,13 +295,61 @@ const ServiceTypeManagement: React.FC<ServiceTypeManagementProps> = ({
                       <SelectValue placeholder="Select a category" />
                     </SelectTrigger>
                     <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category.id} value={category.name}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
+                      {categories
+                        .filter((category) => !hiddenCategoryNames.includes(category.name))
+                        .map((category) => (
+                          <SelectItem key={category.id} value={category.name}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
+                  <div className="flex items-center gap-2 mt-2">
+                    <Button type="button" variant="outline" size="sm" onClick={() => setShowCustomCategory((v) => !v)}>
+                      {showCustomCategory ? "Cancel" : "Add custom category"}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={!formData.category}
+                      onClick={() => {
+                        const toHide = formData.category;
+                        if (!hiddenCategoryNames.includes(toHide)) {
+                          const updated = [...hiddenCategoryNames, toHide];
+                          setHiddenCategoryNames(updated);
+                          localStorage.setItem("hidden_categories", JSON.stringify(updated));
+                          setFormData({ ...formData, category: "" });
+                          toast({ description: `Hidden category: ${toHide}` });
+                        }
+                      }}
+                    >
+                      Hide selected
+                    </Button>
+                  </div>
+                  {showCustomCategory && (
+                    <div className="mt-2 flex gap-2">
+                      <Input
+                        placeholder="Type new category"
+                        value={customCategory}
+                        onChange={(e) => setCustomCategory(e.target.value)}
+                      />
+                      <Button
+                        type="button"
+                        onClick={() => {
+                          const value = customCategory.trim();
+                          if (value) {
+                            setFormData({ ...formData, category: value });
+                            setShowCustomCategory(false);
+                            setCustomCategory("");
+                            toast({ description: `Added category: ${value}` });
+                          }
+                        }}
+                      >
+                        Use
+                      </Button>
+                    </div>
+                  )}
                 </div>
                 <div>
                   <Label htmlFor="name">Service Type Name *</Label>

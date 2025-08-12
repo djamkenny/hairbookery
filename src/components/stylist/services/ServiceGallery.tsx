@@ -3,9 +3,11 @@ import React, { useState } from "react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, DollarSign, Image as ImageIcon, Upload } from "lucide-react";
+import { Clock, DollarSign, Image as ImageIcon, Upload, Trash2 } from "lucide-react";
 import { Service } from "./types";
 import { ServiceImageUpload } from "./ServiceImageUpload";
+import { deleteService } from "./serviceApi";
+import { toast } from "@/hooks/use-toast";
 
 interface ServiceGalleryProps {
   services: Service[];
@@ -44,18 +46,41 @@ export const ServiceGallery: React.FC<ServiceGalleryProps> = ({ services, classN
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-medium text-lg">{service.name}</h3>
               <div className="flex items-center gap-2">
-                <Badge variant="outline">
-                  {service.image_urls?.length || 0} photos
-                </Badge>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="flex items-center gap-1"
-                  onClick={() => setUploadService(service)}
-                >
-                  <Upload className="h-4 w-4" />
-                  Upload
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline">
+                    {service.image_urls?.length || 0} photos
+                  </Badge>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex items-center gap-1"
+                    onClick={() => setUploadService(service)}
+                  >
+                    <Upload className="h-4 w-4" />
+                    Upload
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex items-center gap-1 text-destructive"
+                    onClick={async () => {
+                      if (!confirm("Delete this service? This will remove its images and types.")) return;
+                      try {
+                        await deleteService(service.id);
+                        toast({ description: "Service deleted" });
+                        onServicesChange?.();
+                      } catch (e: any) {
+                        console.error(e);
+                        toast({ variant: "destructive", description: e.message || "Failed to delete service" });
+                      }
+                    }}
+                    title="Delete service"
+                    aria-label="Delete service"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Delete
+                  </Button>
+                </div>
               </div>
             </div>
             
