@@ -34,7 +34,7 @@ export const ServiceList: React.FC<ServiceListProps> = ({
         </TabsContent>
         
         <TabsContent value="gallery">
-          <ServiceGallery services={services} />
+          <ServiceGallery services={services} onServicesChange={onServicesChange} />
         </TabsContent>
       </Tabs>
     </div>

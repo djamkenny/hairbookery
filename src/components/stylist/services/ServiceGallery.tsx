@@ -2,16 +2,20 @@
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Clock, DollarSign, Image as ImageIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Clock, DollarSign, Image as ImageIcon, Upload } from "lucide-react";
 import { Service } from "./types";
+import { ServiceImageUpload } from "./ServiceImageUpload";
 
 interface ServiceGalleryProps {
   services: Service[];
   className?: string;
+  onServicesChange?: () => void;
 }
 
-export const ServiceGallery: React.FC<ServiceGalleryProps> = ({ services, className }) => {
+export const ServiceGallery: React.FC<ServiceGalleryProps> = ({ services, className, onServicesChange }) => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [uploadService, setUploadService] = useState<Service | null>(null);
 
   const servicesWithImages = services.filter(service => service.image_urls && service.image_urls.length > 0);
 
@@ -39,9 +43,20 @@ export const ServiceGallery: React.FC<ServiceGalleryProps> = ({ services, classN
           <div key={service.id} className="space-y-3">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-medium text-lg">{service.name}</h3>
-              <Badge variant="outline" className="ml-2">
-                {service.image_urls?.length || 0} photos
-              </Badge>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline">
+                  {service.image_urls?.length || 0} photos
+                </Badge>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="flex items-center gap-1"
+                  onClick={() => setUploadService(service)}
+                >
+                  <Upload className="h-4 w-4" />
+                  Upload
+                </Button>
+              </div>
             </div>
             
             <div className="grid grid-cols-2 gap-2">
@@ -120,6 +135,24 @@ export const ServiceGallery: React.FC<ServiceGalleryProps> = ({ services, classN
           </div>
         ))}
       </div>
+
+      {uploadService && (
+        <Dialog open={!!uploadService} onOpenChange={(open) => !open && setUploadService(null)}>
+          <DialogContent className="max-w-2xl w-full">
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Upload images for {uploadService.name}</h3>
+              <ServiceImageUpload
+                serviceId={uploadService.id}
+                currentImages={uploadService.image_urls || []}
+                onImagesUpdate={() => {
+                  setUploadService(null);
+                  onServicesChange?.();
+                }}
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {selectedImage && (
         <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
