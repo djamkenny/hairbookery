@@ -12,6 +12,7 @@ import { ServiceType } from "./types";
 import { ServiceImageUpload } from "./ServiceImageUpload";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { deleteService as deleteBaseService } from "./serviceApi";
 
 interface ServiceTypeForm {
   name: string;
@@ -184,8 +185,23 @@ const ServiceTypeManagement: React.FC<ServiceTypeManagementProps> = ({
             description: formData.description.trim() || null,
             price: priceValue,
             duration: durationValue,
-          });
+          })
+          .eq('id', editingId);
 
+        if (error) throw error;
+        toast({ description: "Service type updated successfully" });
+      } else {
+        // Create new service type under base service for this category
+        const serviceId = await createBaseServiceIfNeeded(formData.category);
+        const { error } = await supabase
+          .from('service_types')
+          .insert({
+            service_id: serviceId,
+            name: formData.name.trim(),
+            description: formData.description.trim() || null,
+            price: priceValue,
+            duration: durationValue,
+          });
         if (error) throw error;
         toast({ description: "Service type added successfully" });
       }
@@ -378,15 +394,25 @@ const ServiceTypeManagement: React.FC<ServiceTypeManagementProps> = ({
                 </div>
                 <div>
                   <Label htmlFor="duration">Duration (minutes) *</Label>
-                  <Input
-                    id="duration"
-                    type="number"
-                    min="1"
-                    value={formData.duration}
-                    onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
-                    placeholder="30"
-                    required
-                  />
+                  <div className="grid grid-cols-2 gap-2">
+                    <Input
+                      id="duration-hours"
+                      type="number"
+                      min="0"
+                      value={durationHours}
+                      onChange={(e) => setDurationHours(Math.max(0, parseInt(e.target.value || "0")))}
+                      placeholder="Hours"
+                    />
+                    <Input
+                      id="duration-minutes"
+                      type="number"
+                      min="0"
+                      max="59"
+                      value={durationMinutes}
+                      onChange={(e) => setDurationMinutes(Math.max(0, Math.min(59, parseInt(e.target.value || "0"))))}
+                      placeholder="Minutes"
+                    />
+                  </div>
                 </div>
               </div>
               <div>
@@ -433,7 +459,34 @@ const ServiceTypeManagement: React.FC<ServiceTypeManagementProps> = ({
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span>{category}</span>
-                  <Badge variant="secondary">{types.length} service{types.length !== 1 ? 's' : ''}</Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary">{types.length} service{types.length !== 1 ? 's' : ''}</Badge>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-destructive"
+                      title="Delete category"
+                      onClick={async () => {
+                        if (!confirm('Delete this category and all its service types?')) return;
+                        const baseService = services.find((s: any) => s.category === category && s.is_base_service);
+                        if (!baseService) {
+                          toast({ variant: 'destructive', description: 'Base service not found' });
+                          return;
+                        }
+                        try {
+                          await deleteBaseService(baseService.id);
+                          toast({ description: 'Category and service types deleted' });
+                          fetchData();
+                          onServicesChange?.();
+                        } catch (e: any) {
+                          console.error(e);
+                          toast({ variant: 'destructive', description: e.message || 'Failed to delete' });
+                        }
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </CardTitle>
               </CardHeader>
               <CardContent>
