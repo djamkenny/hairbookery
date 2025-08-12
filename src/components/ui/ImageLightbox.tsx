@@ -9,6 +9,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { Button } from "@/components/ui/button";
+import { X } from "lucide-react";
 
 interface ImageLightboxProps {
   open: boolean;
@@ -45,6 +46,14 @@ const ImageLightbox: React.FC<ImageLightboxProps> = ({
           <div className="text-sm text-muted-foreground">
             {index + 1} / {images.length}
           </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onOpenChange(false)}
+            aria-label="Close image viewer"
+          >
+            <X className="h-4 w-4" />
+          </Button>
         </div>
         <Carousel
           opts={{ startIndex: index, loop: true, dragFree: false }}
