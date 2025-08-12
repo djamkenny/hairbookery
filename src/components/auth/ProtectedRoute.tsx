@@ -2,19 +2,19 @@ import React, { useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
-import { useAuth0 } from "@auth0/auth0-react";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requireStylist?: boolean;
 }
 
+
 const ProtectedRoute = ({ children, requireStylist = false }: ProtectedRouteProps) => {
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isStylist, setIsStylist] = useState(false);
   const location = useLocation();
-  const { isAuthenticated: isAuth0Authenticated, isLoading: isAuth0Loading } = useAuth0();
+
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -58,7 +58,7 @@ const ProtectedRoute = ({ children, requireStylist = false }: ProtectedRouteProp
     };
   }, []);
 
-  if (loading || isAuth0Loading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -66,7 +66,7 @@ const ProtectedRoute = ({ children, requireStylist = false }: ProtectedRouteProp
     );
   }
 
-  if (!isAuthenticated && !isAuth0Authenticated) {
+  if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 

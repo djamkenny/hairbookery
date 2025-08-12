@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import RegisterForm from "@/components/auth/RegisterForm";
-import Auth0SignUpButton from "@/components/auth/Auth0SignUpButton";
+import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 const Register = () => {
   useEffect(() => {
     document.title = "Create Client Account | Register";
@@ -41,7 +41,7 @@ const Register = () => {
               <span className="text-xs text-muted-foreground">Or</span>
               <span className="h-px flex-1 bg-border" />
             </div>
-            <Auth0SignUpButton />
+            <GoogleSignInButton label="Continue with Google" />
           </div>
           
           <div className="text-center text-sm mt-4 space-y-2">
