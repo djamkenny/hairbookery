@@ -6,8 +6,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Edit, Trash2, Save, X } from "lucide-react";
+import { Plus, Edit, Trash2, Save, X, Upload } from "lucide-react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ServiceType } from "./types";
+import { ServiceImageUpload } from "./ServiceImageUpload";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -40,6 +42,7 @@ const ServiceTypeManagement: React.FC<ServiceTypeManagementProps> = ({
     category: "",
   });
   const [loading, setLoading] = useState(true);
+  const [uploadService, setUploadService] = useState<any | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -409,6 +412,18 @@ const ServiceTypeManagement: React.FC<ServiceTypeManagementProps> = ({
                         <Button
                           variant="outline"
                           size="sm"
+                          onClick={() => {
+                            const svc = services.find(s => s.id === serviceType.service_id);
+                            if (svc) setUploadService(svc);
+                          }}
+                          aria-label="Upload service images"
+                          title="Upload service images"
+                        >
+                          <Upload className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
                           onClick={() => handleEdit(serviceType)}
                         >
                           <Edit className="h-4 w-4" />
@@ -429,6 +444,24 @@ const ServiceTypeManagement: React.FC<ServiceTypeManagementProps> = ({
           ))
         )}
       </div>
+      {uploadService && (
+        <Dialog open={!!uploadService} onOpenChange={(open) => !open && setUploadService(null)}>
+          <DialogContent className="max-w-2xl w-full">
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Upload images for {uploadService.name}</h3>
+              <ServiceImageUpload
+                serviceId={uploadService.id}
+                currentImages={uploadService.image_urls || []}
+                onImagesUpdate={() => {
+                  setUploadService(null);
+                  fetchData();
+                  onServicesChange?.();
+                }}
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };
