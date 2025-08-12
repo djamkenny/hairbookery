@@ -457,6 +457,7 @@ const ServiceTypeManagement: React.FC<ServiceTypeManagementProps> = ({
                   fetchData();
                   onServicesChange?.();
                 }}
+                maxImages={2}
               />
             </div>
           </DialogContent>

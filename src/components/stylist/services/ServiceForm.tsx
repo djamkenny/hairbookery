@@ -228,6 +228,7 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
               serviceId={serviceId}
               currentImages={localImages}
               onImagesUpdate={handleImagesUpdate}
+              maxImages={2}
             />
           </div>
         )}

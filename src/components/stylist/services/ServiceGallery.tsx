@@ -130,6 +130,7 @@ export const ServiceGallery: React.FC<ServiceGalleryProps> = ({ services, classN
                   setUploadService(null);
                   onServicesChange?.();
                 }}
+                maxImages={2}
               />
             </div>
           </DialogContent>
