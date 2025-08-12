@@ -7,7 +7,8 @@ import AnalyticsHeader from "./AnalyticsHeader";
 import RevenueCards from "./RevenueCards";
 import ServicePerformanceTable from "./ServicePerformanceTable";
 import MonthlyDataTable from "./MonthlyDataTable";
-import AnalyticsCharts from "./AnalyticsCharts";
+import ServicePopularityChart from "./ServicePopularityChart";
+import MonthlyTrendsChart from "./MonthlyTrendsChart";
 
 const AnalyticsTab = () => {
   const [user, setUser] = React.useState<any>(null);
@@ -38,7 +39,10 @@ const AnalyticsTab = () => {
       <MonthlyDataTable monthlyStats={monthlyStats} loading={analyticsLoading} />
 
       {/* Charts Grid - Stack on mobile, side by side on desktop */}
-      <AnalyticsCharts />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <ServicePopularityChart data={serviceStats} />
+        <MonthlyTrendsChart data={monthlyStats} />
+      </div>
     </div>
   );
 };
