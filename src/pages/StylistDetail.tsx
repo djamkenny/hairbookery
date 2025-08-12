@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { CalendarIcon, ClockIcon, MapPin, CheckCircle2 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
@@ -10,7 +11,7 @@ import Footer from "@/components/layout/Footer";
 import ProfileBookingForm from "@/components/specialist/ProfileBookingForm";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ServiceType } from "@/components/stylist/services/types";
+import { Service, ServiceType } from "@/components/stylist/services/types";
 import RatingComponent from "@/components/specialist/RatingComponent";
 import AvailabilityBadge from "@/components/ui/AvailabilityBadge";
 import { useAvailabilityStatus } from "@/hooks/useAvailabilityStatus";
@@ -43,8 +44,9 @@ const SpecialistDetail = () => {
   const [serviceCategories, setServiceCategories] = useState<ServiceCategory[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedServiceTypes, setSelectedServiceTypes] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { availabilityStatus, loading: availabilityLoading } = useAvailabilityStatus(id);
+const [loading, setLoading] = useState(true);
+const [services, setServices] = useState<Service[]>([]);
+const { availabilityStatus, loading: availabilityLoading } = useAvailabilityStatus(id);
   
   useEffect(() => {
     const fetchSpecialistAndServices = async () => {
@@ -128,6 +130,28 @@ const SpecialistDetail = () => {
           }));
 
           setServiceCategories(categories);
+        }
+        
+        // Fetch services with images for gallery
+        const { data: servicesData, error: servicesError } = await supabase
+          .from('services')
+          .select('id,name,description,image_urls,price,duration,category,stylist_id')
+          .eq('stylist_id', id);
+
+        if (servicesError) {
+          console.error("Error fetching services for gallery:", servicesError);
+        } else if (servicesData) {
+          const mapped = servicesData.map((s: any) => ({
+            id: s.id,
+            name: s.name,
+            description: s.description,
+            duration: String(s.duration),
+            price: String(s.price),
+            stylist_id: s.stylist_id,
+            image_urls: s.image_urls || [],
+            category: s.category || 'Hair Cutting & Styling'
+          })) as Service[];
+          setServices(mapped);
         }
         
       } catch (error) {
@@ -254,6 +278,61 @@ const SpecialistDetail = () => {
                   {specialist.bio || "Professional specialist with years of experience in the industry."}
                 </p>
               </div>
+
+              {services.filter(s => (s.image_urls?.length || 0) > 0).length > 0 && (
+                <div className="animate-fade-in">
+                  <h2 className="text-lg lg:text-xl font-semibold mb-4">Service Gallery</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {services.filter(s => (s.image_urls?.length || 0) > 0).map((service) => (
+                      <div key={service.id} className="space-y-3">
+                        <h3 className="font-medium text-base lg:text-lg">{service.name}</h3>
+                        <div className="grid grid-cols-2 gap-2">
+                          {service.image_urls.slice(0, 2).map((imageUrl, index) => (
+                            <Dialog key={index}>
+                              <DialogTrigger asChild>
+                                <div className="relative aspect-square rounded-lg overflow-hidden cursor-pointer group bg-muted">
+                                  <img
+                                    src={imageUrl}
+                                    alt={`${service.name} image ${index + 1}`}
+                                    className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                                  />
+                                  {index === 1 && (service.image_urls?.length || 0) > 2 && (
+                                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                                      <span className="text-white font-medium">+{(service.image_urls?.length || 0) - 2} more</span>
+                                    </div>
+                                  )}
+                                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all" />
+                                </div>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-4xl w-full">
+                                <div className="space-y-4">
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {service.image_urls?.map((url, imgIndex) => (
+                                      <div key={imgIndex} className="aspect-square rounded-lg overflow-hidden">
+                                        <img
+                                          src={url}
+                                          alt={`${service.name} image ${imgIndex + 1}`}
+                                          className="w-full h-full object-cover"
+                                        />
+                                      </div>
+                                    ))}
+                                  </div>
+                                  <div className="border-t pt-4">
+                                    <h3 className="text-xl font-semibold mb-2">{service.name}</h3>
+                                    {service.description && (
+                                      <p className="text-muted-foreground mb-3">{service.description}</p>
+                                    )}
+                                  </div>
+                                </div>
+                              </DialogContent>
+                            </Dialog>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Integrated Booking Form */}
               <div className="animate-fade-in">
