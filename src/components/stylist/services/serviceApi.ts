@@ -28,7 +28,8 @@ export const fetchServices = async (): Promise<Service[]> => {
     duration: service.duration.toString(),
     stylist_id: service.stylist_id,
     image_urls: service.image_urls || [],
-    category: service.category || 'Hair Cutting & Styling'
+    category: service.category || 'Hair Cutting & Styling',
+    is_base_service: service.is_base_service ?? false
   }));
 };
 
@@ -122,6 +123,12 @@ export const deleteService = async (id: string): Promise<void> => {
         .remove(filePaths);
     }
   }
+
+  // Delete associated service types first
+  await supabase
+    .from("service_types")
+    .delete()
+    .eq("service_id", id);
 
   // Delete the service
   const { error } = await supabase

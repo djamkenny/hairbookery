@@ -41,6 +41,11 @@ const ServiceTypeManagement: React.FC<ServiceTypeManagementProps> = ({
     duration: "",
     category: "",
   });
+  const [durationHours, setDurationHours] = useState<number>(0);
+  const [durationMinutes, setDurationMinutes] = useState<number>(0);
+  const [showCustomCategory, setShowCustomCategory] = useState<boolean>(false);
+  const [customCategory, setCustomCategory] = useState<string>("");
+  const [hiddenCategoryNames, setHiddenCategoryNames] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploadService, setUploadService] = useState<any | null>(null);
 
