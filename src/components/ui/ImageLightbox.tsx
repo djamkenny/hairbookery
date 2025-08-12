@@ -55,35 +55,47 @@ const ImageLightbox: React.FC<ImageLightboxProps> = ({
             <X className="h-4 w-4" />
           </Button>
         </div>
-        <Carousel
-          opts={{ startIndex: index, loop: true, dragFree: false }}
-          setApi={(api) => {
-            if (!api) return;
-            api.on("select", () => setIndex(api.selectedScrollSnap()));
-          }}
-          className="w-full"
-        >
-          <CarouselContent>
-            {images.map((src, i) => (
-              <CarouselItem key={`${src}-${i}`} className="flex items-center justify-center">
-                <div className="w-full aspect-[4/3] sm:aspect-video md:aspect-[3/2] bg-muted rounded-lg overflow-hidden flex items-center justify-center">
-                  <img
-                    src={src}
-                    alt={`${altPrefix} ${i + 1}`}
-                    className="max-h-[70vh] w-auto object-contain"
-                    loading="lazy"
-                  />
-                </div>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          {images.length > 1 && (
-            <>
-              <CarouselPrevious className="left-2 sm:left-4" />
-              <CarouselNext className="right-2 sm:right-4" />
-            </>
-          )}
-        </Carousel>
+        <div className="relative">
+          {/* Floating close button for better mobile usability */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onOpenChange(false)}
+            aria-label="Close image viewer"
+            className="absolute top-2 right-2 sm:top-4 sm:right-4 z-10 rounded-full bg-background/80 border border-border hover:bg-background/90"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+          <Carousel
+            opts={{ startIndex: index, loop: true, dragFree: false }}
+            setApi={(api) => {
+              if (!api) return;
+              api.on("select", () => setIndex(api.selectedScrollSnap()));
+            }}
+            className="w-full"
+          >
+            <CarouselContent>
+              {images.map((src, i) => (
+                <CarouselItem key={`${src}-${i}`} className="flex items-center justify-center">
+                  <div className="w-full aspect-[4/3] sm:aspect-video md:aspect-[3/2] bg-muted rounded-lg overflow-hidden flex items-center justify-center">
+                    <img
+                      src={src}
+                      alt={`${altPrefix} ${i + 1}`}
+                      className="max-h-[70vh] w-auto object-contain"
+                      loading="lazy"
+                    />
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            {images.length > 1 && (
+              <>
+                <CarouselPrevious className="left-2 sm:left-4" />
+                <CarouselNext className="right-2 sm:right-4" />
+              </>
+            )}
+          </Carousel>
+        </div>
         <div className="flex justify-center pt-2 sm:pt-4">
           <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>
             Close
