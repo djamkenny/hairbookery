@@ -62,7 +62,16 @@ const Gallery = () => {
               className="overflow-hidden hover:shadow-md transition-all duration-300 group"
               style={{ animationDelay: `${index * 0.1}s` }}
             >
-              <div className="aspect-square overflow-hidden">
+              <div
+                className="aspect-square overflow-hidden cursor-zoom-in"
+                onClick={() => {
+                  const fullIndex = galleryImages.findIndex((g) => g.id === item.id);
+                  setLightboxIndex(fullIndex >= 0 ? fullIndex : index);
+                  setLightboxOpen(true);
+                }}
+                role="button"
+                aria-label={`Open gallery image ${index + 1}`}
+              >
                 <img 
                   src={item.image} 
                   alt={item.caption} 
@@ -88,6 +97,15 @@ const Gallery = () => {
             </a>
           </div>
         )}
+
+        <ImageLightbox
+          open={lightboxOpen}
+          onOpenChange={setLightboxOpen}
+          images={images}
+          startIndex={lightboxIndex}
+          altPrefix="Gallery image"
+          title="Our Style Gallery"
+        />
       </div>
     </section>
   );
