@@ -3,7 +3,7 @@ import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import PhoneRegisterForm from "@/components/auth/PhoneRegisterForm";
+import RegisterForm from "@/components/auth/RegisterForm";
 
 const Register = () => {
   useEffect(() => {
@@ -11,7 +11,7 @@ const Register = () => {
 
     const desc = document.querySelector('meta[name="description"]') || document.createElement('meta');
     desc.setAttribute('name', 'description');
-    desc.setAttribute('content', 'Create your client account to book appointments with top stylists using phone OTP. Email collected without verification.');
+    desc.setAttribute('content', 'Create your client account and verify via email to book appointments with top stylists.');
     if (!desc.parentNode) document.head.appendChild(desc);
 
     let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
@@ -33,7 +33,7 @@ const Register = () => {
             <p className="text-muted-foreground">Join us to start booking appointments with our stylists</p>
           </div>
           
-          <PhoneRegisterForm />
+          <RegisterForm />
           
           <div className="text-center text-sm mt-4 space-y-2">
             <div>
