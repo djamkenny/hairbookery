@@ -149,71 +149,11 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
                 <FormItem>
                   <FormLabel>Category</FormLabel>
                   <FormControl>
-                    <div>
-                      <Select 
-                        value={field.value} 
-                        onValueChange={field.onChange}
-                        disabled={loadingCategories}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {categories
-                            .filter((category) => !hiddenCategoryNames.includes(category.name))
-                            .map((category) => (
-                              <SelectItem key={category.id} value={category.name}>
-                                {category.name}
-                              </SelectItem>
-                            ))}
-                        </SelectContent>
-                      </Select>
-                      <div className="flex items-center gap-2 mt-2">
-                        <Button type="button" variant="outline" size="sm" onClick={() => setShowCustomCategory((v) => !v)}>
-                          {showCustomCategory ? "Cancel" : "Add custom category"}
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          disabled={!field.value}
-                          onClick={() => {
-                            const toHide = field.value as string;
-                            if (toHide && !hiddenCategoryNames.includes(toHide)) {
-                              const updated = [...hiddenCategoryNames, toHide];
-                              setHiddenCategoryNames(updated);
-                              localStorage.setItem('hidden_categories', JSON.stringify(updated));
-                              field.onChange("");
-                              toast.error ? toast.error(`Hidden category: ${toHide}`) : null;
-                            }
-                          }}
-                        >
-                          Hide selected
-                        </Button>
-                      </div>
-                      {showCustomCategory && (
-                        <div className="mt-2 flex gap-2">
-                          <Input
-                            placeholder="Type new category"
-                            value={customCategory}
-                            onChange={(e) => setCustomCategory(e.target.value)}
-                          />
-                          <Button
-                            type="button"
-                            onClick={() => {
-                              const value = customCategory.trim();
-                              if (value) {
-                                field.onChange(value);
-                                setShowCustomCategory(false);
-                                setCustomCategory("");
-                              }
-                            }}
-                          >
-                            Use
-                          </Button>
-                        </div>
-                      )}
-                    </div>
+                    <Input
+                      placeholder="Type a category (e.g. Haircut, Nails, Spa)"
+                      value={field.value}
+                      onChange={(e) => field.onChange(e.target.value)}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

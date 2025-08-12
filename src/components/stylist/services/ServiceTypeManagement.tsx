@@ -302,70 +302,13 @@ const ServiceTypeManagement: React.FC<ServiceTypeManagementProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="category">Category *</Label>
-                  <Select 
-                    value={formData.category} 
-                    onValueChange={(value) => setFormData({ ...formData, category: value })}
+                  <Input
+                    id="category"
+                    placeholder="Type a category (e.g. Haircut, Nails, Spa)"
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                     disabled={!!editingId}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories
-                        .filter((category) => !hiddenCategoryNames.includes(category.name))
-                        .map((category) => (
-                          <SelectItem key={category.id} value={category.name}>
-                            {category.name}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                  <div className="flex items-center gap-2 mt-2">
-                    <Button type="button" variant="outline" size="sm" onClick={() => setShowCustomCategory((v) => !v)}>
-                      {showCustomCategory ? "Cancel" : "Add custom category"}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      disabled={!formData.category}
-                      onClick={() => {
-                        const toHide = formData.category;
-                        if (!hiddenCategoryNames.includes(toHide)) {
-                          const updated = [...hiddenCategoryNames, toHide];
-                          setHiddenCategoryNames(updated);
-                          localStorage.setItem("hidden_categories", JSON.stringify(updated));
-                          setFormData({ ...formData, category: "" });
-                          toast({ description: `Hidden category: ${toHide}` });
-                        }
-                      }}
-                    >
-                      Hide selected
-                    </Button>
-                  </div>
-                  {showCustomCategory && (
-                    <div className="mt-2 flex gap-2">
-                      <Input
-                        placeholder="Type new category"
-                        value={customCategory}
-                        onChange={(e) => setCustomCategory(e.target.value)}
-                      />
-                      <Button
-                        type="button"
-                        onClick={() => {
-                          const value = customCategory.trim();
-                          if (value) {
-                            setFormData({ ...formData, category: value });
-                            setShowCustomCategory(false);
-                            setCustomCategory("");
-                            toast({ description: `Added category: ${value}` });
-                          }
-                        }}
-                      >
-                        Use
-                      </Button>
-                    </div>
-                  )}
+                  />
                 </div>
                 <div>
                   <Label htmlFor="name">Service Type Name *</Label>
