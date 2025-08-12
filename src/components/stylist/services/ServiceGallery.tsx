@@ -60,7 +60,7 @@ export const ServiceGallery: React.FC<ServiceGalleryProps> = ({ services, classN
             </div>
             
             <div className="grid grid-cols-2 gap-2">
-              {service.image_urls?.slice(0, 4).map((imageUrl, index) => (
+              {service.image_urls?.slice(0, 2).map((imageUrl, index) => (
                 <Dialog key={index}>
                   <DialogTrigger asChild>
                     <div className="relative aspect-square rounded-lg overflow-hidden cursor-pointer group bg-muted">
@@ -69,13 +69,13 @@ export const ServiceGallery: React.FC<ServiceGalleryProps> = ({ services, classN
                         alt={`${service.name} image ${index + 1}`}
                         className="w-full h-full object-cover transition-transform group-hover:scale-105"
                       />
-                      {index === 3 && (service.image_urls?.length || 0) > 4 && (
-                        <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center">
-                          <span className="text-white font-medium">
-                            +{(service.image_urls?.length || 0) - 4} more
-                          </span>
-                        </div>
-                      )}
+                        {index === 1 && (service.image_urls?.length || 0) > 2 && (
+                          <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center">
+                            <span className="text-white font-medium">
+                              +{(service.image_urls?.length || 0) - 2} more
+                            </span>
+                          </div>
+                        )}
                       <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all" />
                     </div>
                   </DialogTrigger>
@@ -102,16 +102,6 @@ export const ServiceGallery: React.FC<ServiceGalleryProps> = ({ services, classN
                         {service.description && (
                           <p className="text-muted-foreground mb-3">{service.description}</p>
                         )}
-                        <div className="flex items-center gap-4 text-sm">
-                          <span className="flex items-center">
-                            <DollarSign className="h-4 w-4 mr-1" />
-                            {service.price}
-                          </span>
-                          <span className="flex items-center">
-                            <Clock className="h-4 w-4 mr-1" />
-                            {service.duration}
-                          </span>
-                        </div>
                       </div>
                     </div>
                   </DialogContent>
@@ -120,17 +110,9 @@ export const ServiceGallery: React.FC<ServiceGalleryProps> = ({ services, classN
             </div>
 
             <div className="pt-2 border-t">
-              <p className="text-sm text-muted-foreground mb-2">{service.description}</p>
-              <div className="flex items-center justify-between text-sm">
-                <span className="flex items-center font-medium">
-                  <DollarSign className="h-3.5 w-3.5 mr-0.5" />
-                  {service.price}
-                </span>
-                <span className="flex items-center text-muted-foreground">
-                  <Clock className="h-3.5 w-3.5 mr-0.5" />
-                  {service.duration}
-                </span>
-              </div>
+              {service.description && (
+                <p className="text-sm text-muted-foreground mb-0">{service.description}</p>
+              )}
             </div>
           </div>
         ))}
