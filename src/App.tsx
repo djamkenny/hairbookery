@@ -28,6 +28,7 @@ import Specialists from './pages/Specialists';
 import Contact from './pages/Contact';
 import StylistDetail from './pages/StylistDetail';
 import PaymentReturn from './pages/PaymentReturn';
+import AuthCallback from './pages/AuthCallback';
 import NotFound from './pages/NotFound';
 import EnhancedCustomerServiceWidget from './components/customer-service/EnhancedCustomerServiceWidget';
 import { ThemeProvider } from './components/theme/ThemeProvider';
@@ -103,10 +104,11 @@ const AppContent: React.FC = () => {
         <Route path="/admin-dashboard" element={<AdminDashboard />} />
         <Route path="/stylist/:id" element={<StylistDetail />} />
         <Route path="/donation" element={<Donation />} />
-        <Route path="/payment-return" element={<PaymentReturn />} />
-        <Route path="/admin-support" element={<AdminSupportPage />} />
-        <Route path="/admin-chat" element={<AdminChatPage />} />
-        <Route path="*" element={<NotFound />} />
+<Route path="/payment-return" element={<PaymentReturn />} />
+<Route path="/auth/callback" element={<AuthCallback />} />
+<Route path="/admin-support" element={<AdminSupportPage />} />
+<Route path="/admin-chat" element={<AdminChatPage />} />
+<Route path="*" element={<NotFound />} />
       </Routes>
       {user && <EnhancedCustomerServiceWidget />}
       {user && <RatingNotificationHandler />}
