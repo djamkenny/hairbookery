@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import RegisterForm from "@/components/auth/RegisterForm";
-
+import Auth0SignUpButton from "@/components/auth/Auth0SignUpButton";
 const Register = () => {
   useEffect(() => {
     document.title = "Create Client Account | Register";
@@ -34,6 +34,15 @@ const Register = () => {
           </div>
           
           <RegisterForm />
+
+          <div className="px-4">
+            <div className="flex items-center gap-2 my-4">
+              <span className="h-px flex-1 bg-border" />
+              <span className="text-xs text-muted-foreground">Or</span>
+              <span className="h-px flex-1 bg-border" />
+            </div>
+            <Auth0SignUpButton />
+          </div>
           
           <div className="text-center text-sm mt-4 space-y-2">
             <div>
