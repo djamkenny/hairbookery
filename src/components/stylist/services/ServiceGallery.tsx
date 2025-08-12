@@ -8,6 +8,7 @@ import { Service } from "./types";
 import { ServiceImageUpload } from "./ServiceImageUpload";
 import { deleteService } from "./serviceApi";
 import { toast } from "@/hooks/use-toast";
+import ImageLightbox from "@/components/ui/ImageLightbox";
 
 interface ServiceGalleryProps {
   services: Service[];
@@ -16,8 +17,11 @@ interface ServiceGalleryProps {
 }
 
 export const ServiceGallery: React.FC<ServiceGalleryProps> = ({ services, className, onServicesChange }) => {
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [uploadService, setUploadService] = useState<Service | null>(null);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxImages, setLightboxImages] = useState<string[]>([]);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [lightboxTitle, setLightboxTitle] = useState<string>("");
 
   const servicesWithImages = services.filter(service => service.image_urls && service.image_urls.length > 0);
 
@@ -86,51 +90,29 @@ export const ServiceGallery: React.FC<ServiceGalleryProps> = ({ services, classN
             
             <div className="grid grid-cols-2 gap-2">
               {service.image_urls?.slice(0, 2).map((imageUrl, index) => (
-                <Dialog key={index}>
-                  <DialogTrigger asChild>
-                    <div className="relative aspect-square rounded-lg overflow-hidden cursor-pointer group bg-muted">
-                      <img
-                        src={imageUrl}
-                        alt={`${service.name} image ${index + 1}`}
-                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                      />
-                        {index === 1 && (service.image_urls?.length || 0) > 2 && (
-                          <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center">
-                            <span className="text-white font-medium">
-                              +{(service.image_urls?.length || 0) - 2} more
-                            </span>
-                          </div>
-                        )}
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all" />
+                <div
+                  key={index}
+                  className="relative aspect-square rounded-lg overflow-hidden cursor-pointer group bg-muted"
+                  onClick={() => {
+                    setLightboxImages(service.image_urls || []);
+                    setLightboxIndex(index);
+                    setLightboxTitle(service.name);
+                    setLightboxOpen(true);
+                  }}
+                  aria-label={`Open ${service.name} gallery at image ${index + 1}`}
+                >
+                  <img
+                    src={imageUrl}
+                    alt={`${service.name} image ${index + 1}`}
+                    className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                  />
+                  {index === 1 && (service.image_urls?.length || 0) > 2 && (
+                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                      <span className="text-white font-medium">+{(service.image_urls?.length || 0) - 2} more</span>
                     </div>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-4xl w-full">
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {service.image_urls?.map((url, imgIndex) => (
-                          <div
-                            key={imgIndex}
-                            className="aspect-square rounded-lg overflow-hidden cursor-pointer"
-                            onClick={() => setSelectedImage(url)}
-                          >
-                            <img
-                              src={url}
-                              alt={`${service.name} image ${imgIndex + 1}`}
-                              className="w-full h-full object-cover hover:scale-105 transition-transform"
-                            />
-                          </div>
-                        ))}
-                      </div>
-                      
-                      <div className="border-t pt-4">
-                        <h3 className="text-xl font-semibold mb-2">{service.name}</h3>
-                        {service.description && (
-                          <p className="text-muted-foreground mb-3">{service.description}</p>
-                        )}
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
+                  )}
+                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all" />
+                </div>
               ))}
             </div>
 
@@ -162,19 +144,14 @@ export const ServiceGallery: React.FC<ServiceGalleryProps> = ({ services, classN
         </Dialog>
       )}
 
-      {selectedImage && (
-        <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
-          <DialogContent className="max-w-6xl w-full">
-            <div className="flex items-center justify-center">
-              <img
-                src={selectedImage}
-                alt="Service image"
-                className="max-w-full max-h-[80vh] object-contain rounded-lg"
-              />
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
+      <ImageLightbox
+        open={lightboxOpen}
+        onOpenChange={setLightboxOpen}
+        images={lightboxImages}
+        startIndex={lightboxIndex}
+        altPrefix={`${lightboxTitle} image`}
+        title={lightboxTitle}
+      />
     </div>
   );
 };

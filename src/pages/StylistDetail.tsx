@@ -15,6 +15,7 @@ import { Service, ServiceType } from "@/components/stylist/services/types";
 import RatingComponent from "@/components/specialist/RatingComponent";
 import AvailabilityBadge from "@/components/ui/AvailabilityBadge";
 import { useAvailabilityStatus } from "@/hooks/useAvailabilityStatus";
+import ImageLightbox from "@/components/ui/ImageLightbox";
 
 interface SpecialistProfile {
   id: string;
@@ -47,6 +48,10 @@ const SpecialistDetail = () => {
 const [loading, setLoading] = useState(true);
 const [services, setServices] = useState<Service[]>([]);
 const { availabilityStatus, loading: availabilityLoading } = useAvailabilityStatus(id);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxImages, setLightboxImages] = useState<string[]>([]);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [lightboxTitle, setLightboxTitle] = useState<string>("");
   
   useEffect(() => {
     const fetchSpecialistAndServices = async () => {
@@ -219,7 +224,7 @@ const { availabilityStatus, loading: availabilityLoading } = useAvailabilityStat
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
             {/* Specialist Image and Basic Info */}
             <div className="lg:col-span-1">
-              <div className="sticky top-24 space-y-4 lg:space-y-6">
+              <div className="lg:sticky lg:top-24 space-y-4 lg:space-y-6">
                 <div className="rounded-lg overflow-hidden shadow-md animate-fade-in">
                   <img 
                     src={specialist.avatar_url || "https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=761&q=80"} 
@@ -288,44 +293,29 @@ const { availabilityStatus, loading: availabilityLoading } = useAvailabilityStat
                         <h3 className="font-medium text-base lg:text-lg">{service.name}</h3>
                         <div className="grid grid-cols-2 gap-2">
                           {service.image_urls.slice(0, 2).map((imageUrl, index) => (
-                            <Dialog key={index}>
-                              <DialogTrigger asChild>
-                                <div className="relative aspect-square rounded-lg overflow-hidden cursor-pointer group bg-muted">
-                                  <img
-                                    src={imageUrl}
-                                    alt={`${service.name} image ${index + 1}`}
-                                    className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                                  />
-                                  {index === 1 && (service.image_urls?.length || 0) > 2 && (
-                                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                                      <span className="text-white font-medium">+{(service.image_urls?.length || 0) - 2} more</span>
-                                    </div>
-                                  )}
-                                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all" />
+                            <div
+                              key={index}
+                              className="relative aspect-square rounded-lg overflow-hidden cursor-pointer group bg-muted"
+                              onClick={() => {
+                                setLightboxImages(service.image_urls || []);
+                                setLightboxIndex(index);
+                                setLightboxTitle(service.name);
+                                setLightboxOpen(true);
+                              }}
+                              aria-label={`Open ${service.name} gallery at image ${index + 1}`}
+                            >
+                              <img
+                                src={imageUrl}
+                                alt={`${service.name} image ${index + 1}`}
+                                className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                              />
+                              {index === 1 && (service.image_urls?.length || 0) > 2 && (
+                                <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                                  <span className="text-white font-medium">+{(service.image_urls?.length || 0) - 2} more</span>
                                 </div>
-                              </DialogTrigger>
-                              <DialogContent className="max-w-4xl w-full">
-                                <div className="space-y-4">
-                                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    {service.image_urls?.map((url, imgIndex) => (
-                                      <div key={imgIndex} className="aspect-square rounded-lg overflow-hidden">
-                                        <img
-                                          src={url}
-                                          alt={`${service.name} image ${imgIndex + 1}`}
-                                          className="w-full h-full object-cover"
-                                        />
-                                      </div>
-                                    ))}
-                                  </div>
-                                  <div className="border-t pt-4">
-                                    <h3 className="text-xl font-semibold mb-2">{service.name}</h3>
-                                    {service.description && (
-                                      <p className="text-muted-foreground mb-3">{service.description}</p>
-                                    )}
-                                  </div>
-                                </div>
-                              </DialogContent>
-                            </Dialog>
+                              )}
+                              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all" />
+                            </div>
                           ))}
                         </div>
                       </div>
@@ -347,6 +337,15 @@ const { availabilityStatus, loading: availabilityLoading } = useAvailabilityStat
           </div>
         </div>
       </main>
+      
+      <ImageLightbox
+        open={lightboxOpen}
+        onOpenChange={setLightboxOpen}
+        images={lightboxImages}
+        startIndex={lightboxIndex}
+        altPrefix={`${lightboxTitle} image`}
+        title={lightboxTitle}
+      />
       
       <Footer />
     </div>

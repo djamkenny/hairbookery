@@ -1,7 +1,8 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
+import ImageLightbox from "@/components/ui/ImageLightbox";
 
 // Sample gallery images
 const galleryImages = [
@@ -39,6 +40,9 @@ const galleryImages = [
 
 const Gallery = () => {
   const isMobile = useIsMobile();
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+  const images = galleryImages.map((g) => g.image);
   const visibleImages = isMobile ? galleryImages.slice(0, 4) : galleryImages;
   
   return (
