@@ -69,7 +69,7 @@ export const useRealtimeChat = (userId?: string, isAdmin = false) => {
     const targetUserId = isAdmin ? userId : user?.id;
     if (!targetUserId) return;
 
-    const channelName = `enhanced_chat_${targetUserId}_${Date.now()}`;
+    const channelName = `direct_chat_${targetUserId}`;
     
     channelRef.current = supabase
       .channel(channelName)
@@ -82,23 +82,35 @@ export const useRealtimeChat = (userId?: string, isAdmin = false) => {
           filter: isAdmin ? `user_id=eq.${userId}` : `user_id=eq.${user?.id}`
         },
         (payload) => {
-          const newMessage = {
+          const incoming = {
             ...payload.new,
             sender_type: payload.new.sender_type as 'user' | 'admin',
             status: 'delivered'
           } as ChatMessage;
 
-          setChatState(prev => ({
-            ...prev,
-            messages: [...prev.messages, newMessage],
-            unreadCount: newMessage.sender_type !== (isAdmin ? 'admin' : 'user') 
-              ? prev.unreadCount + 1 
-              : prev.unreadCount
-          }));
+          setChatState(prev => {
+            const createdAtMs = new Date(incoming.created_at).getTime();
+            const idx = prev.messages.findIndex(m => 
+              m.sender_type === incoming.sender_type &&
+              m.message === incoming.message &&
+              Math.abs(new Date(m.created_at).getTime() - createdAtMs) < 2000
+            );
 
-          // Show notification for incoming messages
-          if ((isAdmin && newMessage.sender_type === 'user') || 
-              (!isAdmin && newMessage.sender_type === 'admin')) {
+            const messages = idx !== -1 
+              ? prev.messages.map((m, i) => i === idx ? { ...m, ...incoming } : m)
+              : [...prev.messages, incoming];
+
+            return {
+              ...prev,
+              messages,
+              unreadCount: incoming.sender_type !== (isAdmin ? 'admin' : 'user') 
+                ? prev.unreadCount + (idx === -1 ? 1 : 0)
+                : prev.unreadCount
+            };
+          });
+
+          if ((isAdmin && incoming.sender_type === 'user') || 
+              (!isAdmin && incoming.sender_type === 'admin')) {
             toast.success('New message received');
           }
         }
@@ -122,6 +134,38 @@ export const useRealtimeChat = (userId?: string, isAdmin = false) => {
           }));
         }
       )
+      .on('broadcast', { event: 'message' }, (payload) => {
+        const data = (payload as any)?.payload ?? payload as any;
+        const targetUserId = isAdmin ? userId : user?.id;
+        if (!data || data.user_id !== targetUserId) return;
+        if (data.sender_id === user?.id) return;
+
+        const incoming: ChatMessage = {
+          id: `temp_${Date.now()}_${Math.random()}`,
+          message: data.message,
+          sender_type: data.sender_type as 'user' | 'admin',
+          created_at: data.created_at,
+          sender_id: data.sender_id,
+          user_id: data.user_id,
+          status: 'delivered'
+        };
+
+        setChatState(prev => {
+          const createdAtMs = new Date(incoming.created_at).getTime();
+          const exists = prev.messages.some(m => 
+            m.sender_type === incoming.sender_type &&
+            m.message === incoming.message &&
+            Math.abs(new Date(m.created_at).getTime() - createdAtMs) < 2000
+          );
+          if (exists) return prev;
+
+          return {
+            ...prev,
+            messages: [...prev.messages, incoming],
+            unreadCount: incoming.sender_type !== (isAdmin ? 'admin' : 'user') ? prev.unreadCount + 1 : prev.unreadCount
+          };
+        });
+      })
       .on('presence', { event: 'sync' }, () => {
         const state = channelRef.current?.presenceState();
         const otherUsers = Object.keys(state || {}).filter(key => key !== user?.id);
@@ -286,19 +330,34 @@ export const useRealtimeChat = (userId?: string, isAdmin = false) => {
     }));
 
     try {
-      if (chatState.isConnected) {
-        await sendMessageDirect(messageText, tempId);
-      } else {
-        // Queue message for later
-        messageQueue.current.push({ text: messageText, tempId });
-        toast.info('Message queued - will send when connected');
+      // Fire a realtime broadcast for instant delivery
+      try {
+        if (channelRef.current) {
+          channelRef.current.send({
+            type: 'broadcast',
+            event: 'message',
+            payload: {
+              message: optimisticMessage.message,
+              sender_type: optimisticMessage.sender_type,
+              created_at: optimisticMessage.created_at,
+              sender_id: optimisticMessage.sender_id,
+              user_id: optimisticMessage.user_id,
+            },
+          });
+        }
+      } catch (e) {
+        console.log('Broadcast failed:', e);
       }
+
+      await sendMessageDirect(messageText, tempId);
       return true;
     } catch (error) {
-      toast.error('Failed to send message');
+      // Queue for retry if DB insert failed (e.g., offline)
+      messageQueue.current.push({ text: messageText, tempId });
+      toast.info('Message queued - will send when connected');
       return false;
     }
-  }, [chatState.isConnected, sendMessageDirect, isAdmin, userId, user?.id]);
+  }, [sendMessageDirect, isAdmin, userId, user?.id]);
 
   // Typing indicator
   const setTyping = useCallback((typing: boolean) => {

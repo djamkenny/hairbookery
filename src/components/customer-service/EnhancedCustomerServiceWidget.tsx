@@ -315,11 +315,11 @@ const EnhancedCustomerServiceWidget = () => {
                       handleSendMessage();
                     }
                   }}
-                  disabled={!isConnected}
+                  disabled={!user}
                 />
                 <Button
                   onClick={handleSendMessage}
-                  disabled={!message.trim() || !user || isLoading || !isConnected}
+                  disabled={!message.trim() || !user || isLoading}
                   size={isMobile ? "sm" : "icon"}
                   className="self-end"
                 >
