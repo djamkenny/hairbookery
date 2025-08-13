@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, Calendar } from "lucide-react";
+import { MapPin } from "lucide-react";
 import { useAvailabilityStatus } from "@/hooks/useAvailabilityStatus";
 
 interface StylistCardProps {
@@ -110,20 +110,10 @@ const StylistCard = ({ id, name, role, bio, image, location, className }: Stylis
           </span>
         </div>
         
-        <div className="flex gap-2 mt-4">
-          <Link to={`/stylist/${id}`} className="flex-1">
+        <div className="mt-4">
+          <Link to={`/stylist/${id}`} className="block">
             <Button variant="outline" size="sm" className="w-full text-xs h-9 px-3 md:h-7 md:px-2 md:text-[10px]">
               View Profile
-            </Button>
-          </Link>
-          <Link to={`/booking?stylist=${id}`} className="flex-1">
-            <Button 
-              size="sm" 
-              className="w-full text-xs h-9 px-3 md:h-7 md:px-2 md:text-[10px]"
-              disabled={availabilityStatus?.stylist_available === false}
-            >
-              <Calendar className="h-3 w-3 mr-1 md:h-2.5 md:w-2.5" />
-              Book Now
             </Button>
           </Link>
         </div>
