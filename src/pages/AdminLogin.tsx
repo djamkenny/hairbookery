@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Loader2, Shield } from "lucide-react";
 import { adminAuth } from "@/services/adminAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 const AdminLogin = () => {
   const navigate = useNavigate();
@@ -32,22 +33,33 @@ const AdminLogin = () => {
     setIsSubmitting(true);
     
     try {
+      // Sign in to Supabase Auth first so RLS recognizes the admin via JWT email
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+
+      if (authError) {
+        console.error("Supabase auth sign-in failed:", authError);
+        toast.error("Sign-in failed. Ensure this admin email also exists as a Supabase user.");
+        return;
+      }
+
+      // Then validate admin role against admin_users
       const response = await adminAuth.login(email, password);
-      
+
       if (response.success && response.admin) {
         toast.success("Successfully logged in!");
         navigate("/admin-dashboard");
       } else {
-        // Provide more specific error messages
         const errorMessage = response.message || "Invalid credentials";
-        
-        if (errorMessage.includes("too many") || errorMessage.includes("rate")) {
+        if (errorMessage.toLowerCase().includes("too many") || errorMessage.toLowerCase().includes("rate")) {
           toast.error("Too many failed attempts. Please wait 15 minutes before trying again.");
-        } else if (errorMessage.includes("invalid") || errorMessage.includes("Invalid")) {
-          toast.error("Invalid email or password. Please check your admin credentials.");
         } else {
           toast.error(errorMessage);
         }
+        // Avoid inconsistent state if admin validation fails
+        await supabase.auth.signOut();
       }
     } catch (error: any) {
       console.error("Admin login error:", error);
