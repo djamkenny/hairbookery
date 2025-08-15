@@ -53,7 +53,7 @@ export const PaymentProvider: React.FC<PaymentProviderProps> = ({ children }) =>
           amount: amountInPesewas, 
           description, 
           currency: 'GHS', // Ghana Cedis
-          metadata: { ...(metadata || {}), force_test: true }
+          metadata: metadata || {}
         }
       });
       
