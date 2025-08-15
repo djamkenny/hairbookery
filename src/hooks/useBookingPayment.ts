@@ -43,8 +43,7 @@ export const useBookingPayment = () => {
             appointmentDate: bookingData.appointmentDate,
             appointmentTime: bookingData.appointmentTime,
             notes: bookingData.notes,
-            totalAmount: bookingData.totalAmount,
-            force_test: true
+            totalAmount: bookingData.totalAmount
           }
         }
       });
