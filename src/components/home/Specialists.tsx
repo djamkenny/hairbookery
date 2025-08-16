@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Scissors, Droplets, WashingMachine } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Scissors, Droplets, WashingMachine, Search, MapPin } from "lucide-react";
 import StylistCard from "@/components/ui/StylistCard";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -13,6 +14,8 @@ const Specialists = () => {
   const [activeRole, setActiveRole] = useState("all");
   const [registeredStylists, setRegisteredStylists] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchName, setSearchName] = useState("");
+  const [searchLocation, setSearchLocation] = useState("");
 
   // Fetch registered specialists from the database
   useEffect(() => {
@@ -52,9 +55,13 @@ const Specialists = () => {
   // Combine registered specialists with hardcoded ones
   const allSpecialists = [...registeredStylists, ...hardcodedSpecialists];
   
-  const filteredSpecialists = activeRole === "all" 
-    ? allSpecialists 
-    : allSpecialists.filter(specialist => specialist.role.toLowerCase().includes(activeRole));
+  const filteredSpecialists = allSpecialists.filter(specialist => {
+    const roleMatch = activeRole === "all" || specialist.role.toLowerCase().includes(activeRole);
+    const nameMatch = !searchName || specialist.name.toLowerCase().includes(searchName.toLowerCase());
+    const locationMatch = !searchLocation || (specialist.location && specialist.location.toLowerCase().includes(searchLocation.toLowerCase()));
+    
+    return roleMatch && nameMatch && locationMatch;
+  });
 
   return (
     <section id="specialists" className="py-20 bg-muted/30">
@@ -66,6 +73,30 @@ const Specialists = () => {
           </p>
         </div>
         
+        {/* Search and Filter Section */}
+        <div className="flex flex-col sm:flex-row gap-4 mb-6 max-w-2xl mx-auto">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Search by name..."
+              value={searchName}
+              onChange={(e) => setSearchName(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <div className="relative flex-1">
+            <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Search by location..."
+              value={searchLocation}
+              onChange={(e) => setSearchLocation(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </div>
+
         <div className="flex justify-center mb-8 gap-3 flex-wrap">
           <Button 
             variant={activeRole === "all" ? "default" : "outline"} 

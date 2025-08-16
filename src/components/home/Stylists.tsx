@@ -114,6 +114,7 @@ const Stylists = () => {
   const [stylists, setStylists] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterSpecialty, setFilterSpecialty] = useState("");
+  const [filterLocation, setFilterLocation] = useState("");
   const [filterExperience, setFilterExperience] = useState<number[]>([0, 10]);
   const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -166,7 +167,9 @@ const Stylists = () => {
 
   const filteredStylists = stylists.filter(stylist => {
     const searchRegex = new RegExp(searchTerm, 'i');
+    const nameMatch = searchRegex.test(stylist.full_name);
     const specialtyMatch = filterSpecialty ? stylist.specialty.toLowerCase().includes(filterSpecialty.toLowerCase()) : true;
+    const locationMatch = filterLocation ? stylist.location.toLowerCase().includes(filterLocation.toLowerCase()) : true;
     
     // Handle experience filtering, considering we're using strings for experience
     let experienceYears = 0;
@@ -181,7 +184,7 @@ const Stylists = () => {
     
     const experienceMatch = experienceYears >= filterExperience[0] && experienceYears <= filterExperience[1];
 
-    return searchRegex.test(stylist.full_name) && specialtyMatch && experienceMatch;
+    return nameMatch && specialtyMatch && locationMatch && experienceMatch;
   });
 
   const renderStylist = (stylist: any) => (
@@ -236,6 +239,21 @@ const Stylists = () => {
                     value={filterSpecialty}
                     onChange={(e) => setFilterSpecialty(e.target.value)}
                     placeholder="e.g., Hair Coloring"
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <label
+                    htmlFor="location"
+                    className="text-sm font-medium leading-none"
+                  >
+                    Location
+                  </label>
+                  <Input
+                    id="location"
+                    value={filterLocation}
+                    onChange={(e) => setFilterLocation(e.target.value)}
+                    placeholder="e.g., Accra, Kumasi"
                     className="col-span-3"
                   />
                 </div>
