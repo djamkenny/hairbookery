@@ -24,7 +24,7 @@ export const Hero = () => {
       <div className="container mx-auto px-4 py-8 md:py-12 lg:py-24">
         <div className="max-w-3xl mx-auto text-center">
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight mb-4 md:mb-6 animate-fade-in">
-            Experience <span className="text-primary">Premium</span> Hair Care
+            Experience <span className="text-primary">Premium</span> Booking with your favourite Specialist
           </h1>
           <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 md:mb-10 text-balance animate-slide-in">
             Book appointments with our expert stylists and transform your look.
