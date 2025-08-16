@@ -45,42 +45,42 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
         </div>
       )}
 
-      <CardHeader>
-        <div className="flex justify-between items-start">
-          <div className="max-w-[70%]">
-            <CardTitle className="text-lg leading-tight">{service.name}</CardTitle>
+      <CardHeader className="pb-3">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+          <div className="flex-1 min-w-0">
+            <CardTitle className="text-base sm:text-lg leading-tight">{service.name}</CardTitle>
             {service.description && (
-              <CardDescription className="mt-1">{service.description}</CardDescription>
+              <CardDescription className="mt-1 text-sm">{service.description}</CardDescription>
             )}
           </div>
-          <div className="flex gap-1 ml-2">
+          <div className="flex gap-1 shrink-0">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => onManageTypes(service)}
               disabled={isEditing}
-              className="h-8 w-8"
+              className="h-7 w-7 sm:h-8 sm:w-8"
               title="Manage Service Types"
             >
-              <Settings className="h-4 w-4" />
+              <Settings className="h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
             <Button
               variant="ghost"
               size="icon"
               onClick={() => onEdit(service)}
               disabled={isEditing}
-              className="h-8 w-8"
+              className="h-7 w-7 sm:h-8 sm:w-8"
             >
-              <Edit className="h-4 w-4" />
+              <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
             <Button
               variant="ghost"
               size="icon"
               onClick={() => onDelete(service.id)}
               disabled={isEditing}
-              className="h-8 w-8 text-destructive hover:text-destructive"
+              className="h-7 w-7 sm:h-8 sm:w-8 text-destructive hover:text-destructive"
             >
-              <Trash2 className="h-4 w-4" />
+              <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
           </div>
         </div>

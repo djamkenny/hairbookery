@@ -279,10 +279,10 @@ const ServiceTypeManagement: React.FC<ServiceTypeManagementProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-semibold">Service Types</h2>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <h2 className="text-xl sm:text-2xl font-semibold">Service Types</h2>
         {!isAdding && (
-          <Button onClick={() => setIsAdding(true)}>
+          <Button onClick={() => setIsAdding(true)} className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" />
             Add Service Type
           </Button>
@@ -437,25 +437,27 @@ const ServiceTypeManagement: React.FC<ServiceTypeManagementProps> = ({
                   {types.map((serviceType) => (
                     <div
                       key={serviceType.id}
-                      className="flex items-center justify-between p-3 border rounded-lg bg-muted/20"
+                      className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 border rounded-lg bg-muted/20"
                     >
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3">
-                          <h4 className="font-semibold">{serviceType.name}</h4>
-                          <Badge variant="secondary">
-                            GHS {serviceType.price}
-                          </Badge>
-                          <Badge variant="outline">
-                            {serviceType.duration} min
-                          </Badge>
+                      <div className="flex-1 space-y-2">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                          <h4 className="font-semibold text-sm sm:text-base">{serviceType.name}</h4>
+                          <div className="flex gap-2">
+                            <Badge variant="secondary" className="text-xs">
+                              GHS {serviceType.price}
+                            </Badge>
+                            <Badge variant="outline" className="text-xs">
+                              {serviceType.duration} min
+                            </Badge>
+                          </div>
                         </div>
                         {serviceType.description && (
-                          <p className="text-sm text-muted-foreground mt-1">
+                          <p className="text-sm text-muted-foreground">
                             {serviceType.description}
                           </p>
                         )}
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex gap-1 sm:gap-2 justify-end">
                         <Button
                           variant="outline"
                           size="sm"
@@ -465,6 +467,7 @@ const ServiceTypeManagement: React.FC<ServiceTypeManagementProps> = ({
                           }}
                           aria-label="Upload service images"
                           title="Upload service images"
+                          className="px-2"
                         >
                           <Upload className="h-4 w-4" />
                         </Button>
@@ -472,12 +475,14 @@ const ServiceTypeManagement: React.FC<ServiceTypeManagementProps> = ({
                           variant="outline"
                           size="sm"
                           onClick={() => handleEdit(serviceType)}
+                          className="px-2"
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="outline"
                           size="sm"
+                          className="text-destructive px-2"
                           onClick={() => handleDelete(serviceType.id)}
                         >
                           <Trash2 className="h-4 w-4" />

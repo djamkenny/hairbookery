@@ -44,29 +44,29 @@ export const ServiceGallery: React.FC<ServiceGalleryProps> = ({ services, classN
         <p className="text-muted-foreground">Showcase of our available services</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         {servicesWithImages.map((service) => (
           <div key={service.id} className="space-y-3">
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
               <h3 className="font-medium text-lg">{service.name}</h3>
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline">
-                    {service.image_urls?.length || 0} photos
-                  </Badge>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="outline" className="text-xs">
+                  {service.image_urls?.length || 0} photos
+                </Badge>
+                <div className="flex items-center gap-1">
                   <Button
                     size="sm"
                     variant="outline"
-                    className="flex items-center gap-1"
+                    className="flex items-center gap-1 text-xs px-2 py-1"
                     onClick={() => setUploadService(service)}
                   >
-                    <Upload className="h-4 w-4" />
-                    Upload
+                    <Upload className="h-3 w-3" />
+                    <span className="hidden sm:inline">Upload</span>
                   </Button>
                   <Button
                     size="sm"
                     variant="outline"
-                    className="flex items-center gap-1 text-destructive"
+                    className="flex items-center gap-1 text-destructive text-xs px-2 py-1"
                     onClick={async () => {
                       if (!confirm("Delete this service? This will remove its images and types.")) return;
                       try {
@@ -81,8 +81,8 @@ export const ServiceGallery: React.FC<ServiceGalleryProps> = ({ services, classN
                     title="Delete service"
                     aria-label="Delete service"
                   >
-                    <Trash2 className="h-4 w-4" />
-                    Delete
+                    <Trash2 className="h-3 w-3" />
+                    <span className="hidden sm:inline">Delete</span>
                   </Button>
                 </div>
               </div>
