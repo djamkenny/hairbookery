@@ -2,8 +2,9 @@ import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin } from "lucide-react";
+import { MapPin, Navigation } from "lucide-react";
 import { useAvailabilityStatus } from "@/hooks/useAvailabilityStatus";
+import { useLocationSharing } from "@/hooks/useLocationSharing";
 
 interface StylistCardProps {
   id: string;
@@ -17,6 +18,7 @@ interface StylistCardProps {
 
 const StylistCard = ({ id, name, role, bio, image, location, className }: StylistCardProps) => {
   const { availabilityStatus, loading, refetch } = useAvailabilityStatus(id);
+  const { shareLocation } = useLocationSharing();
   
   // Refresh availability status every 30 seconds to keep it current
   useEffect(() => {
@@ -58,6 +60,14 @@ const StylistCard = ({ id, name, role, bio, image, location, className }: Stylis
       case 'unavailable':
       default:
         return "text-red-600";
+    }
+  };
+
+  const handleLocationClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (location) {
+      shareLocation(location, name);
     }
   };
 
@@ -103,11 +113,17 @@ const StylistCard = ({ id, name, role, bio, image, location, className }: Stylis
         
         <p className="text-muted-foreground text-xs mb-3 line-clamp-2">{truncatedBio}</p>
         
-        <div className="flex items-start gap-1 mb-3">
-          <MapPin className="h-3 w-3 text-muted-foreground mt-0.5 flex-shrink-0" />
-          <span className="text-xs text-muted-foreground line-clamp-1">
+        <div 
+          className="flex items-start gap-1 mb-3 cursor-pointer group/location hover:bg-muted/50 rounded p-1 -m-1 transition-colors"
+          onClick={handleLocationClick}
+        >
+          <MapPin className="h-3 w-3 text-muted-foreground mt-0.5 flex-shrink-0 group-hover/location:text-primary transition-colors" />
+          <span className="text-xs text-muted-foreground line-clamp-1 group-hover/location:text-primary transition-colors">
             {location || "Location not specified"}
           </span>
+          {location && (
+            <Navigation className="h-3 w-3 text-muted-foreground group-hover/location:text-primary transition-colors opacity-0 group-hover/location:opacity-100" />
+          )}
         </div>
         
         <div className="mt-4">
