@@ -7,15 +7,12 @@ import {
   useNavigate,
 } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import ForgotPassword from './pages/ForgotPassword';
+import Auth from './pages/Auth';
 import ResetPassword from './pages/ResetPassword';
 import Index from './pages/Index';
 import Profile from './pages/Profile';
 
 import StylistDashboard from './pages/StylistDashboard';
-import StylistRegister from './pages/StylistRegister';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -56,7 +53,7 @@ const AppContent: React.FC = () => {
     if (user) {
       // Redirect authenticated users to home page, but not on initial load or password reset
       const currentPath = window.location.pathname;
-      if (currentPath === '/login' || currentPath === '/register' || currentPath === '/forgot-password') {
+      if (currentPath === '/login' || currentPath === '/register' || currentPath === '/forgot-password' || currentPath === '/stylist-register' || currentPath === '/auth') {
         navigate('/');
       }
     }
@@ -65,24 +62,29 @@ const AppContent: React.FC = () => {
   return (
     <>
       <Routes>
+        <Route path="/auth" element={
+          <PublicRoute>
+            <Auth />
+          </PublicRoute>
+        } />
         <Route path="/login" element={
           <PublicRoute>
-            <Login />
+            <Auth />
           </PublicRoute>
         } />
         <Route path="/register" element={
           <PublicRoute>
-            <Register />
+            <Auth />
           </PublicRoute>
         } />
         <Route path="/stylist-register" element={
           <PublicRoute>
-            <StylistRegister />
+            <Auth />
           </PublicRoute>
         } />
         <Route path="/forgot-password" element={
           <PublicRoute>
-            <ForgotPassword />
+            <Auth />
           </PublicRoute>
         } />
         <Route path="/reset-password" element={<ResetPassword />} />

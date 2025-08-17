@@ -137,72 +137,52 @@ const SpecialistRegisterForm = () => {
   };
 
   return (
-    <Card className="animate-slide-up">
-      <form onSubmit={handleSubmit}>
-        <CardHeader>
-          <CardTitle>Join as a Specialist</CardTitle>
-          <CardDescription>
-            Enter your details to create a specialist account
-          </CardDescription>
-        </CardHeader>
-        
-        <CardContent className="space-y-4">
-          <PersonalInfoSection 
-            name={name}
-            setName={setName}
-            email={email}
-            setEmail={setEmail}
-            password={password}
-            setPassword={setPassword}
-            confirmPassword={confirmPassword}
-            setConfirmPassword={setConfirmPassword}
-            formErrors={formErrors}
-          />
-          
-          <ProfessionalInfoSection
-            specialty={specialty}
-            setSpecialty={setSpecialty}
-            experience={experience}
-            setExperience={setExperience}
-            location={location}
-            setLocation={setLocation}
-            bio={bio}
-            setBio={setBio}
-            formErrors={formErrors}
-          />
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <PersonalInfoSection 
+        name={name}
+        setName={setName}
+        email={email}
+        setEmail={setEmail}
+        password={password}
+        setPassword={setPassword}
+        confirmPassword={confirmPassword}
+        setConfirmPassword={setConfirmPassword}
+        formErrors={formErrors}
+      />
+      
+      <ProfessionalInfoSection
+        specialty={specialty}
+        setSpecialty={setSpecialty}
+        experience={experience}
+        setExperience={setExperience}
+        location={location}
+        setLocation={setLocation}
+        bio={bio}
+        setBio={setBio}
+        formErrors={formErrors}
+      />
 
-          <TermsCheckbox 
-            checked={acceptTerms}
-            onCheckedChange={setAcceptTerms}
-            error={formErrors.terms}
-          />
-        </CardContent>
-        
-        <CardFooter className="flex flex-col space-y-4">
-          <Button 
-            type="submit" 
-            className="w-full"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? (
-              <div className="flex items-center">
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                <span>Creating account...</span>
-              </div>
-            ) : (
-              "Register as a Specialist"
-            )}
-          </Button>
-          
-          <div className="text-center text-sm">
-            Already have a specialist account?{" "}
-            <Link to="/login" className="text-primary hover:underline">
-              Sign in
-            </Link>
+      <TermsCheckbox 
+        checked={acceptTerms}
+        onCheckedChange={setAcceptTerms}
+        error={formErrors.terms}
+      />
+      
+      <Button 
+        type="submit" 
+        className="w-full"
+        disabled={isSubmitting}
+      >
+        {isSubmitting ? (
+          <div className="flex items-center">
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            <span>Creating account...</span>
           </div>
-        </CardFooter>
-      </form>
-    </Card>
+        ) : (
+          "Register as a Specialist"
+        )}
+      </Button>
+    </form>
   );
 };
 

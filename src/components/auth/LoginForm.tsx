@@ -74,87 +74,54 @@ const LoginForm = () => {
   };
 
   return (
-    <Card className="animate-slide-up">
-      <form onSubmit={handleSubmit}>
-        <CardHeader>
-          <CardTitle>Sign In</CardTitle>
-          <CardDescription>
-            Enter your credentials to access your account
-          </CardDescription>
-        </CardHeader>
-        
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="password">Password</Label>
-              <Link to="/forgot-password" className="text-sm text-primary hover:underline">
-                Forgot password?
-              </Link>
-            </div>
-            <Input
-              id="password"
-              type="password"
-              placeholder="Enter your password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="email">Email</Label>
+        <Input
+          id="email"
+          type="email"
+          placeholder="Enter your email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="password">Password</Label>
+        <Input
+          id="password"
+          type="password"
+          placeholder="Enter your password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+      </div>
 
-          {emailConfirmationError && (
-            <EmailConfirmationAlert 
-              email={email} 
-              isSubmitting={isSubmitting} 
-              setIsSubmitting={setIsSubmitting}
-            />
-          )}
-        </CardContent>
-        
-        <CardFooter className="flex flex-col space-y-4">
-          <Button 
-            type="submit" 
-            className="w-full"
-            disabled={isSubmitting}
-          >
-            {isSubmitting && !emailConfirmationError ? (
-              <div className="flex items-center">
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                <span>Signing in...</span>
-              </div>
-            ) : (
-              "Sign In"
-            )}
-          </Button>
-          
-          <div className="text-center text-sm mt-2 space-y-2">
-            <div>
-              Don't have a client account?{" "}
-              <Link to="/register" className="text-primary hover:underline">
-                Register as Client
-              </Link>
-            </div>
-            <div>
-              Are you a hair specialist?{" "}
-              <Link to="/stylist-register" className="text-primary hover:underline">
-                Register as Specialist
-              </Link>
-            </div>
+      {emailConfirmationError && (
+        <EmailConfirmationAlert 
+          email={email} 
+          isSubmitting={isSubmitting} 
+          setIsSubmitting={setIsSubmitting}
+        />
+      )}
+      
+      <Button 
+        type="submit" 
+        className="w-full"
+        disabled={isSubmitting}
+      >
+        {isSubmitting && !emailConfirmationError ? (
+          <div className="flex items-center">
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            <span>Signing in...</span>
           </div>
-        </CardFooter>
-      </form>
-    </Card>
+        ) : (
+          "Sign In"
+        )}
+      </Button>
+    </form>
   );
 };
 

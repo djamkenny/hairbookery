@@ -93,47 +93,34 @@ const ForgotPasswordForm = () => {
   }
 
   return (
-    <Card className="animate-slide-up">
-      <form onSubmit={handleSubmit}>
-        <CardHeader>
-          <CardTitle>Forgot Password</CardTitle>
-          <CardDescription>
-            Enter your email address and we'll send you a reset link
-          </CardDescription>
-        </CardHeader>
-        
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email Address</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="email">Email Address</Label>
+        <Input
+          id="email"
+          type="email"
+          placeholder="Enter your email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+      </div>
+      
+      <Button 
+        type="submit" 
+        className="w-full"
+        disabled={isSubmitting}
+      >
+        {isSubmitting ? (
+          <div className="flex items-center">
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            <span>Sending reset link...</span>
           </div>
-        </CardContent>
-        
-        <CardFooter>
-          <Button 
-            type="submit" 
-            className="w-full"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? (
-              <div className="flex items-center">
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                <span>Sending reset link...</span>
-              </div>
-            ) : (
-              "Send Reset Link"
-            )}
-          </Button>
-        </CardFooter>
-      </form>
-    </Card>
+        ) : (
+          "Send Reset Link"
+        )}
+      </Button>
+    </form>
   );
 };
 

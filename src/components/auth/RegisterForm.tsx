@@ -146,108 +146,95 @@ const RegisterForm = ({ className }: RegisterFormProps) => {
   };
 
   return (
-    <Card className={`animate-slide-up ${className}`}>
-      <form onSubmit={handleSubmit}>
-        <CardHeader>
-          <CardTitle>Sign Up</CardTitle>
-          <CardDescription>
-            Enter your details to create an account
-          </CardDescription>
-        </CardHeader>
-        
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Full Name</Label>
-            <Input
-              id="name"
-              placeholder="Enter your full name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className={formErrors.name ? "border-destructive" : ""}
-            />
-            {formErrors.name && (
-              <p className="text-sm text-destructive mt-1">{formErrors.name}</p>
-            )}
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className={formErrors.email ? "border-destructive" : ""}
-            />
-            {formErrors.email && (
-              <p className="text-sm text-destructive mt-1">{formErrors.email}</p>
-            )}
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <PasswordInput
-              id="password"
-              placeholder="Create a password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              error={formErrors.password}
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
-            <PasswordInput
-              id="confirmPassword"
-              placeholder="Confirm your password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              error={formErrors.confirmPassword}
-              confirmPassword
-            />
-          </div>
+    <form onSubmit={handleSubmit} className={`space-y-4 ${className}`}>
+      <div className="space-y-2">
+        <Label htmlFor="name">Full Name</Label>
+        <Input
+          id="name"
+          placeholder="Enter your full name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className={formErrors.name ? "border-destructive" : ""}
+        />
+        {formErrors.name && (
+          <p className="text-sm text-destructive mt-1">{formErrors.name}</p>
+        )}
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="email">Email</Label>
+        <Input
+          id="email"
+          type="email"
+          placeholder="Enter your email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className={formErrors.email ? "border-destructive" : ""}
+        />
+        {formErrors.email && (
+          <p className="text-sm text-destructive mt-1">{formErrors.email}</p>
+        )}
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="password">Password</Label>
+        <PasswordInput
+          id="password"
+          placeholder="Create a password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          error={formErrors.password}
+        />
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="confirmPassword">Confirm Password</Label>
+        <PasswordInput
+          id="confirmPassword"
+          placeholder="Confirm your password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          error={formErrors.confirmPassword}
+          confirmPassword
+        />
+      </div>
 
-          <TermsCheckbox 
-            checked={acceptTerms}
-            onCheckedChange={setAcceptTerms}
-            error={formErrors.terms}
-          />
-        </CardContent>
-        
-        <CardFooter className="flex flex-col space-y-4">
-          <Button 
-            type="submit" 
-            className="w-full"
-            disabled={isSubmitting}
+      <TermsCheckbox 
+        checked={acceptTerms}
+        onCheckedChange={setAcceptTerms}
+        error={formErrors.terms}
+      />
+      
+      <Button 
+        type="submit" 
+        className="w-full"
+        disabled={isSubmitting}
+      >
+        {isSubmitting ? (
+          <div className="flex items-center">
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            <span>Creating account...</span>
+          </div>
+        ) : (
+          "Create Account"
+        )}
+      </Button>
+
+      {canResend && (
+        <div className="text-center text-sm">
+          Didn't receive the verification email?{" "}
+          <Button
+            type="button"
+            variant="link"
+            className="px-1"
+            onClick={handleResend}
+            disabled={resendCooldown > 0}
           >
-            {isSubmitting ? (
-              <div className="flex items-center">
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                <span>Creating account...</span>
-              </div>
-            ) : (
-              "Create Account"
-            )}
+            {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend email"}
           </Button>
-
-          {canResend && (
-            <div className="text-center text-sm">
-              Didn't receive the verification email?{" "}
-              <Button
-                type="button"
-                variant="link"
-                className="px-1"
-                onClick={handleResend}
-                disabled={resendCooldown > 0}
-              >
-                {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend email"}
-              </Button>
-            </div>
-          )}
-        </CardFooter>
-      </form>
-    </Card>
+        </div>
+      )}
+    </form>
   );
 };
 
