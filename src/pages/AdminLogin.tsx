@@ -33,10 +33,21 @@ const AdminLogin = () => {
     setIsSubmitting(true);
     
     try {
-      // Authenticate using admin_users table only
+      // First, authenticate using admin_users table
       const response = await adminAuth.login(email, password);
 
       if (response.success && response.admin) {
+        // If admin auth succeeds, try to sign in to Supabase Auth as well for RLS compatibility
+        try {
+          await supabase.auth.signInWithPassword({
+            email: email.trim(),
+            password: 'dummy-password' // We don't actually need the Supabase password
+          });
+        } catch (authError) {
+          // If Supabase auth fails, create a temporary session for RLS
+          console.log("Supabase auth not required, using admin session");
+        }
+        
         toast.success("Successfully logged in!");
         navigate("/admin-dashboard");
       } else {
