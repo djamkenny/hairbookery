@@ -78,13 +78,23 @@ const NotificationSettings = () => {
   useEffect(() => {
     const loadSettings = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError) {
+          console.error("Error getting user:", userError);
+          return;
+        }
+
         if (user) {
           setUser(user);
+          console.log("Notification settings - User loaded:", user.id);
           
           const metadata = user.user_metadata || {};
+          console.log("User metadata for notifications:", metadata);
           if (metadata.notification_preferences) {
+            console.log("Loading notification preferences:", metadata.notification_preferences);
             setNotifications({ ...notifications, ...metadata.notification_preferences });
+          } else {
+            console.log("No notification preferences found, using defaults");
           }
         }
       } catch (error) {

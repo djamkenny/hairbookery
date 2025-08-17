@@ -52,15 +52,24 @@ const BookingSettings = () => {
   useEffect(() => {
     const loadSettings = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError) {
+          console.error("Error getting user:", userError);
+          return;
+        }
+
         if (user) {
           setUser(user);
+          console.log("Booking settings - User loaded:", user.id);
           
           const metadata = user.user_metadata || {};
+          console.log("User metadata for booking:", metadata);
           if (metadata.booking_preferences) {
+            console.log("Loading booking preferences:", metadata.booking_preferences);
             setPreferences({ ...preferences, ...metadata.booking_preferences });
           }
           if (metadata.custom_policies) {
+            console.log("Loading custom policies:", metadata.custom_policies);
             setCustomPolicies({ ...customPolicies, ...metadata.custom_policies });
           }
         }

@@ -45,13 +45,23 @@ const PreferencesSettings = () => {
   useEffect(() => {
     const loadSettings = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError) {
+          console.error("Error getting user:", userError);
+          return;
+        }
+
         if (user) {
           setUser(user);
+          console.log("General preferences - User loaded:", user.id);
           
           const metadata = user.user_metadata || {};
+          console.log("User metadata for general preferences:", metadata);
           if (metadata.general_preferences) {
+            console.log("Loading general preferences:", metadata.general_preferences);
             setPreferences({ ...preferences, ...metadata.general_preferences });
+          } else {
+            console.log("No general preferences found, using defaults");
           }
         }
       } catch (error) {

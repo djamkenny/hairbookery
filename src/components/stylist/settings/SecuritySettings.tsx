@@ -43,13 +43,23 @@ const SecuritySettings = () => {
   useEffect(() => {
     const loadSettings = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError) {
+          console.error("Error getting user:", userError);
+          return;
+        }
+
         if (user) {
           setUser(user);
+          console.log("Security settings - User loaded:", user.id);
           
           const metadata = user.user_metadata || {};
+          console.log("User metadata for security:", metadata);
           if (metadata.security_preferences) {
+            console.log("Loading security preferences:", metadata.security_preferences);
             setPreferences({ ...preferences, ...metadata.security_preferences });
+          } else {
+            console.log("No security preferences found, using defaults");
           }
         }
       } catch (error) {

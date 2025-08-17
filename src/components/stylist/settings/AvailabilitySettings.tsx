@@ -37,26 +37,42 @@ const AvailabilitySettings = () => {
   useEffect(() => {
     const loadSettings = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError) {
+          console.error("Error getting user:", userError);
+          return;
+        }
+
         if (user) {
           setUser(user);
+          console.log("User loaded:", user.id);
           
-          const { data: profileData } = await supabase
+          const { data: profileData, error: profileError } = await supabase
             .from('profiles')
             .select('*')
             .eq('id', user.id)
-            .single();
+            .maybeSingle();
             
-          if (profileData) {
+          if (profileError) {
+            console.error("Error loading profile:", profileError);
+          } else if (profileData) {
+            console.log("Profile data loaded:", profileData);
             setAvailability(profileData.availability !== false);
             setDailyAppointmentLimit(profileData.daily_appointment_limit || 10);
             
             const metadata = user.user_metadata || {};
+            console.log("User metadata:", metadata);
             if (metadata.working_hours) {
               setWorkingHours(metadata.working_hours);
             }
-            setBreakDuration(metadata.break_duration || 30);
-            setAdvanceBookingDays(metadata.advance_booking_days || 30);
+            if (metadata.break_duration !== undefined) {
+              setBreakDuration(metadata.break_duration);
+            }
+            if (metadata.advance_booking_days !== undefined) {
+              setAdvanceBookingDays(metadata.advance_booking_days);
+            }
+          } else {
+            console.log("No profile data found");
           }
         }
       } catch (error) {
