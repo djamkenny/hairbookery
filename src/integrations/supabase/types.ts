@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -872,33 +872,33 @@ export type Database = {
         Returns: Json
       }
       check_stylist_availability: {
-        Args: { stylist_uuid: string; check_date?: string }
+        Args: { check_date?: string; stylist_uuid: string }
         Returns: Json
       }
       create_admin_user: {
-        Args: { p_email: string; p_password: string; p_full_name: string }
+        Args: { p_email: string; p_full_name: string; p_password: string }
         Returns: Json
       }
       create_notification: {
         Args: {
-          p_user_id: string
-          p_title: string
-          p_message: string
-          p_type: string
-          p_related_id?: string
           p_action_url?: string
+          p_message: string
           p_priority?: string
+          p_related_id?: string
+          p_title: string
+          p_type: string
+          p_user_id: string
         }
         Returns: string
       }
       create_withdrawal_request: {
         Args: {
-          p_stylist_id: string
+          p_account_name: string
+          p_account_number: string
           p_amount: number
           p_bank_name: string
-          p_account_number: string
-          p_account_name: string
           p_notes?: string
+          p_stylist_id: string
         }
         Returns: string
       }
@@ -917,16 +917,16 @@ export type Database = {
       get_public_stylists: {
         Args: { p_id?: string }
         Returns: {
-          id: string
-          full_name: string
-          specialty: string
-          experience: string
-          bio: string
-          avatar_url: string
-          card_image_url: string
-          location: string
           availability: boolean
           availability_status: string
+          avatar_url: string
+          bio: string
+          card_image_url: string
+          experience: string
+          full_name: string
+          id: string
+          location: string
+          specialty: string
         }[]
       }
       get_stylist_available_balance: {
@@ -936,43 +936,43 @@ export type Database = {
       get_stylist_earnings: {
         Args: { stylist_uuid: string }
         Returns: {
-          id: string
-          stylist_id: string
           appointment_id: string
-          payment_id: string
+          created_at: string
           gross_amount: number
-          platform_fee: number
+          id: string
           net_amount: number
+          payment_id: string
+          platform_fee: number
           platform_fee_percentage: number
           status: string
-          created_at: string
+          stylist_id: string
           updated_at: string
         }[]
       }
       get_stylist_revenue_summary: {
         Args: { stylist_uuid: string }
         Returns: {
-          total_revenue: number
-          total_bookings: number
-          total_booking_fees: number
-          total_service_revenue: number
           avg_booking_value: number
+          total_booking_fees: number
+          total_bookings: number
+          total_revenue: number
+          total_service_revenue: number
         }[]
       }
       get_stylist_withdrawals: {
         Args: { stylist_uuid: string }
         Returns: {
-          id: string
-          stylist_id: string
-          amount: number
-          status: string
-          bank_name: string
-          account_number: string
           account_name: string
+          account_number: string
+          amount: number
+          bank_name: string
+          created_at: string
+          id: string
           notes: string
           processed_at: string
           processed_by: string
-          created_at: string
+          status: string
+          stylist_id: string
           updated_at: string
         }[]
       }
