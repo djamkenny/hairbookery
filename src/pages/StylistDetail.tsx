@@ -16,6 +16,7 @@ import RatingComponent from "@/components/specialist/RatingComponent";
 import AvailabilityBadge from "@/components/ui/AvailabilityBadge";
 import { useAvailabilityStatus } from "@/hooks/useAvailabilityStatus";
 import ImageLightbox from "@/components/ui/ImageLightbox";
+import { useLocationSharing } from "@/hooks/useLocationSharing";
 
 interface SpecialistProfile {
   id: string;
@@ -45,13 +46,14 @@ const SpecialistDetail = () => {
   const [serviceCategories, setServiceCategories] = useState<ServiceCategory[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedServiceTypes, setSelectedServiceTypes] = useState<string[]>([]);
-const [loading, setLoading] = useState(true);
-const [services, setServices] = useState<Service[]>([]);
-const { availabilityStatus, loading: availabilityLoading } = useAvailabilityStatus(id);
+  const [loading, setLoading] = useState(true);
+  const [services, setServices] = useState<Service[]>([]);
+  const { availabilityStatus, loading: availabilityLoading } = useAvailabilityStatus(id);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxImages, setLightboxImages] = useState<string[]>([]);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [lightboxTitle, setLightboxTitle] = useState<string>("");
+  const { shareLocation } = useLocationSharing();
   
   useEffect(() => {
     const fetchSpecialistAndServices = async () => {
@@ -239,7 +241,13 @@ const { availabilityStatus, loading: availabilityLoading } = useAvailabilityStat
                     <p className="text-primary text-base lg:text-lg mb-4">{specialist.specialty}</p>
                     
                     {specialist.location && (
-                      <div className="flex items-start gap-2 mb-4">
+                      <div 
+                        className="flex items-start gap-2 mb-4 cursor-pointer hover:text-primary transition-colors"
+                        onClick={() => shareLocation(specialist.location!, specialist.full_name)}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`Open ${specialist.location} in Google Maps`}
+                      >
                         <MapPin className="h-4 w-4 lg:h-5 lg:w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
                         <span className="text-sm text-muted-foreground">{specialist.location}</span>
                       </div>
