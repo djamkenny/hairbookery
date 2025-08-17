@@ -879,6 +879,10 @@ export type Database = {
         Args: { p_email: string; p_full_name: string; p_password: string }
         Returns: Json
       }
+      create_complete_admin_user: {
+        Args: { p_email: string; p_full_name: string; p_password: string }
+        Returns: Json
+      }
       create_notification: {
         Args: {
           p_action_url?: string
