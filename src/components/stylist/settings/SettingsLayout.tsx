@@ -29,17 +29,10 @@ interface SettingSection {
 const settingSections: SettingSection[] = [
   {
     id: "availability",
-    title: "Availability & Hours",
-    description: "Manage your working hours and appointment limits",
+    title: "Availability",
+    description: "Manage your availability and appointment limits",
     icon: Clock,
     component: AvailabilitySettings,
-  },
-  {
-    id: "bookings",
-    title: "Booking Preferences",
-    description: "Control how clients can book with you",
-    icon: Calendar,
-    component: BookingSettings,
   },
   {
     id: "notifications",
@@ -49,18 +42,25 @@ const settingSections: SettingSection[] = [
     component: NotificationSettings,
   },
   {
-    id: "preferences",
-    title: "General Preferences",
-    description: "Customize your dashboard experience",
-    icon: Settings,
-    component: PreferencesSettings,
+    id: "bookings",
+    title: "Booking Settings",
+    description: "Control booking preferences",
+    icon: Calendar,
+    component: BookingSettings,
   },
   {
     id: "security",
     title: "Security & Privacy",
-    description: "Manage account security and data privacy",
+    description: "Manage account security and privacy",
     icon: Shield,
     component: SecuritySettings,
+  },
+  {
+    id: "preferences",
+    title: "Preferences",
+    description: "Customize your regional settings",
+    icon: Settings,
+    component: PreferencesSettings,
   },
 ];
 
