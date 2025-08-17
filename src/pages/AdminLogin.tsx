@@ -33,19 +33,7 @@ const AdminLogin = () => {
     setIsSubmitting(true);
     
     try {
-      // Sign in to Supabase Auth first so RLS recognizes the admin via JWT email
-      const { error: authError } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password,
-      });
-
-      if (authError) {
-        console.error("Supabase auth sign-in failed:", authError);
-        toast.error("Sign-in failed. Ensure this admin email also exists as a Supabase user.");
-        return;
-      }
-
-      // Then validate admin role against admin_users
+      // Authenticate using admin_users table only
       const response = await adminAuth.login(email, password);
 
       if (response.success && response.admin) {
@@ -58,8 +46,6 @@ const AdminLogin = () => {
         } else {
           toast.error(errorMessage);
         }
-        // Avoid inconsistent state if admin validation fails
-        await supabase.auth.signOut();
       }
     } catch (error: any) {
       console.error("Admin login error:", error);
