@@ -44,6 +44,7 @@ const EnhancedAdminChatInterface = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [messages, setMessages] = useState<any[]>([]);
   const [isConnected, setIsConnected] = useState(true);
+  const [realtimeChannel, setRealtimeChannel] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
 
@@ -76,10 +77,69 @@ const EnhancedAdminChatInterface = () => {
     }
   }, [selectedUserId, loadMessages]);
 
-  // Fetch conversations on mount
+  // Set up real-time subscription for messages
+  useEffect(() => {
+    if (!selectedUserId) return;
+
+    // Clean up previous subscription
+    if (realtimeChannel) {
+      supabase.removeChannel(realtimeChannel);
+    }
+
+    // Create new subscription for the selected user's messages
+    const channel = supabase
+      .channel(`messages_${selectedUserId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'direct_messages',
+          filter: `user_id=eq.${selectedUserId}`
+        },
+        (payload) => {
+          console.log('New message received:', payload.new);
+          // Add the new message to the current messages
+          setMessages(prev => [...prev, payload.new]);
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'direct_messages',
+          filter: `user_id=eq.${selectedUserId}`
+        },
+        (payload) => {
+          console.log('Message updated:', payload.new);
+          // Update the message in the current messages
+          setMessages(prev => 
+            prev.map(msg => 
+              msg.id === payload.new.id ? payload.new : msg
+            )
+          );
+        }
+      )
+      .subscribe((status) => {
+        console.log('Subscription status:', status);
+        setIsConnected(status === 'SUBSCRIBED');
+      });
+
+    setRealtimeChannel(channel);
+
+    // Cleanup on unmount or user change
+    return () => {
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+    };
+  }, [selectedUserId]);
+
+  // Fetch conversations on mount and set up global subscription
   useEffect(() => {
     fetchConversations();
-    setupRealtimeSubscription();
+    setupConversationsRealtimeSubscription();
   }, []);
 
   // Auto-scroll to bottom when messages change
@@ -174,7 +234,7 @@ const EnhancedAdminChatInterface = () => {
     }
   };
 
-  const setupRealtimeSubscription = () => {
+  const setupConversationsRealtimeSubscription = () => {
     const channel = supabase
       .channel('admin_conversations_realtime')
       .on(
@@ -185,6 +245,7 @@ const EnhancedAdminChatInterface = () => {
           table: 'direct_messages'
         },
         (payload) => {
+          console.log('New conversation message:', payload.new);
           // Refresh conversations when new messages arrive
           fetchConversations();
           
@@ -193,7 +254,9 @@ const EnhancedAdminChatInterface = () => {
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Conversations subscription status:', status);
+      });
 
     return () => {
       supabase.removeChannel(channel);
@@ -238,10 +301,8 @@ const EnhancedAdminChatInterface = () => {
       if (error) throw error;
 
       toast.success('Message sent');
-      // Reload messages for the current conversation and refresh conversations
-      if (selectedUserId) {
-        loadMessages(selectedUserId);
-      }
+      // Message will be added to the UI automatically through real-time subscription
+      // Just refresh conversations to update the sidebar
       fetchConversations();
     } catch (error) {
       console.error('Error sending message:', error);
