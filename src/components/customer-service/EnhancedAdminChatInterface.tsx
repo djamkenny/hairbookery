@@ -7,6 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/utils/logger";
 import { 
   Send, 
   MessageSquare, 
@@ -98,7 +99,7 @@ const EnhancedAdminChatInterface = () => {
           filter: `user_id=eq.${selectedUserId}`
         },
         (payload) => {
-          console.log('New message received:', payload.new);
+          logger.debug('New message received:', payload.new);
           // Add the new message to the current messages
           setMessages(prev => [...prev, payload.new]);
         }
@@ -112,7 +113,7 @@ const EnhancedAdminChatInterface = () => {
           filter: `user_id=eq.${selectedUserId}`
         },
         (payload) => {
-          console.log('Message updated:', payload.new);
+          logger.debug('Message updated:', payload.new);
           // Update the message in the current messages
           setMessages(prev => 
             prev.map(msg => 
@@ -122,7 +123,7 @@ const EnhancedAdminChatInterface = () => {
         }
       )
       .subscribe((status) => {
-        console.log('Subscription status:', status);
+        logger.info('Subscription status:', status);
         setIsConnected(status === 'SUBSCRIBED');
       });
 
@@ -245,7 +246,7 @@ const EnhancedAdminChatInterface = () => {
           table: 'direct_messages'
         },
         (payload) => {
-          console.log('New conversation message:', payload.new);
+          logger.debug('New conversation message:', payload.new);
           // Refresh conversations when new messages arrive
           fetchConversations();
           
@@ -255,7 +256,7 @@ const EnhancedAdminChatInterface = () => {
         }
       )
       .subscribe((status) => {
-        console.log('Conversations subscription status:', status);
+        logger.info('Conversations subscription status:', status);
       });
 
     return () => {
