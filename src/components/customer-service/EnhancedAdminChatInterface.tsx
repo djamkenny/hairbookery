@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -7,7 +7,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { useRealtimeChat } from "@/hooks/useRealtimeChat";
 import { 
   Send, 
   MessageSquare, 
@@ -43,19 +42,39 @@ const EnhancedAdminChatInterface = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [messages, setMessages] = useState<any[]>([]);
+  const [isConnected, setIsConnected] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
 
-  const {
-    messages,
-    isConnected,
-    isTyping: userIsTyping,
-    unreadCount,
-    sendMessage,
-    setTyping,
-    markAsRead,
-    retryFailedMessage
-  } = useRealtimeChat(selectedUserId, true);
+  // Load messages for selected user
+  const loadMessages = useCallback(async (userId: string) => {
+    if (!userId) return;
+    
+    try {
+      const { data: messagesData, error } = await supabase
+        .from('direct_messages')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+
+      setMessages(messagesData || []);
+    } catch (error) {
+      console.error('Error loading messages:', error);
+      toast.error('Failed to load messages');
+    }
+  }, []);
+
+  // Load messages when selected user changes
+  useEffect(() => {
+    if (selectedUserId) {
+      loadMessages(selectedUserId);
+    } else {
+      setMessages([]);
+    }
+  }, [selectedUserId, loadMessages]);
 
   // Fetch conversations on mount
   useEffect(() => {
@@ -187,7 +206,6 @@ const EnhancedAdminChatInterface = () => {
     
     if (!isTyping && e.target.value.trim()) {
       setIsTyping(true);
-      setTyping(true);
     }
 
     if (typingTimeoutRef.current) {
@@ -196,7 +214,6 @@ const EnhancedAdminChatInterface = () => {
 
     typingTimeoutRef.current = setTimeout(() => {
       setIsTyping(false);
-      setTyping(false);
     }, 1000);
   };
 
@@ -206,7 +223,6 @@ const EnhancedAdminChatInterface = () => {
     const messageText = newMessage.trim();
     setNewMessage('');
     setIsTyping(false);
-    setTyping(false);
 
     try {
       // Send message directly to database (admin doesn't use Supabase Auth)
@@ -222,7 +238,10 @@ const EnhancedAdminChatInterface = () => {
       if (error) throw error;
 
       toast.success('Message sent');
-      // Refresh conversations to update last message
+      // Reload messages for the current conversation and refresh conversations
+      if (selectedUserId) {
+        loadMessages(selectedUserId);
+      }
       fetchConversations();
     } catch (error) {
       console.error('Error sending message:', error);
@@ -232,7 +251,6 @@ const EnhancedAdminChatInterface = () => {
 
   const selectConversation = (userId: string) => {
     setSelectedUserId(userId);
-    markAsRead();
     
     // Update unread count in conversations
     setConversations(prev => 
@@ -480,39 +498,13 @@ const EnhancedAdminChatInterface = () => {
                               minute: '2-digit' 
                             })}
                           </span>
-                          {message.sender_type === 'admin' && getMessageStatusIcon(message.status)}
-                          {message.status === 'failed' && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => retryFailedMessage(message.id)}
-                              className="h-4 w-4 p-0 ml-1"
-                            >
-                              <AlertCircle className="h-3 w-3" />
-                            </Button>
-                          )}
-                        </div>
+                           {message.sender_type === 'admin' && getMessageStatusIcon(message.status)}
+                         </div>
                       </div>
                     </div>
                   ))}
-                  
-                  {/* Typing indicator */}
-                  {userIsTyping && (
-                    <div className="flex justify-start">
-                      <div className="bg-muted rounded-2xl rounded-bl-md p-3">
-                        <div className="flex items-center gap-1">
-                          <div className="flex gap-1">
-                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                          </div>
-                          <span className="text-xs text-muted-foreground ml-2">User is typing...</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  
-                  <div ref={messagesEndRef} />
+                   
+                   <div ref={messagesEndRef} />
                 </div>
               </ScrollArea>
             </div>
