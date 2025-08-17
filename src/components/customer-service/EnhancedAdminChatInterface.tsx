@@ -208,11 +208,25 @@ const EnhancedAdminChatInterface = () => {
     setIsTyping(false);
     setTyping(false);
 
-    const success = await sendMessage(messageText);
-    if (success) {
+    try {
+      // Send message directly to database (admin doesn't use Supabase Auth)
+      const { error } = await supabase
+        .from('direct_messages')
+        .insert({
+          user_id: selectedUserId,
+          sender_id: 'admin', // Use string ID for admin
+          sender_type: 'admin',
+          message: messageText
+        });
+
+      if (error) throw error;
+
       toast.success('Message sent');
       // Refresh conversations to update last message
       fetchConversations();
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast.error('Failed to send message');
     }
   };
 
