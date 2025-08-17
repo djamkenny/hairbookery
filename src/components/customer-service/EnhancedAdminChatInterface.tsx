@@ -214,7 +214,7 @@ const EnhancedAdminChatInterface = () => {
         .from('direct_messages')
         .insert({
           user_id: selectedUserId,
-          sender_id: 'admin', // Use string ID for admin
+          sender_id: selectedUserId, // Use the user_id for admin messages too
           sender_type: 'admin',
           message: messageText
         });
