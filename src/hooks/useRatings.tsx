@@ -8,6 +8,7 @@ export type Rating = {
 	user_id: string;
 	specialist_id: string;
 	rating: number;
+	comment?: string;
 	created_at: string;
 	updated_at: string;
 };
@@ -106,7 +107,7 @@ export const useRatings = (specialistId?: string) => {
 		fetchRatings();
 	}, [specialistId]);
 
-	const submitRating = async (rating: number, userId: string) => {
+	const submitRating = async (rating: number, userId: string, comment?: string) => {
 		if (!specialistId || !userId) {
 			toast.error("Please log in to submit a rating");
 			return false;
@@ -133,9 +134,12 @@ export const useRatings = (specialistId?: string) => {
 			
 			if (existingRating) {
 				// Update existing rating
+				const updateData: any = { rating: rating };
+				if (comment !== undefined) updateData.comment = comment;
+				
 				const { data, error } = await supabase
 					.from("specialist_ratings")
-					.update({ rating: rating })
+					.update(updateData)
 					.eq('id', existingRating.id)
 					.select()
 					.single();
@@ -152,15 +156,16 @@ export const useRatings = (specialistId?: string) => {
 				}
 			} else {
 				// Create new rating
+				const insertData: any = {
+					user_id: userId,
+					specialist_id: specialistId,
+					rating: rating,
+				};
+				if (comment !== undefined) insertData.comment = comment;
+				
 				const { data, error } = await supabase
 					.from("specialist_ratings")
-					.insert([
-						{
-							user_id: userId,
-							specialist_id: specialistId,
-							rating: rating,
-						},
-					])
+					.insert([insertData])
 					.select()
 					.single();
 				

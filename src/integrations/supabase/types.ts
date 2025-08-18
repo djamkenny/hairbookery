@@ -713,6 +713,7 @@ export type Database = {
       }
       specialist_ratings: {
         Row: {
+          comment: string | null
           created_at: string
           id: string
           rating: number
@@ -721,6 +722,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          comment?: string | null
           created_at?: string
           id?: string
           rating: number
@@ -729,6 +731,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          comment?: string | null
           created_at?: string
           id?: string
           rating?: number

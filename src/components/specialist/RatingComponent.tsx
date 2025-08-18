@@ -2,22 +2,25 @@
 import React, { useState, useEffect } from "react";
 import { Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import { useRatings } from "@/hooks/useRatings";
 
 interface RatingComponentProps {
 	specialistId: string;
 	showSubmissionForm?: boolean;
+	showFeedbackList?: boolean;
 }
 
-const RatingComponent = ({ specialistId, showSubmissionForm = true }: RatingComponentProps) => {
+const RatingComponent = ({ specialistId, showSubmissionForm = true, showFeedbackList = true }: RatingComponentProps) => {
 	const { user } = useAuth();
-	const { averageRating, totalRatings, userRating, loading, submitRating, fetchUserRating, canUserRate } = useRatings(specialistId);
+	const { ratings, averageRating, totalRatings, userRating, loading, submitRating, fetchUserRating, canUserRate } = useRatings(specialistId);
 	const [selectedRating, setSelectedRating] = useState(0);
 	const [hoveredRating, setHoveredRating] = useState(0);
 	const [userCanRate, setUserCanRate] = useState(false);
 	const [checkingEligibility, setCheckingEligibility] = useState(false);
+	const [comment, setComment] = useState("");
 
 	useEffect(() => {
 		if (user?.id) {
@@ -38,13 +41,14 @@ const RatingComponent = ({ specialistId, showSubmissionForm = true }: RatingComp
 	useEffect(() => {
 		if (userRating) {
 			setSelectedRating(userRating.rating);
+			setComment(userRating.comment || "");
 		}
 	}, [userRating]);
 
 	const handleRatingSubmit = async () => {
 		if (!user?.id || selectedRating === 0) return;
 		
-		const success = await submitRating(selectedRating, user.id);
+		const success = await submitRating(selectedRating, user.id, comment.trim() || undefined);
 		if (success) {
 			// Rating submitted successfully
 		}
@@ -103,6 +107,21 @@ const RatingComponent = ({ specialistId, showSubmissionForm = true }: RatingComp
 									<div className="flex gap-1">
 										{renderStars(selectedRating, true, "h-6 w-6")}
 									</div>
+									<div className="space-y-2">
+										<label className="text-sm font-medium">Your feedback (optional)</label>
+										<Textarea
+											placeholder="Share your experience..."
+											value={comment}
+											onChange={(e) => setComment(e.target.value)}
+											className="min-h-[60px] resize-none"
+											maxLength={500}
+										/>
+										{comment.length > 0 && (
+											<div className="text-xs text-muted-foreground text-right">
+												{comment.length}/500 characters
+											</div>
+										)}
+									</div>
 									<Button
 										onClick={handleRatingSubmit}
 										disabled={loading || selectedRating === 0}
@@ -130,6 +149,38 @@ const RatingComponent = ({ specialistId, showSubmissionForm = true }: RatingComp
 						Please log in to rate this specialist.
 					</p>
 				</div>
+			)}
+
+			{/* Feedback List */}
+			{showFeedbackList && ratings.length > 0 && (
+				<Card className="mt-6">
+					<CardHeader>
+						<CardTitle className="text-lg">Client Feedback</CardTitle>
+					</CardHeader>
+					<CardContent className="space-y-4">
+						{ratings
+							.filter(rating => rating.comment && rating.comment.trim().length > 0)
+							.slice(0, 5) // Show only first 5 feedback comments
+							.map((rating) => (
+								<div key={rating.id} className="border-b border-border/30 pb-4 last:border-b-0 last:pb-0">
+									<div className="flex items-center gap-2 mb-2">
+										<div className="flex">
+											{renderStars(rating.rating, false, "h-4 w-4")}
+										</div>
+										<span className="text-sm text-muted-foreground">
+											{new Date(rating.created_at).toLocaleDateString()}
+										</span>
+									</div>
+									<p className="text-sm text-muted-foreground">{rating.comment}</p>
+								</div>
+							))}
+						{ratings.filter(rating => rating.comment && rating.comment.trim().length > 0).length === 0 && (
+							<p className="text-sm text-muted-foreground text-center py-4">
+								No feedback comments yet.
+							</p>
+						)}
+					</CardContent>
+				</Card>
 			)}
 		</div>
 	);

@@ -274,7 +274,11 @@ const SpecialistDetail = () => {
                     
                     {/* Rating Component */}
                     <div className="mb-4 lg:mb-6">
-                      <RatingComponent specialistId={id!} showSubmissionForm={false} />
+                      <RatingComponent 
+                        specialistId={id!} 
+                        showSubmissionForm={false} 
+                        showFeedbackList={true} 
+                      />
                     </div>
                     
                     {/* Booking component will handle all booking functionality */}

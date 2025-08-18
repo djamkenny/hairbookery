@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -32,16 +33,18 @@ export const RatingDialog = ({
   const { submitRating, loading } = useRatings(specialistId);
   const [selectedRating, setSelectedRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
+  const [comment, setComment] = useState("");
 
   const handleSubmit = async () => {
     if (!user?.id || selectedRating === 0) return;
     
-    const success = await submitRating(selectedRating, user.id);
+    const success = await submitRating(selectedRating, user.id, comment.trim() || undefined);
     if (success) {
-      toast.success("Thank you for your rating!");
+      toast.success("Thank you for your rating and feedback!");
       onClose();
       setSelectedRating(0);
       setHoveredRating(0);
+      setComment("");
     }
   };
 
@@ -49,6 +52,7 @@ export const RatingDialog = ({
     onClose();
     setSelectedRating(0);
     setHoveredRating(0);
+    setComment("");
   };
 
   const renderStars = () => {
@@ -80,9 +84,27 @@ export const RatingDialog = ({
           </DialogDescription>
         </DialogHeader>
         
-        <div className="flex flex-col items-center space-y-6 py-4">
-          <div className="flex space-x-1">
-            {renderStars()}
+        <div className="flex flex-col space-y-6 py-4">
+          <div className="flex justify-center">
+            <div className="flex space-x-1">
+              {renderStars()}
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Share your feedback (optional)</label>
+            <Textarea
+              placeholder="Tell others about your experience..."
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              className="min-h-[80px] resize-none"
+              maxLength={500}
+            />
+            {comment.length > 0 && (
+              <div className="text-xs text-muted-foreground text-right">
+                {comment.length}/500 characters
+              </div>
+            )}
           </div>
           
           <div className="flex space-x-3 w-full">
