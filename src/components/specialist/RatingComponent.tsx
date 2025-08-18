@@ -157,24 +157,29 @@ const RatingComponent = ({ specialistId, showSubmissionForm = true, showFeedback
 					<CardHeader>
 						<CardTitle className="text-lg">Client Feedback</CardTitle>
 					</CardHeader>
-					<CardContent className="space-y-4">
-						{ratings
-							.filter(rating => rating.comment && rating.comment.trim().length > 0)
-							.slice(0, 5) // Show only first 5 feedback comments
-							.map((rating) => (
-								<div key={rating.id} className="border-b border-border/30 pb-4 last:border-b-0 last:pb-0">
-									<div className="flex items-center gap-2 mb-2">
-										<div className="flex">
-											{renderStars(rating.rating, false, "h-4 w-4")}
-										</div>
-										<span className="text-sm text-muted-foreground">
-											{new Date(rating.created_at).toLocaleDateString()}
-										</span>
-									</div>
-									<p className="text-sm text-muted-foreground">{rating.comment}</p>
+					<CardContent>
+						{ratings.filter(rating => rating.comment && rating.comment.trim().length > 0).length > 0 ? (
+							<div className="overflow-x-auto">
+								<div className="flex gap-4 pb-4">
+									{ratings
+										.filter(rating => rating.comment && rating.comment.trim().length > 0)
+										.slice(0, 10) // Show up to 10 feedback comments
+										.map((rating) => (
+											<div key={rating.id} className="flex-none w-80 p-4 border border-border rounded-lg bg-card">
+												<div className="flex items-center gap-2 mb-3">
+													<div className="flex">
+														{renderStars(rating.rating, false, "h-4 w-4")}
+													</div>
+													<span className="text-sm text-muted-foreground">
+														{new Date(rating.created_at).toLocaleDateString()}
+													</span>
+												</div>
+												<p className="text-sm text-muted-foreground leading-relaxed">{rating.comment}</p>
+											</div>
+										))}
 								</div>
-							))}
-						{ratings.filter(rating => rating.comment && rating.comment.trim().length > 0).length === 0 && (
+							</div>
+						) : (
 							<p className="text-sm text-muted-foreground text-center py-4">
 								No feedback comments yet.
 							</p>
