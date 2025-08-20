@@ -15,7 +15,7 @@ const AuthLayout = ({ title, subtitle, children, icon }: AuthLayoutProps) => {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       
-      <main className="flex-grow flex items-center justify-center py-20">
+      <main className="flex-grow flex items-center justify-center py-20 mt-16">
         <div className="container max-w-md px-4">
           <div className="text-center mb-8 animate-fade-in">
             {icon && (
