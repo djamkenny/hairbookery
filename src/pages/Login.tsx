@@ -19,10 +19,13 @@ const Login = () => {
       <div className="px-4">
         <div className="flex items-center gap-2 my-4">
           <span className="h-px flex-1 bg-border" />
-          <span className="text-xs text-muted-foreground">Or</span>
+          <span className="text-xs text-muted-foreground">Or continue with Google as</span>
           <span className="h-px flex-1 bg-border" />
         </div>
-        <GoogleSignInButton />
+        <div className="space-y-3">
+          <GoogleSignInButton label="Continue as Client" isStylist={false} />
+          <GoogleSignInButton label="Continue as Specialist" isStylist={true} />
+        </div>
       </div>
       <div className="text-center text-sm mt-4 space-y-2 px-4">
         <div className="flex flex-col sm:flex-row sm:justify-center sm:space-x-1 space-y-1 sm:space-y-0">
