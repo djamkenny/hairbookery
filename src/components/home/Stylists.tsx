@@ -21,6 +21,7 @@ import { MapPinIcon, BriefcaseIcon, StarIcon } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import AvailabilityBadge from "@/components/ui/AvailabilityBadge";
 import { useAvailabilityStatus } from "@/hooks/useAvailabilityStatus";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
 interface StylistCardProps {
   id: string;
@@ -302,14 +303,40 @@ const Stylists = () => {
             <p>Loading specialists...</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredStylists.length > 0 ? (
-              filteredStylists.map(renderStylist)
-            ) : (
-              <div className="col-span-full text-center p-8">
-                <p>No specialists found matching your criteria.</p>
-              </div>
-            )}
+          <div className="px-12">
+            <Carousel
+              opts={{
+                align: "start",
+                loop: true,
+              }}
+              className="w-full"
+            >
+              <CarouselContent className="-ml-2 md:-ml-4">
+                {filteredStylists.length > 0 ? (
+                  filteredStylists.map((stylist) => (
+                    <CarouselItem key={stylist.id} className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4">
+                      <StylistCard 
+                        id={stylist.id}
+                        name={stylist.full_name}
+                        specialty={stylist.specialty}
+                        experience={stylist.experience}
+                        imageUrl={stylist.card_image_url || stylist.avatar_url}
+                        bio={stylist.bio}
+                        location={stylist.location}
+                      />
+                    </CarouselItem>
+                  ))
+                ) : (
+                  <CarouselItem className="basis-full">
+                    <div className="text-center p-8">
+                      <p>No specialists found matching your criteria.</p>
+                    </div>
+                  </CarouselItem>
+                )}
+              </CarouselContent>
+              <CarouselPrevious />
+              <CarouselNext />
+            </Carousel>
           </div>
         )}
       </div>
