@@ -204,7 +204,7 @@ const Stylists = () => {
   return (
     <div className="container mx-auto py-8 px-4">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
-        <h2 className="text-2xl md:text-3xl font-semibold">Featured Specialists</h2>
+        <h2 className="text-lg md:text-xl font-semibold">Featured Specialists</h2>
         <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
           <Input
             type="text"
