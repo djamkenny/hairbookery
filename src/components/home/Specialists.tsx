@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Scissors, Droplets, WashingMachine, Search, MapPin } from "lucide-react";
 import StylistCard from "@/components/ui/StylistCard";
 import { supabase } from "@/integrations/supabase/client";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
 // Keep the hardcoded specialists for demo purposes
 const hardcodedSpecialists = [];
@@ -136,19 +137,32 @@ const Specialists = () => {
             <p className="text-muted-foreground">Loading specialists...</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-            {filteredSpecialists.map((specialist) => (
-              <StylistCard
-                key={specialist.id}
-                id={specialist.id}
-                name={specialist.name}
-                role={specialist.role}
-                bio={specialist.bio}
-                image={specialist.image}
-                location={specialist.location}
-                className="animate-fade-in"
-              />
-            ))}
+          <div className="mb-12 px-12">
+            <Carousel
+              opts={{
+                align: "start",
+                loop: true,
+              }}
+              className="w-full"
+            >
+              <CarouselContent className="-ml-2 md:-ml-4">
+                {filteredSpecialists.map((specialist) => (
+                  <CarouselItem key={specialist.id} className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/4">
+                    <StylistCard
+                      id={specialist.id}
+                      name={specialist.name}
+                      role={specialist.role}
+                      bio={specialist.bio}
+                      image={specialist.image}
+                      location={specialist.location}
+                      className="animate-fade-in"
+                    />
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious />
+              <CarouselNext />
+            </Carousel>
           </div>
         )}
         
