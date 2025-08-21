@@ -147,7 +147,7 @@ const Specialists = () => {
             >
               <CarouselContent className="-ml-2 md:-ml-4">
                 {filteredSpecialists.map((specialist) => (
-                  <CarouselItem key={specialist.id} className="pl-2 md:pl-4 basis-80 flex-shrink-0">
+                  <CarouselItem key={specialist.id} className="pl-2 md:pl-4 basis-96 flex-shrink-0">
                     <StylistCard
                       id={specialist.id}
                       name={specialist.name}

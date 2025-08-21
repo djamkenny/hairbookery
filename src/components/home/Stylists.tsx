@@ -314,7 +314,7 @@ const Stylists = () => {
               <CarouselContent className="-ml-2 md:-ml-4">
                 {filteredStylists.length > 0 ? (
                   filteredStylists.map((stylist) => (
-                    <CarouselItem key={stylist.id} className="pl-2 md:pl-4 basis-80 flex-shrink-0">
+                    <CarouselItem key={stylist.id} className="pl-2 md:pl-4 basis-96 flex-shrink-0">
                       <StylistCard 
                         id={stylist.id}
                         name={stylist.full_name}
