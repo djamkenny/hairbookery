@@ -89,14 +89,6 @@ const StylistCard = ({ id, name, specialty, experience, imageUrl, bio, location 
         <CardDescription className="text-center">{specialty}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
-        <div className="flex items-center gap-2 text-sm">
-          <BriefcaseIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-          <span className="truncate">{experience}</span>
-        </div>
-        <div className="flex items-center gap-2 text-sm">
-          <MapPinIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-          <span className="truncate">{location}</span>
-        </div>
         <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed">{bio}</p>
         <Link to={`/stylist/${id}`} className="block">
           <Button 
