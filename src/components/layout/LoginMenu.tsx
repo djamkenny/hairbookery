@@ -24,7 +24,7 @@ const LoginMenu = ({ isMobile = false }: LoginMenuProps) => {
         <Button 
           variant="outline" 
           className="w-full flex items-center justify-center touch-button"
-          onClick={() => navigate("/login")}
+          onClick={() => navigate("/client-login")}
         >
           <User className="h-4 w-4 mr-2" />
           Client Login
@@ -32,7 +32,7 @@ const LoginMenu = ({ isMobile = false }: LoginMenuProps) => {
         <Button 
           variant="outline" 
           className="w-full flex items-center justify-center touch-button"
-          onClick={() => navigate("/login")}
+          onClick={() => navigate("/specialist-login")}
         >
           <Scissors className="h-4 w-4 mr-2" />
           Specialist Login
@@ -58,12 +58,12 @@ const LoginMenu = ({ isMobile = false }: LoginMenuProps) => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="z-50 bg-background">
-        <DropdownMenuItem onClick={() => navigate("/login")}>
+        <DropdownMenuItem onClick={() => navigate("/client-login")}>
           <User className="h-4 w-4 mr-2" />
           Client Login
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => navigate("/login")}>
+        <DropdownMenuItem onClick={() => navigate("/specialist-login")}>
           <Scissors className="h-4 w-4 mr-2" />
           Specialist Login
         </DropdownMenuItem>

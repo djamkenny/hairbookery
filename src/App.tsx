@@ -9,6 +9,8 @@ import {
 import { useAuth } from './hooks/useAuth';
 import Auth from './pages/Auth';
 import ResetPassword from './pages/ResetPassword';
+import ClientLogin from './pages/ClientLogin';
+import SpecialistLogin from './pages/SpecialistLogin';
 import Index from './pages/Index';
 import Profile from './pages/Profile';
 
@@ -53,7 +55,7 @@ const AppContent: React.FC = () => {
     if (user) {
       // Redirect authenticated users to home page, but not on initial load or password reset
       const currentPath = window.location.pathname;
-      if (currentPath === '/login' || currentPath === '/register' || currentPath === '/forgot-password' || currentPath === '/stylist-register' || currentPath === '/auth') {
+      if (currentPath === '/login' || currentPath === '/register' || currentPath === '/forgot-password' || currentPath === '/stylist-register' || currentPath === '/auth' || currentPath === '/client-login' || currentPath === '/specialist-login') {
         navigate('/');
       }
     }
@@ -85,6 +87,16 @@ const AppContent: React.FC = () => {
         <Route path="/forgot-password" element={
           <PublicRoute>
             <Auth />
+          </PublicRoute>
+        } />
+        <Route path="/client-login" element={
+          <PublicRoute>
+            <ClientLogin />
+          </PublicRoute>
+        } />
+        <Route path="/specialist-login" element={
+          <PublicRoute>
+            <SpecialistLogin />
           </PublicRoute>
         } />
         <Route path="/reset-password" element={<ResetPassword />} />
