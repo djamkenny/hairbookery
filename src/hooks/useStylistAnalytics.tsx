@@ -21,7 +21,9 @@ export const useStylistAnalytics = () => {
         throw new Error("User not authenticated");
       }
 
+      console.log("Fetching analytics for stylist:", user.id);
       const analytics = await fetchStylistBookingAnalytics(user.id);
+      console.log("Analytics data received:", analytics);
       
       setServiceStats(analytics.serviceStats);
       setMonthlyStats(analytics.monthlyStats);

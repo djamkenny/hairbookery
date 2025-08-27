@@ -16,18 +16,20 @@ export interface MonthlyBookingData {
 
 export const fetchStylistBookingAnalytics = async (stylistId: string) => {
   try {
-    // Fetch appointments with service details for booking counts and revenue
+    // Get all completed appointments with their services through appointment_services
     const { data: appointments, error: appointmentsError } = await supabase
       .from('appointments')
       .select(`
         id,
-        service_id,
         appointment_date,
         status,
-        services!service_id(name, price)
+        appointment_services(
+          service_id,
+          services(name, price)
+        )
       `)
       .eq('stylist_id', stylistId)
-      .eq('status', 'completed')
+      .eq('status', 'completed');
 
     if (appointmentsError) throw appointmentsError;
 
@@ -49,42 +51,53 @@ export const fetchStylistBookingAnalytics = async (stylistId: string) => {
 
     // Process appointments for booking counts and revenue
     appointments.forEach(appointment => {
-      const service = appointment.services;
-      if (!service) return;
-
-      const serviceName = service.name;
-      const servicePrice = Number(service.price || 0);
       const appointmentDate = new Date(appointment.appointment_date);
       const monthKey = appointmentDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 
-      // Calculate revenue for completed appointments (only service price, no booking fee)
-      const appointmentRevenue = servicePrice; // Only service price for stylists
-      totalRevenue += appointmentRevenue;
-      completedBookings++;
+      // Process all services for this appointment
+      if (appointment.appointment_services && appointment.appointment_services.length > 0) {
+        appointment.appointment_services.forEach(appointmentService => {
+          const service = appointmentService.services;
+          if (!service) return;
 
-      // Update service booking counts and revenue
-      if (serviceStatsMap.has(serviceName)) {
-        const existing = serviceStatsMap.get(serviceName)!;
-        existing.bookingCount += 1;
-        existing.totalRevenue += appointmentRevenue;
-      } else {
-        serviceStatsMap.set(serviceName, {
-          serviceName,
-          bookingCount: 1,
-          totalRevenue: appointmentRevenue
+          const serviceName = service.name;
+          const servicePrice = Number(service.price || 0);
+
+          // Calculate revenue for completed appointments (only service price, no booking fee)
+          const appointmentRevenue = servicePrice;
+          totalRevenue += appointmentRevenue;
+
+          // Update service booking counts and revenue
+          if (serviceStatsMap.has(serviceName)) {
+            const existing = serviceStatsMap.get(serviceName)!;
+            existing.bookingCount += 1;
+            existing.totalRevenue += appointmentRevenue;
+          } else {
+            serviceStatsMap.set(serviceName, {
+              serviceName,
+              bookingCount: 1,
+              totalRevenue: appointmentRevenue
+            });
+          }
         });
       }
+
+      // Count this appointment for monthly stats (one entry per appointment, not per service)
+      completedBookings++;
+      const appointmentTotalRevenue = appointment.appointment_services?.reduce((sum, as) => {
+        return sum + Number(as.services?.price || 0);
+      }, 0) || 0;
 
       // Update monthly booking counts and revenue
       if (monthlyStatsMap.has(monthKey)) {
         const existing = monthlyStatsMap.get(monthKey)!;
         existing.bookings += 1;
-        existing.revenue += appointmentRevenue;
+        existing.revenue += appointmentTotalRevenue;
       } else {
         monthlyStatsMap.set(monthKey, {
           month: monthKey,
           bookings: 1,
-          revenue: appointmentRevenue
+          revenue: appointmentTotalRevenue
         });
       }
     });

@@ -20,59 +20,67 @@ export interface RevenueRecord {
 
 export const fetchStylistRevenueSummary = async (stylistId: string): Promise<RevenueSummary> => {
   try {
-    // First try to get revenue from revenue_tracking table
-    const { data: revenueData, error: revenueError } = await supabase
-      .from('revenue_tracking')
-      .select('*')
-      .eq('stylist_id', stylistId);
+    console.log("Fetching revenue summary for stylist:", stylistId);
+    
+    // Use the database function for revenue summary
+    const { data, error } = await supabase.rpc('get_stylist_revenue_summary', {
+      stylist_uuid: stylistId
+    });
 
-    if (revenueError) {
-      console.error("Error fetching revenue data:", revenueError);
+    if (error) {
+      console.error("Error calling revenue function:", error);
+      throw error;
     }
 
-    // If no revenue records exist, calculate from completed appointments
-    if (!revenueData || revenueData.length === 0) {
-      const { data: appointments, error: appointmentsError } = await supabase
-        .from('appointments')
-        .select(`
-          id,
-          status,
-          services:service_id(price)
-        `)
-        .eq('stylist_id', stylistId)
-        .eq('status', 'completed');
+    if (data && data.length > 0) {
+      const summary = data[0];
+      console.log("Revenue summary from function:", summary);
+      return {
+        total_revenue: Number(summary.total_revenue || 0),
+        total_bookings: Number(summary.total_bookings || 0),
+        total_service_revenue: Number(summary.total_service_revenue || 0),
+        avg_booking_value: Number(summary.avg_booking_value || 0)
+      };
+    }
 
-      if (appointmentsError) {
-        console.error("Error fetching appointments:", appointmentsError);
-        throw appointmentsError;
-      }
+    // If no data from function, calculate from completed appointments as fallback
+    const { data: appointments, error: appointmentsError } = await supabase
+      .from('appointments')
+      .select(`
+        id,
+        status,
+        appointment_services(
+          service_id,
+          services(name, price)
+        )
+      `)
+      .eq('stylist_id', stylistId)
+      .eq('status', 'completed');
 
-      if (appointments && appointments.length > 0) {
-        let totalServiceRevenue = 0;
+    if (appointmentsError) {
+      console.error("Error fetching appointments:", appointmentsError);
+      throw appointmentsError;
+    }
 
-        appointments.forEach(appointment => {
-          if (appointment.services && appointment.services.price) {
-            const servicePrice = Number(appointment.services.price);
-            totalServiceRevenue += servicePrice; // Only service price, no booking fee
-          }
-        });
+    if (appointments && appointments.length > 0) {
+      let totalServiceRevenue = 0;
 
-        return {
-          total_revenue: totalServiceRevenue, // Only service revenue for stylists
-          total_bookings: appointments.length,
-          total_service_revenue: totalServiceRevenue,
-          avg_booking_value: appointments.length > 0 ? totalServiceRevenue / appointments.length : 0
-        };
-      }
-    } else {
-      // Calculate from revenue_tracking table (only service amounts)
-      const totalServiceRevenue = revenueData.reduce((sum, record) => sum + Number(record.service_amount), 0);
+      appointments.forEach(appointment => {
+        if (appointment.appointment_services && appointment.appointment_services.length > 0) {
+          appointment.appointment_services.forEach(appointmentService => {
+            if (appointmentService.services && appointmentService.services.price) {
+              const servicePrice = Number(appointmentService.services.price);
+              totalServiceRevenue += servicePrice;
+            }
+          });
+        }
+      });
 
       return {
-        total_revenue: totalServiceRevenue, // Only service revenue for stylists
-        total_bookings: revenueData.length,
+        total_revenue: totalServiceRevenue,
+        total_bookings: appointments.length,
         total_service_revenue: totalServiceRevenue,
-        avg_booking_value: revenueData.length > 0 ? totalServiceRevenue / revenueData.length : 0
+        avg_booking_value: appointments.length > 0 ? totalServiceRevenue / appointments.length : 0
       };
     }
 
