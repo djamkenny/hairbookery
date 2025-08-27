@@ -2,14 +2,17 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, CartesianGrid } from "recharts";
 import { ServiceBookingStats } from "@/services/analyticsService";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ServicePopularityChartProps {
   data: ServiceBookingStats[];
 }
 
 const ServicePopularityChart = ({ data }: ServicePopularityChartProps) => {
+  const isMobile = useIsMobile();
+  
   const chartConfig = {
     bookingCount: {
       label: "Bookings",
@@ -24,17 +27,40 @@ const ServicePopularityChart = ({ data }: ServicePopularityChartProps) => {
       </CardHeader>
       <CardContent>
         {data.length > 0 ? (
-          <ChartContainer config={chartConfig} className="h-[300px]">
+          <ChartContainer config={chartConfig} className={`${isMobile ? 'h-[250px]' : 'h-[300px]'}`}>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+              <BarChart 
+                data={data} 
+                margin={{ 
+                  top: 10, 
+                  right: isMobile ? 5 : 20, 
+                  left: isMobile ? -10 : 10, 
+                  bottom: isMobile ? 60 : 40 
+                }}
+                barCategoryGap={isMobile ? "20%" : "30%"}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis 
                   dataKey="serviceName" 
-                  tick={{ fontSize: 12 }}
+                  tick={{ 
+                    fontSize: isMobile ? 10 : 12,
+                    fill: "hsl(var(--muted-foreground))"
+                  }}
                   angle={-45}
                   textAnchor="end"
-                  height={80}
+                  height={isMobile ? 60 : 80}
+                  axisLine={false}
+                  tickLine={false}
                 />
-                <YAxis />
+                <YAxis 
+                  tick={{ 
+                    fontSize: isMobile ? 10 : 12,
+                    fill: "hsl(var(--muted-foreground))"
+                  }}
+                  axisLine={false}
+                  tickLine={false}
+                  width={isMobile ? 20 : 40}
+                />
                 <ChartTooltip 
                   content={<ChartTooltipContent />}
                 />
@@ -42,6 +68,7 @@ const ServicePopularityChart = ({ data }: ServicePopularityChartProps) => {
                   dataKey="bookingCount" 
                   fill="var(--color-bookingCount)"
                   radius={[4, 4, 0, 0]}
+                  barSize={isMobile ? 30 : 40}
                 />
               </BarChart>
             </ResponsiveContainer>

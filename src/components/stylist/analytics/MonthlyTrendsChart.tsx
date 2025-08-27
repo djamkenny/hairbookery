@@ -2,14 +2,17 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from "recharts";
+import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, CartesianGrid } from "recharts";
 import { MonthlyBookingData } from "@/services/analyticsService";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface MonthlyTrendsChartProps {
   data: MonthlyBookingData[];
 }
 
 const MonthlyTrendsChart = ({ data }: MonthlyTrendsChartProps) => {
+  const isMobile = useIsMobile();
+  
   const chartConfig = {
     bookings: {
       label: "Bookings",
@@ -24,11 +27,36 @@ const MonthlyTrendsChart = ({ data }: MonthlyTrendsChartProps) => {
       </CardHeader>
       <CardContent>
         {data.length > 0 ? (
-          <ChartContainer config={chartConfig} className="h-[300px]">
+          <ChartContainer config={chartConfig} className={`${isMobile ? 'h-[250px]' : 'h-[300px]'}`}>
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                <XAxis dataKey="month" />
-                <YAxis />
+              <LineChart 
+                data={data} 
+                margin={{ 
+                  top: 10, 
+                  right: isMobile ? 5 : 20, 
+                  left: isMobile ? -10 : 10, 
+                  bottom: 10 
+                }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis 
+                  dataKey="month" 
+                  tick={{ 
+                    fontSize: isMobile ? 10 : 12,
+                    fill: "hsl(var(--muted-foreground))"
+                  }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis 
+                  tick={{ 
+                    fontSize: isMobile ? 10 : 12,
+                    fill: "hsl(var(--muted-foreground))"
+                  }}
+                  axisLine={false}
+                  tickLine={false}
+                  width={isMobile ? 20 : 40}
+                />
                 <ChartTooltip 
                   content={<ChartTooltipContent />}
                 />
@@ -36,8 +64,16 @@ const MonthlyTrendsChart = ({ data }: MonthlyTrendsChartProps) => {
                   type="monotone" 
                   dataKey="bookings" 
                   stroke="var(--color-bookings)"
-                  strokeWidth={3}
-                  dot={{ fill: "var(--color-bookings)", strokeWidth: 2, r: 4 }}
+                  strokeWidth={isMobile ? 2 : 3}
+                  dot={{ 
+                    fill: "var(--color-bookings)", 
+                    strokeWidth: 2, 
+                    r: isMobile ? 3 : 4 
+                  }}
+                  activeDot={{ 
+                    r: isMobile ? 4 : 6, 
+                    fill: "var(--color-bookings)" 
+                  }}
                 />
               </LineChart>
             </ResponsiveContainer>
