@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useStylistRevenue } from "@/hooks/useStylistRevenue";
 import { useStylistAnalytics } from "@/hooks/useStylistAnalytics";
 import AnalyticsHeader from "./AnalyticsHeader";
+import AnalyticsOverview from "./AnalyticsOverview";
 import RevenueCards from "./RevenueCards";
 import ServicePerformanceTable from "./ServicePerformanceTable";
 import MonthlyDataTable from "./MonthlyDataTable";
@@ -22,12 +23,24 @@ const AnalyticsTab = () => {
   }, []);
 
   const { revenueSummary, loading } = useStylistRevenue(user?.id);
-  const { serviceStats, monthlyStats, loading: analyticsLoading } = useStylistAnalytics();
+  const { serviceStats, monthlyStats, totalBookings, totalRevenue, loading: analyticsLoading } = useStylistAnalytics();
+  
+  // Get top service data
+  const topService = serviceStats[0];
+  const topServiceName = topService?.serviceName;
+  const topServiceCount = topService?.bookingCount;
 
   return (
     <div className="space-y-6">
       <AnalyticsHeader />
 
+      {/* Analytics Overview Cards */}
+      <AnalyticsOverview 
+        totalBookings={totalBookings}
+        totalRevenue={totalRevenue}
+        topService={topServiceName}
+        topServiceCount={topServiceCount}
+      />
 
       {/* Revenue Overview Cards */}
       <RevenueCards revenueSummary={revenueSummary} loading={loading} />

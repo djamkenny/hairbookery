@@ -24,10 +24,10 @@ export const fetchStylistBookingAnalytics = async (stylistId: string) => {
         service_id,
         appointment_date,
         status,
-        services:service_id(name, price)
+        services!service_id(name, price)
       `)
       .eq('stylist_id', stylistId)
-      .is('canceled_at', null);
+      .eq('status', 'completed')
 
     if (appointmentsError) throw appointmentsError;
 
@@ -58,25 +58,20 @@ export const fetchStylistBookingAnalytics = async (stylistId: string) => {
       const monthKey = appointmentDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 
       // Calculate revenue for completed appointments (only service price, no booking fee)
-      let appointmentRevenue = 0;
-      if (appointment.status === 'completed') {
-        appointmentRevenue = servicePrice; // Only service price for stylists
-        totalRevenue += appointmentRevenue;
-        completedBookings++;
-      }
+      const appointmentRevenue = servicePrice; // Only service price for stylists
+      totalRevenue += appointmentRevenue;
+      completedBookings++;
 
       // Update service booking counts and revenue
       if (serviceStatsMap.has(serviceName)) {
         const existing = serviceStatsMap.get(serviceName)!;
         existing.bookingCount += 1;
-        if (appointment.status === 'completed') {
-          existing.totalRevenue += appointmentRevenue;
-        }
+        existing.totalRevenue += appointmentRevenue;
       } else {
         serviceStatsMap.set(serviceName, {
           serviceName,
           bookingCount: 1,
-          totalRevenue: appointment.status === 'completed' ? appointmentRevenue : 0
+          totalRevenue: appointmentRevenue
         });
       }
 
@@ -84,14 +79,12 @@ export const fetchStylistBookingAnalytics = async (stylistId: string) => {
       if (monthlyStatsMap.has(monthKey)) {
         const existing = monthlyStatsMap.get(monthKey)!;
         existing.bookings += 1;
-        if (appointment.status === 'completed') {
-          existing.revenue += appointmentRevenue;
-        }
+        existing.revenue += appointmentRevenue;
       } else {
         monthlyStatsMap.set(monthKey, {
           month: monthKey,
           bookings: 1,
-          revenue: appointment.status === 'completed' ? appointmentRevenue : 0
+          revenue: appointmentRevenue
         });
       }
     });
