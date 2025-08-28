@@ -240,6 +240,164 @@ export type Database = {
           },
         ]
       }
+      laundry_orders: {
+        Row: {
+          amount: number | null
+          client_id: string
+          created_at: string
+          delivered_at: string | null
+          delivery_address: string | null
+          delivery_date: string | null
+          delivery_instructions: string | null
+          delivery_time: string | null
+          id: string
+          items_description: string | null
+          order_number: string
+          out_for_delivery_at: string | null
+          payment_id: string | null
+          pickup_address: string
+          pickup_completed_at: string | null
+          pickup_date: string
+          pickup_instructions: string | null
+          pickup_time: string
+          ready_at: string | null
+          service_type: string
+          special_instructions: string | null
+          specialist_id: string | null
+          status: string
+          updated_at: string
+          washing_started_at: string | null
+          weight_kg: number | null
+        }
+        Insert: {
+          amount?: number | null
+          client_id: string
+          created_at?: string
+          delivered_at?: string | null
+          delivery_address?: string | null
+          delivery_date?: string | null
+          delivery_instructions?: string | null
+          delivery_time?: string | null
+          id?: string
+          items_description?: string | null
+          order_number?: string
+          out_for_delivery_at?: string | null
+          payment_id?: string | null
+          pickup_address: string
+          pickup_completed_at?: string | null
+          pickup_date: string
+          pickup_instructions?: string | null
+          pickup_time: string
+          ready_at?: string | null
+          service_type?: string
+          special_instructions?: string | null
+          specialist_id?: string | null
+          status?: string
+          updated_at?: string
+          washing_started_at?: string | null
+          weight_kg?: number | null
+        }
+        Update: {
+          amount?: number | null
+          client_id?: string
+          created_at?: string
+          delivered_at?: string | null
+          delivery_address?: string | null
+          delivery_date?: string | null
+          delivery_instructions?: string | null
+          delivery_time?: string | null
+          id?: string
+          items_description?: string | null
+          order_number?: string
+          out_for_delivery_at?: string | null
+          payment_id?: string | null
+          pickup_address?: string
+          pickup_completed_at?: string | null
+          pickup_date?: string
+          pickup_instructions?: string | null
+          pickup_time?: string
+          ready_at?: string | null
+          service_type?: string
+          special_instructions?: string | null
+          specialist_id?: string | null
+          status?: string
+          updated_at?: string
+          washing_started_at?: string | null
+          weight_kg?: number | null
+        }
+        Relationships: []
+      }
+      laundry_services: {
+        Row: {
+          base_price: number
+          created_at: string
+          description: string | null
+          id: string
+          is_express: boolean | null
+          name: string
+          price_per_kg: number
+          turnaround_days: number
+          updated_at: string
+        }
+        Insert: {
+          base_price?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_express?: boolean | null
+          name: string
+          price_per_kg: number
+          turnaround_days?: number
+          updated_at?: string
+        }
+        Update: {
+          base_price?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_express?: boolean | null
+          name?: string
+          price_per_kg?: number
+          turnaround_days?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      laundry_status_history: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          order_id: string
+          status: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          order_id: string
+          status: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          order_id?: string
+          status?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "laundry_status_history_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "laundry_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       loyalty_points: {
         Row: {
           appointment_id: string | null
@@ -408,9 +566,11 @@ export type Database = {
           experience: string | null
           full_name: string | null
           id: string
+          is_laundry_specialist: boolean | null
           is_stylist: boolean | null
           location: string | null
           phone: string | null
+          service_areas: string[] | null
           specialty: string | null
           updated_at: string
         }
@@ -426,9 +586,11 @@ export type Database = {
           experience?: string | null
           full_name?: string | null
           id: string
+          is_laundry_specialist?: boolean | null
           is_stylist?: boolean | null
           location?: string | null
           phone?: string | null
+          service_areas?: string[] | null
           specialty?: string | null
           updated_at?: string
         }
@@ -444,9 +606,11 @@ export type Database = {
           experience?: string | null
           full_name?: string | null
           id?: string
+          is_laundry_specialist?: boolean | null
           is_stylist?: boolean | null
           location?: string | null
           phone?: string | null
+          service_areas?: string[] | null
           specialty?: string | null
           updated_at?: string
         }
@@ -920,6 +1084,28 @@ export type Database = {
       get_admin_total_users_count: {
         Args: Record<PropertyKey, never>
         Returns: number
+      }
+      get_laundry_specialist_orders: {
+        Args: { specialist_uuid: string }
+        Returns: {
+          amount: number
+          client_id: string
+          client_name: string
+          client_phone: string
+          created_at: string
+          delivery_address: string
+          delivery_date: string
+          delivery_time: string
+          id: string
+          items_description: string
+          order_number: string
+          pickup_address: string
+          pickup_date: string
+          pickup_time: string
+          service_type: string
+          status: string
+          weight_kg: number
+        }[]
       }
       get_public_stylists: {
         Args: { p_id?: string }
