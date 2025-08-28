@@ -29,6 +29,8 @@ import StylistDetail from './pages/StylistDetail';
 import PaymentReturn from './pages/PaymentReturn';
 import AuthCallback from './pages/AuthCallback';
 import NotFound from './pages/NotFound';
+import ServiceBooking from './pages/ServiceBooking';
+import LaundryBooking from './pages/LaundryBooking';
 import EnhancedCustomerServiceWidget from './components/customer-service/EnhancedCustomerServiceWidget';
 import { ThemeProvider } from './components/theme/ThemeProvider';
 import { PaymentProvider } from './components/payment/PaymentProvider';
@@ -104,6 +106,8 @@ const AppContent: React.FC = () => {
         <Route path="/services" element={<Services />} />
         <Route path="/specialists" element={<Specialists />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/book-service" element={<ServiceBooking />} />
+        <Route path="/laundry-booking" element={<LaundryBooking />} />
         <Route path="/profile" element={
           <ProtectedRoute>
             <Profile />
