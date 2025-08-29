@@ -1,31 +1,53 @@
 
 import React, { useState, useEffect } from "react";
-import { ServiceList } from "./services/ServiceList";
-import { Service } from "./services/types";
-import { fetchServices } from "./services/serviceApi";
+import { ProfessionServiceSelector } from "./services/ProfessionServiceSelector";
+import { BeautyServiceForm } from "./services/BeautyServiceForm";
+import { LaundryServiceForm } from "./services/LaundryServiceForm";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
 const SpecialistServicesTab = () => {
-  const [services, setServices] = useState<Service[]>([]);
+  const [userProfile, setUserProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedProfession, setSelectedProfession] = useState<'beauty' | 'laundry' | null>(null);
 
-  const loadServices = async () => {
+  useEffect(() => {
+    fetchUserProfile();
+  }, []);
+
+  const fetchUserProfile = async () => {
     try {
       setLoading(true);
-      const fetchedServices = await fetchServices();
-      setServices(fetchedServices);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      setUserProfile(profile);
+      
+      // Set profession based on profile
+      if (profile?.is_laundry_specialist) {
+        setSelectedProfession('laundry');
+      } else if (profile?.is_stylist) {
+        setSelectedProfession('beauty');
+      }
     } catch (error: any) {
-      console.error("Error fetching services:", error);
-      toast.error(error.message || "Failed to load services");
+      console.error("Error fetching profile:", error);
+      toast.error("Failed to load profile");
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    loadServices();
-  }, []);
+  const handleProfessionSelect = (profession: 'beauty' | 'laundry') => {
+    setSelectedProfession(profession);
+    fetchUserProfile(); // Refresh profile to get updated data
+  };
 
   if (loading) {
     return (
@@ -35,12 +57,32 @@ const SpecialistServicesTab = () => {
     );
   }
 
+  // If no profession is selected, show profession selector
+  if (!selectedProfession) {
+    return (
+      <ProfessionServiceSelector 
+        onProfessionSelect={handleProfessionSelect}
+        selectedProfession={selectedProfession}
+      />
+    );
+  }
+
   return (
     <div className="space-y-6">
-      <ServiceList 
-        services={services} 
-        onServicesChange={loadServices}
+      {/* Show profession selector for changing */}
+      <ProfessionServiceSelector 
+        onProfessionSelect={handleProfessionSelect}
+        selectedProfession={selectedProfession}
       />
+      
+      {/* Show appropriate service form */}
+      {selectedProfession === 'beauty' && (
+        <BeautyServiceForm onServicesChange={fetchUserProfile} />
+      )}
+      
+      {selectedProfession === 'laundry' && (
+        <LaundryServiceForm onServicesChange={fetchUserProfile} />
+      )}
     </div>
   );
 };
