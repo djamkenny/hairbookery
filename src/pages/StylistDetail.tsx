@@ -9,6 +9,7 @@ import { CalendarIcon, ClockIcon, MapPin, CheckCircle2 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import ProfileBookingForm from "@/components/specialist/ProfileBookingForm";
+import { LaundryBookingForm } from "@/components/laundry/LaundryBookingForm";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Service, ServiceType } from "@/components/stylist/services/types";
@@ -378,12 +379,16 @@ const SpecialistDetail = () => {
 
               {/* Integrated Booking Form */}
               <div className="animate-fade-in">
-                <ProfileBookingForm 
-                  stylistId={id!}
-                  serviceCategories={serviceCategories}
-                  selectedServiceTypes={selectedServiceTypes}
-                  onServiceToggle={handleServiceTypeToggle}
-                />
+                {specialist.service_type === 'laundry' || specialist.is_laundry_specialist ? (
+                  <LaundryBookingForm />
+                ) : (
+                  <ProfileBookingForm 
+                    stylistId={id!}
+                    serviceCategories={serviceCategories}
+                    selectedServiceTypes={selectedServiceTypes}
+                    onServiceToggle={handleServiceTypeToggle}
+                  />
+                )}
               </div>
             </div>
           </div>
