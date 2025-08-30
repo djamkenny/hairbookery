@@ -1118,7 +1118,10 @@ export type Database = {
           experience: string
           full_name: string
           id: string
+          is_laundry_specialist: boolean
+          is_stylist: boolean
           location: string
+          service_type: string
           specialty: string
         }[]
       }

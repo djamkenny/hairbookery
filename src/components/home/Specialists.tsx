@@ -35,10 +35,11 @@ const Specialists = () => {
           const transformedStylists = data?.map(stylist => ({
             id: stylist.id,
             name: stylist.full_name || "Unnamed Specialist",
-            role: stylist.specialty || "Hair Specialist",
+            role: stylist.service_type === 'laundry' ? 'Laundry Specialist' : (stylist.specialty || "Beauty Specialist"),
             bio: stylist.bio || "Professional specialist with expertise in modern techniques.",
             image: stylist.avatar_url || "https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=761&q=80",
-            location: stylist.location
+            location: stylist.location,
+            serviceType: stylist.service_type
           })) || [];
           
           setRegisteredStylists(transformedStylists);
@@ -57,7 +58,18 @@ const Specialists = () => {
   const allSpecialists = [...registeredStylists, ...hardcodedSpecialists];
   
   const filteredSpecialists = allSpecialists.filter(specialist => {
-    const roleMatch = activeRole === "all" || specialist.role.toLowerCase().includes(activeRole);
+    let roleMatch = false;
+    
+    if (activeRole === "all") {
+      roleMatch = true;
+    } else if (activeRole === "laundry") {
+      roleMatch = specialist.serviceType === 'laundry' || specialist.role.toLowerCase().includes('laundry');
+    } else {
+      // For beauty services (hair, nail, etc.)
+      roleMatch = (specialist.serviceType === 'beauty' || !specialist.serviceType) && 
+                  specialist.role.toLowerCase().includes(activeRole);
+    }
+    
     const nameMatch = !searchName || specialist.name.toLowerCase().includes(searchName.toLowerCase());
     const locationMatch = !searchLocation || (specialist.location && specialist.location.toLowerCase().includes(searchLocation.toLowerCase()));
     
