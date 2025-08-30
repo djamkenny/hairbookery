@@ -28,6 +28,8 @@ interface SpecialistProfile {
   experience: string | null;
   email: string | null;
   phone: string | null;
+  is_laundry_specialist: boolean;
+  service_type: string;
 }
 
 interface ServiceCategory {
@@ -85,58 +87,96 @@ const SpecialistDetail = () => {
             location: specialistRow.location,
             experience: specialistRow.experience,
             email: null,
-            phone: null
+            phone: null,
+            is_laundry_specialist: specialistRow.is_laundry_specialist,
+            service_type: specialistRow.service_type
           });
         } else {
           toast.error("Specialist not found");
           return;
         }
         
-        // Fetch service types through services join
-        const { data: serviceTypesData, error: serviceTypesError } = await supabase
-          .from('service_types')
-          .select(`
-            *,
-            services!inner (
-              category,
-              stylist_id
-            )
-          `)
-          .eq('services.stylist_id', id);
+        // Check if this is a laundry specialist and fetch appropriate services
+        if (specialistRow?.service_type === 'laundry' || specialistRow?.is_laundry_specialist) {
+          // Fetch laundry services for laundry specialists
+          const { data: laundryServicesData, error: laundryError } = await supabase
+            .from('laundry_services')
+            .select('*');
 
-        if (serviceTypesError) {
-          console.error("Error fetching service types:", serviceTypesError);
-          toast.error("Failed to load services");
-          return;
-        }
+          if (laundryError) {
+            console.error("Error fetching laundry services:", laundryError);
+            toast.error("Failed to load laundry services");
+            return;
+          }
 
-        if (serviceTypesData) {
-          // Group service types by category
-          const categoryMap = new Map<string, ServiceType[]>();
-          
-          serviceTypesData.forEach((serviceType: any) => {
-            const category = serviceType.services.category || 'Other';
-            if (!categoryMap.has(category)) {
-              categoryMap.set(category, []);
-            }
-            categoryMap.get(category)!.push({
-              id: serviceType.id,
-              service_id: serviceType.service_id,
-              name: serviceType.name,
-              description: serviceType.description,
-              price: serviceType.price,
-              duration: serviceType.duration,
-              created_at: serviceType.created_at,
-              updated_at: serviceType.updated_at
+          if (laundryServicesData) {
+            // Convert laundry services to service types format
+            const laundryServiceTypes: ServiceType[] = laundryServicesData.map((service: any) => ({
+              id: service.id,
+              service_id: service.id, // Use the same ID for laundry services
+              name: service.name,
+              description: service.description,
+              price: service.price_per_kg || service.base_price || 0,
+              duration: (service.turnaround_days || 2) * 60 * 24, // Convert days to minutes
+              created_at: service.created_at,
+              updated_at: service.updated_at
+            }));
+
+            const categories: ServiceCategory[] = [{
+              name: 'Laundry Services',
+              description: 'Professional laundry and dry cleaning services',
+              serviceTypes: laundryServiceTypes
+            }];
+
+            setServiceCategories(categories);
+          }
+        } else {
+          // Fetch beauty service types through services join for beauty specialists
+          const { data: serviceTypesData, error: serviceTypesError } = await supabase
+            .from('service_types')
+            .select(`
+              *,
+              services!inner (
+                category,
+                stylist_id
+              )
+            `)
+            .eq('services.stylist_id', id);
+
+          if (serviceTypesError) {
+            console.error("Error fetching service types:", serviceTypesError);
+            toast.error("Failed to load services");
+            return;
+          }
+
+          if (serviceTypesData) {
+            // Group service types by category
+            const categoryMap = new Map<string, ServiceType[]>();
+            
+            serviceTypesData.forEach((serviceType: any) => {
+              const category = serviceType.services.category || 'Other';
+              if (!categoryMap.has(category)) {
+                categoryMap.set(category, []);
+              }
+              categoryMap.get(category)!.push({
+                id: serviceType.id,
+                service_id: serviceType.service_id,
+                name: serviceType.name,
+                description: serviceType.description,
+                price: serviceType.price,
+                duration: serviceType.duration,
+                created_at: serviceType.created_at,
+                updated_at: serviceType.updated_at
+              });
             });
-          });
 
-          const categories: ServiceCategory[] = Array.from(categoryMap.entries()).map(([name, serviceTypes]) => ({
-            name,
-            serviceTypes
-          }));
+            const categories: ServiceCategory[] = Array.from(categoryMap.entries()).map(([name, serviceTypes]) => ({
+              name,
+              serviceTypes
+            }));
 
-          setServiceCategories(categories);
+            setServiceCategories(categories);
+          }
         }
         
         // Fetch services with images for gallery
