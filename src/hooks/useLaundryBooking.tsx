@@ -2,6 +2,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { LaundryBookingData } from "@/types/laundry";
+import { calculateBookingFee } from "@/components/booking/utils/feeUtils";
 
 interface LaundryPaymentResult {
   success: boolean;
@@ -22,11 +23,17 @@ export const useLaundryBooking = () => {
         throw new Error('User not authenticated');
       }
 
-      // Create payment for laundry service
+      // Calculate service price and booking fee
+      const basePrice = 15;
+      const perKgPrice = 8;
+      const servicePrice = Math.max(basePrice, perKgPrice * bookingData.estimatedWeight);
+      const { fee: bookingFee } = calculateBookingFee(servicePrice);
+
+      // Create payment for laundry service (only booking fee)
       const { data, error } = await supabase.functions.invoke('create-payment', {
         body: {
-          amount: Math.round(bookingData.totalAmount * 100), // Convert to pesewas
-          description: `Laundry service - ${bookingData.serviceType}`,
+          amount: Math.round(bookingFee * 100), // Convert to pesewas - only booking fee
+          description: `Laundry booking fee - ${bookingData.serviceType}`,
           currency: 'GHS',
           metadata: {
             type: 'laundry',
@@ -40,6 +47,8 @@ export const useLaundryBooking = () => {
             itemsDescription: bookingData.itemsDescription,
             specialInstructions: bookingData.specialInstructions,
             estimatedWeight: bookingData.estimatedWeight,
+            servicePrice: servicePrice,
+            bookingFee: bookingFee,
             totalAmount: bookingData.totalAmount,
             pickupInstructions: bookingData.pickupInstructions,
             deliveryInstructions: bookingData.deliveryInstructions

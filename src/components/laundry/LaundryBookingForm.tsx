@@ -14,6 +14,7 @@ import { useLaundryBooking } from "@/hooks/useLaundryBooking";
 import { useAuth } from "@/hooks/useAuth";
 import { LaundryBookingData } from "@/types/laundry";
 import { formatPrice } from "@/components/booking/utils/formatUtils";
+import { calculateBookingFee } from "@/components/booking/utils/feeUtils";
 import { format } from "date-fns";
 import { CalendarIcon, MapPin, Clock, Package, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -45,11 +46,19 @@ export const LaundryBookingForm: React.FC = () => {
 
   // Calculate estimated price based on selected service and weight
   const calculatePrice = () => {
-    // This would be calculated based on selected service
-    // For now, using a simple calculation
+    // Calculate base service price
     const basePrice = 15;
     const perKgPrice = 8;
-    return Math.max(basePrice, perKgPrice * estimatedWeight[0]);
+    const servicePrice = Math.max(basePrice, perKgPrice * estimatedWeight[0]);
+    
+    // Calculate booking fee and total using the same logic as beauty services
+    const { fee, total } = calculateBookingFee(servicePrice);
+    
+    return {
+      servicePrice,
+      bookingFee: fee,
+      totalPrice: total
+    };
   };
 
   const handleSubmit = async () => {
@@ -76,7 +85,7 @@ export const LaundryBookingForm: React.FC = () => {
       itemsDescription,
       specialInstructions,
       estimatedWeight: estimatedWeight[0],
-      totalAmount: calculatePrice(),
+      totalAmount: calculatePrice().totalPrice,
     };
 
     const result = await initiateLaundryPayment(bookingData);
@@ -435,10 +444,22 @@ export const LaundryBookingForm: React.FC = () => {
                   <span>Pickup Time:</span>
                   <span>{pickupTime || "Not selected"}</span>
                 </div>
-                <div className="border-t pt-2">
-                  <div className="flex justify-between text-lg font-semibold">
-                    <span>Total Amount:</span>
-                    <span>{formatPrice(calculatePrice())}</span>
+                <div className="border-t pt-2 space-y-2">
+                  <div className="flex justify-between">
+                    <span>Service Cost:</span>
+                    <span>{formatPrice(calculatePrice().servicePrice)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm text-muted-foreground">
+                    <span>Booking Fee:</span>
+                    <span>{formatPrice(calculatePrice().bookingFee)}</span>
+                  </div>
+                  <div className="flex justify-between text-lg font-semibold border-t pt-2">
+                    <span>Total to Pay Now:</span>
+                    <span>{formatPrice(calculatePrice().bookingFee)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm text-muted-foreground">
+                    <span>Pay at Pickup:</span>
+                    <span>{formatPrice(calculatePrice().servicePrice)}</span>
                   </div>
                 </div>
               </div>

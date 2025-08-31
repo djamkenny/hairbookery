@@ -107,7 +107,7 @@ serve(async (req) => {
         pickup_time: metadata.pickupTime,
         delivery_date: metadata.deliveryDate || null,
         delivery_time: metadata.deliveryTime || null,
-        amount: payment.amount,
+        amount: metadata.servicePrice ? Math.round(metadata.servicePrice * 100) : payment.amount, // Store service price in pesewas
         payment_id: payment.id,
         items_description: metadata.itemsDescription || null,
         special_instructions: metadata.specialInstructions || null,
@@ -119,10 +119,35 @@ serve(async (req) => {
 
     if (orderError) {
       console.error('Error creating laundry order:', orderError);
-      throw new Error('Failed to create laundry order');
+      throw new Error('Failed to create laundry order: ' + orderError.message);
     }
 
     console.log('Laundry order created:', laundryOrder);
+
+    // Create appointment record in appointments table for consistency
+    const appointmentOrderId = `LDR-${new Date(metadata.pickupDate).toISOString().slice(0, 10).replace(/-/g, '')}-${String(Math.floor(Math.random() * 99999) + 1).padStart(5, '0')}`;
+    
+    const { data: appointment, error: appointmentError } = await supabaseServiceRole
+      .from('appointments')
+      .insert({
+        client_id: user.id,
+        stylist_id: null, // Will be assigned later when specialist accepts
+        appointment_date: metadata.pickupDate,
+        appointment_time: metadata.pickupTime,
+        notes: `Laundry Service: ${metadata.serviceType}. Items: ${metadata.itemsDescription || 'Not specified'}. Special instructions: ${metadata.specialInstructions || 'None'}`,
+        order_id: appointmentOrderId,
+        status: 'pending'
+      })
+      .select()
+      .single();
+
+    if (appointmentError) {
+      console.log('Warning: Failed to create appointment record:', appointmentError);
+      // Don't throw error here as the laundry order was created successfully
+    } else {
+      console.log('Appointment record created:', appointment);
+    }
+
 
     // Update payment status to completed and link order
     const { error: updateError } = await supabaseServiceRole
