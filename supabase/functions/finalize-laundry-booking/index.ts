@@ -93,11 +93,26 @@ serve(async (req) => {
 
     console.log('Payment metadata:', metadata);
 
+    // Find an available laundry specialist
+    const { data: availableSpecialists, error: specialistError } = await supabaseServiceRole
+      .from('profiles')
+      .select('id, full_name')
+      .eq('is_laundry_specialist', true)
+      .eq('availability', true)
+      .limit(1);
+
+    if (specialistError) {
+      console.error('Error finding laundry specialists:', specialistError);
+    }
+
+    const assignedSpecialist = availableSpecialists?.[0] || null;
+
     // Create laundry order
     const { data: laundryOrder, error: orderError } = await supabaseServiceRole
       .from('laundry_orders')
       .insert({
         client_id: user.id,
+        specialist_id: assignedSpecialist?.id || null,
         service_type: metadata.serviceType,
         pickup_address: metadata.pickupAddress,
         pickup_instructions: metadata.pickupInstructions || null,
@@ -124,14 +139,14 @@ serve(async (req) => {
 
     console.log('Laundry order created:', laundryOrder);
 
-    // Create appointment record in appointments table for consistency
+    // Create appointment record in appointments table for tracking purposes only
     const appointmentOrderId = `LDR-${new Date(metadata.pickupDate).toISOString().slice(0, 10).replace(/-/g, '')}-${String(Math.floor(Math.random() * 99999) + 1).padStart(5, '0')}`;
     
     const { data: appointment, error: appointmentError } = await supabaseServiceRole
       .from('appointments')
       .insert({
         client_id: user.id,
-        stylist_id: null, // Will be assigned later when specialist accepts
+        stylist_id: assignedSpecialist?.id || null,
         appointment_date: metadata.pickupDate,
         appointment_time: metadata.pickupTime,
         notes: `Laundry Service: ${metadata.serviceType}. Items: ${metadata.itemsDescription || 'Not specified'}. Special instructions: ${metadata.specialInstructions || 'None'}`,
@@ -146,6 +161,19 @@ serve(async (req) => {
       // Don't throw error here as the laundry order was created successfully
     } else {
       console.log('Appointment record created:', appointment);
+    }
+
+    // Notify assigned specialist if one was found
+    if (assignedSpecialist) {
+      await supabaseServiceRole
+        .from('notifications')
+        .insert({
+          user_id: assignedSpecialist.id,
+          title: 'New Laundry Order Assigned',
+          message: `A new laundry order #${laundryOrder.order_number} has been assigned to you. Pickup scheduled for ${metadata.pickupDate} at ${metadata.pickupTime}.`,
+          type: 'laundry_order_assigned',
+          related_id: laundryOrder.id
+        });
     }
 
 
