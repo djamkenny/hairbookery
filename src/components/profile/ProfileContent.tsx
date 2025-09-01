@@ -88,6 +88,7 @@ const ProfileContent = ({
             showRatingDialog={showRatingDialog}
             ratingDialogData={ratingDialogData}
             closeRatingDialog={closeRatingDialog}
+            userId={user?.id}
           />
         </TabsContent>
         

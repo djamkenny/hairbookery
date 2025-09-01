@@ -6,6 +6,8 @@ import { toast } from "sonner";
 interface LaundryAppointmentData extends LaundryOrder {
   client_name?: string;
   client_phone?: string;
+  service_name?: string;
+  specialist_name?: string;
 }
 
 export const useLaundryAppointments = () => {
@@ -56,7 +58,31 @@ export const useLaundryAppointments = () => {
           .select('id, full_name, phone')
           .in('id', clientIds);
 
+        // Get laundry service information
+        const serviceIds = [...new Set((ordersData || []).map(order => order.service_type))];
+        const { data: serviceData } = await supabase
+          .from('laundry_services')
+          .select('id, name')
+          .in('id', serviceIds);
+
+        // Get specialist information
+        const specialistIds = [...new Set((ordersData || []).map(order => order.specialist_id).filter(Boolean))];
+        const { data: specialistProfiles } = specialistIds.length > 0 ? await supabase
+          .from('profiles')
+          .select('id, full_name')
+          .in('id', specialistIds) : { data: [] };
+
         const clientMap = (clientProfiles || []).reduce((map, profile) => {
+          map[profile.id] = profile;
+          return map;
+        }, {} as Record<string, any>);
+
+        const serviceMap = (serviceData || []).reduce((map, service) => {
+          map[service.id] = service;
+          return map;
+        }, {} as Record<string, any>);
+
+        const specialistMap = (specialistProfiles || []).reduce((map, profile) => {
           map[profile.id] = profile;
           return map;
         }, {} as Record<string, any>);
@@ -65,7 +91,9 @@ export const useLaundryAppointments = () => {
           ...order,
           status: order.status as LaundryOrderStatus,
           client_name: clientMap[order.client_id]?.full_name || 'Unknown Client',
-          client_phone: clientMap[order.client_id]?.phone || null
+          client_phone: clientMap[order.client_id]?.phone || null,
+          service_name: serviceMap[order.service_type]?.name || 'Laundry Service',
+          specialist_name: order.specialist_id ? specialistMap[order.specialist_id]?.full_name || 'Specialist' : 'Unassigned'
         }));
 
         setOrders(formattedOrders);
