@@ -37,11 +37,11 @@ export const useLaundryAppointments = () => {
           return;
         }
 
-        // Fetch laundry orders assigned to this specialist
+        // Fetch laundry orders assigned to this specialist or unassigned orders
         const { data: ordersData, error } = await supabase
           .from('laundry_orders')
           .select('*')
-          .eq('specialist_id', user.id)
+          .or(`specialist_id.eq.${user.id},specialist_id.is.null`)
           .order('created_at', { ascending: false });
 
         if (error) {
