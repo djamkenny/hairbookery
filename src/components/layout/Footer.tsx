@@ -62,9 +62,11 @@ export const Footer = () => {
         
         <div className="border-t border-border/50 pt-8 mt-8 flex flex-col md:flex-row items-center justify-between">
           <p className="text-muted-foreground text-sm mb-4 md:mb-0">&copy; {new Date().getFullYear()} K n L bookery. All rights reserved.</p>
-          <div className="flex space-x-6">
+          <div className="flex space-x-6 flex-wrap">
             <Link to="/terms" className="text-muted-foreground hover:text-primary text-sm transition-colors">Terms of Service</Link>
             <Link to="/privacy" className="text-muted-foreground hover:text-primary text-sm transition-colors">Privacy Policy</Link>
+            <Link to="/customer-agreement" className="text-muted-foreground hover:text-primary text-sm transition-colors">Customer Agreement</Link>
+            <Link to="/specialist-agreement" className="text-muted-foreground hover:text-primary text-sm transition-colors">Specialist Agreement</Link>
           </div>
         </div>
       </div>

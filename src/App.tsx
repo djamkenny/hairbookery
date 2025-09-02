@@ -31,6 +31,10 @@ import AuthCallback from './pages/AuthCallback';
 import NotFound from './pages/NotFound';
 import ServiceBooking from './pages/ServiceBooking';
 import LaundryBooking from './pages/LaundryBooking';
+import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
+import CustomerServiceAgreement from './pages/CustomerServiceAgreement';
+import SpecialistAgreement from './pages/SpecialistAgreement';
 import EnhancedCustomerServiceWidget from './components/customer-service/EnhancedCustomerServiceWidget';
 import { ThemeProvider } from './components/theme/ThemeProvider';
 import { PaymentProvider } from './components/payment/PaymentProvider';
@@ -124,9 +128,13 @@ const AppContent: React.FC = () => {
         <Route path="/donation" element={<Donation />} />
 <Route path="/payment-return" element={<PaymentReturn />} />
 <Route path="/auth/callback" element={<AuthCallback />} />
-<Route path="/admin-support" element={<AdminSupportPage />} />
-<Route path="/admin-chat" element={<AdminChatPage />} />
-<Route path="*" element={<NotFound />} />
+        <Route path="/admin-support" element={<AdminSupportPage />} />
+        <Route path="/admin-chat" element={<AdminChatPage />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/customer-agreement" element={<CustomerServiceAgreement />} />
+        <Route path="/specialist-agreement" element={<SpecialistAgreement />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
       {user && <EnhancedCustomerServiceWidget />}
       {user && <RatingNotificationHandler />}
