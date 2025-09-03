@@ -4,11 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Briefcase, Scissors, Shirt, CheckCircle } from "lucide-react";
+import { Briefcase, Scissors, Shirt, Sparkles, CheckCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const ServiceTypeSettings = () => {
-  const [currentSelection, setCurrentSelection] = useState<'beauty' | 'laundry' | null>(null);
+  const [currentSelection, setCurrentSelection] = useState<'beauty' | 'laundry' | 'cleaning' | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -22,13 +22,15 @@ const ServiceTypeSettings = () => {
         if (user) {
           const { data: profile, error: profileError } = await supabase
             .from('profiles')
-            .select('is_stylist, is_laundry_specialist')
+            .select('is_stylist, is_laundry_specialist, is_cleaning_specialist')
             .eq('id', user.id)
             .single();
 
           if (profileError) throw profileError;
 
-          if (profile?.is_laundry_specialist) {
+          if (profile?.is_cleaning_specialist) {
+            setCurrentSelection('cleaning');
+          } else if (profile?.is_laundry_specialist) {
             setCurrentSelection('laundry');
           } else if (profile?.is_stylist) {
             setCurrentSelection('beauty');
@@ -45,7 +47,7 @@ const ServiceTypeSettings = () => {
     fetchCurrentSelection();
   }, []);
 
-  const handleSelectionChange = async (serviceType: 'beauty' | 'laundry') => {
+  const handleSelectionChange = async (serviceType: 'beauty' | 'laundry' | 'cleaning') => {
     try {
       setSaving(true);
       const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -55,6 +57,7 @@ const ServiceTypeSettings = () => {
         const updateData = {
           is_stylist: serviceType === 'beauty',
           is_laundry_specialist: serviceType === 'laundry',
+          is_cleaning_specialist: serviceType === 'cleaning',
           availability: true, // Ensure availability remains enabled when switching service types
           availability_status: 'available', // Reset to available status
           updated_at: new Date().toISOString()
@@ -68,7 +71,11 @@ const ServiceTypeSettings = () => {
         if (updateError) throw updateError;
 
         setCurrentSelection(serviceType);
-        toast.success(`Service type updated to ${serviceType === 'beauty' ? 'Beauty & Hair Services' : 'Laundry Services'}`);
+        toast.success(`Service type updated to ${
+          serviceType === 'beauty' ? 'Beauty & Hair Services' : 
+          serviceType === 'laundry' ? 'Laundry Services' : 
+          'Cleaning Services'
+        }`);
       }
     } catch (error: any) {
       console.error("Error updating service type:", error);
@@ -108,12 +115,16 @@ const ServiceTypeSettings = () => {
           {currentSelection && (
             <div className="mb-4">
               <Badge variant="secondary" className="mb-2">
-                Current Selection: {currentSelection === 'beauty' ? 'Beauty & Hair Services' : 'Laundry Services'}
+                Current Selection: {
+                  currentSelection === 'beauty' ? 'Beauty & Hair Services' : 
+                  currentSelection === 'laundry' ? 'Laundry Services' : 
+                  'Cleaning Services'
+                }
               </Badge>
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* Beauty Services Card */}
             <Card 
               className={cn(
@@ -177,7 +188,7 @@ const ServiceTypeSettings = () => {
               </CardContent>
             </Card>
 
-            {/* Cleaning Services Card */}
+            {/* Laundry Services Card */}
             <Card 
               className={cn(
                 "cursor-pointer transition-all duration-200 hover:shadow-md",
@@ -234,6 +245,69 @@ const ServiceTypeSettings = () => {
                       disabled={saving}
                     >
                       {saving ? "Updating..." : "Choose Laundry Services"}
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Cleaning Services Card */}
+            <Card 
+              className={cn(
+                "cursor-pointer transition-all duration-200 hover:shadow-md",
+                currentSelection === 'cleaning' && "border-primary bg-primary/5"
+              )}
+              onClick={() => !saving && handleSelectionChange('cleaning')}
+            >
+              <CardContent className="p-6">
+                <div className="text-center space-y-4">
+                  <div className={cn(
+                    "mx-auto w-16 h-16 rounded-full flex items-center justify-center",
+                    currentSelection === 'cleaning' ? "bg-primary text-primary-foreground" : "bg-green-100 text-green-600"
+                  )}>
+                    <Sparkles className="h-8 w-8" />
+                  </div>
+                  
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2">Cleaning Services</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Professional residential and commercial cleaning services
+                    </p>
+                  </div>
+
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <span className="w-2 h-2 rounded-full bg-primary"></span>
+                      Regular house cleaning
+                    </div>
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <span className="w-2 h-2 rounded-full bg-primary"></span>
+                      Deep cleaning & sanitization
+                    </div>
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <span className="w-2 h-2 rounded-full bg-primary"></span>
+                      Office & commercial spaces
+                    </div>
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <span className="w-2 h-2 rounded-full bg-primary"></span>
+                      Move-in/move-out cleaning
+                    </div>
+                  </div>
+
+                  {currentSelection === 'cleaning' && (
+                    <div className="flex items-center justify-center gap-2 text-primary font-medium">
+                      <CheckCircle className="h-4 w-4" />
+                      Current Selection
+                    </div>
+                  )}
+
+                  {currentSelection !== 'cleaning' && (
+                    <Button 
+                      className="w-full" 
+                      variant="outline"
+                      disabled={saving}
+                    >
+                      {saving ? "Updating..." : "Choose Cleaning Services"}
                     </Button>
                   )}
                 </div>
