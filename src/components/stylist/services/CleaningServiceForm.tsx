@@ -365,33 +365,6 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
         </CardContent>
       </Card>
 
-      {/* Quick Service Presets */}
-      {isAdding && !editingId && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Quick Setup</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {CLEANING_SERVICE_TYPES.map((preset) => (
-                <Button
-                  key={preset.name}
-                  variant="outline"
-                  className="h-auto p-4 text-left justify-start"
-                  onClick={() => loadPreset(preset)}
-                >
-                  <div>
-                    <div className="font-medium">{preset.name}</div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      GHS {preset.suggestedBasePrice} base • {preset.duration} hours
-                    </div>
-                  </div>
-                </Button>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Add/Edit Form */}
       {isAdding && (

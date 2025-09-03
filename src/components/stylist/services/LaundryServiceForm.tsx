@@ -353,33 +353,6 @@ export const LaundryServiceForm: React.FC<LaundryServiceFormProps> = ({ onServic
         </CardContent>
       </Card>
 
-      {/* Quick Service Presets */}
-      {isAdding && !editingId && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Quick Setup</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {LAUNDRY_SERVICE_TYPES.map((preset) => (
-                <Button
-                  key={preset.name}
-                  variant="outline"
-                  className="h-auto p-4 text-left justify-start"
-                  onClick={() => loadPreset(preset)}
-                >
-                  <div>
-                    <div className="font-medium">{preset.name}</div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      GHS {preset.suggestedPricePerKg}/kg • {preset.turnaroundDays} day{preset.turnaroundDays !== "1" ? "s" : ""}
-                    </div>
-                  </div>
-                </Button>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Add/Edit Form */}
       {isAdding && (
