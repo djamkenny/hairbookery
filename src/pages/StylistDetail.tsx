@@ -10,6 +10,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import ProfileBookingForm from "@/components/specialist/ProfileBookingForm";
 import { LaundryBookingForm } from "@/components/laundry/LaundryBookingForm";
+import { CleaningBookingForm } from "@/components/cleaning/CleaningBookingForm";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Service, ServiceType } from "@/components/stylist/services/types";
@@ -30,6 +31,7 @@ interface SpecialistProfile {
   email: string | null;
   phone: string | null;
   is_laundry_specialist: boolean;
+  is_cleaning_specialist: boolean;
   service_type: string;
 }
 
@@ -90,6 +92,7 @@ const SpecialistDetail = () => {
             email: null,
             phone: null,
             is_laundry_specialist: specialistRow.is_laundry_specialist,
+            is_cleaning_specialist: specialistRow.is_cleaning_specialist,
             service_type: specialistRow.service_type
           });
         } else {
@@ -97,7 +100,7 @@ const SpecialistDetail = () => {
           return;
         }
         
-        // Check if this is a laundry specialist and fetch appropriate services
+        // Check specialist type and fetch appropriate services
         if (specialistRow?.service_type === 'laundry' || specialistRow?.is_laundry_specialist) {
           // Fetch laundry services for laundry specialists
           const { data: laundryServicesData, error: laundryError } = await supabase
@@ -127,6 +130,39 @@ const SpecialistDetail = () => {
               name: 'Laundry Services',
               description: 'Professional laundry and dry cleaning services',
               serviceTypes: laundryServiceTypes
+            }];
+
+            setServiceCategories(categories);
+          }
+        } else if (specialistRow?.service_type === 'cleaning' || specialistRow?.is_cleaning_specialist) {
+          // Fetch cleaning services for cleaning specialists
+          const { data: cleaningServicesData, error: cleaningError } = await supabase
+            .from('cleaning_services')
+            .select('*');
+
+          if (cleaningError) {
+            console.error("Error fetching cleaning services:", cleaningError);
+            toast.error("Failed to load cleaning services");
+            return;
+          }
+
+          if (cleaningServicesData) {
+            // Convert cleaning services to service types format
+            const cleaningServiceTypes: ServiceType[] = cleaningServicesData.map((service: any) => ({
+              id: service.id,
+              service_id: service.id, // Use the same ID for cleaning services
+              name: service.name,
+              description: service.description,
+              price: service.base_price || service.hourly_rate || 0,
+              duration: (service.duration_hours || 2) * 60, // Convert hours to minutes
+              created_at: service.created_at,
+              updated_at: service.updated_at
+            }));
+
+            const categories: ServiceCategory[] = [{
+              name: 'Cleaning Services',
+              description: 'Professional home and office cleaning services',
+              serviceTypes: cleaningServiceTypes
             }];
 
             setServiceCategories(categories);
@@ -381,6 +417,8 @@ const SpecialistDetail = () => {
               <div className="animate-fade-in">
                 {specialist.service_type === 'laundry' || specialist.is_laundry_specialist ? (
                   <LaundryBookingForm />
+                ) : specialist.service_type === 'cleaning' || specialist.is_cleaning_specialist ? (
+                  <CleaningBookingForm />
                 ) : (
                   <ProfileBookingForm 
                     stylistId={id!}
