@@ -99,7 +99,7 @@ export const LaundryServiceForm: React.FC<LaundryServiceFormProps> = ({ onServic
       }
     } catch (error: any) {
       console.error("Error fetching data:", error);
-      toast.error("Failed to load laundry services");
+      toast.error("Failed to load cleaning services");
     } finally {
       setLoading(false);
     }
@@ -142,7 +142,7 @@ export const LaundryServiceForm: React.FC<LaundryServiceFormProps> = ({ onServic
           .eq('id', editingId);
 
         if (error) throw error;
-        toast.success("Laundry service updated successfully");
+        toast.success("Cleaning service updated successfully");
       } else {
         const { error } = await supabase
           .from('laundry_services')
@@ -156,7 +156,7 @@ export const LaundryServiceForm: React.FC<LaundryServiceFormProps> = ({ onServic
           });
         
         if (error) throw error;
-        toast.success("Laundry service added successfully");
+        toast.success("Cleaning service added successfully");
       }
 
       setFormData({
@@ -173,7 +173,7 @@ export const LaundryServiceForm: React.FC<LaundryServiceFormProps> = ({ onServic
       onServicesChange?.();
     } catch (error: any) {
       console.error("Error saving laundry service:", error);
-      toast.error("Failed to save laundry service");
+      toast.error("Failed to save cleaning service");
     }
   };
 
@@ -191,7 +191,7 @@ export const LaundryServiceForm: React.FC<LaundryServiceFormProps> = ({ onServic
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this laundry service?")) return;
+    if (!confirm("Are you sure you want to delete this cleaning service?")) return;
 
     try {
       const { error } = await supabase
@@ -200,12 +200,12 @@ export const LaundryServiceForm: React.FC<LaundryServiceFormProps> = ({ onServic
         .eq('id', id);
 
       if (error) throw error;
-      toast.success("Laundry service deleted successfully");
+      toast.success("Cleaning service deleted successfully");
       fetchData();
       onServicesChange?.();
     } catch (error: any) {
       console.error("Error deleting laundry service:", error);
-      toast.error("Failed to delete laundry service");
+      toast.error("Failed to delete cleaning service");
     }
   };
 
@@ -292,13 +292,13 @@ export const LaundryServiceForm: React.FC<LaundryServiceFormProps> = ({ onServic
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-xl sm:text-2xl font-semibold">Laundry Services</h2>
+          <h2 className="text-xl sm:text-2xl font-semibold">Cleaning Services</h2>
           <p className="text-sm text-muted-foreground">Manage your laundry and dry cleaning services</p>
         </div>
         {!isAdding && (
           <Button onClick={() => setIsAdding(true)} className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" />
-            Add Laundry Service
+            Add Cleaning Service
           </Button>
         )}
       </div>
@@ -373,7 +373,7 @@ export const LaundryServiceForm: React.FC<LaundryServiceFormProps> = ({ onServic
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">
-              {editingId ? "Edit Laundry Service" : "Add Laundry Service"}
+              {editingId ? "Edit Cleaning Service" : "Add Cleaning Service"}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -469,9 +469,9 @@ export const LaundryServiceForm: React.FC<LaundryServiceFormProps> = ({ onServic
         {laundryServices.length === 0 ? (
           <Card>
             <CardContent className="p-8 text-center">
-              <h3 className="text-lg font-medium mb-2">No laundry services yet</h3>
+              <h3 className="text-lg font-medium mb-2">No cleaning services yet</h3>
               <p className="text-muted-foreground mb-4">
-                Add your first laundry service to start accepting orders
+                Add your first cleaning service to start accepting orders
               </p>
               <Button onClick={() => setIsAdding(true)}>
                 <Plus className="h-4 w-4 mr-2" />
@@ -482,7 +482,7 @@ export const LaundryServiceForm: React.FC<LaundryServiceFormProps> = ({ onServic
         ) : (
           <Card>
             <CardHeader>
-              <CardTitle>Your Laundry Services</CardTitle>
+              <CardTitle>Your Cleaning Services</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid gap-3">
