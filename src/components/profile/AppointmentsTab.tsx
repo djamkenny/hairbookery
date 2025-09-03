@@ -45,20 +45,20 @@ const AppointmentsTab = ({
   );
 
   return (
-    <div className="space-y-4 md:space-y-6">
-      <h1 className="text-xl md:text-2xl font-semibold">Your Appointments</h1>
+    <div className="space-y-3 sm:space-y-4 md:space-y-6">
+      <h1 className="text-lg sm:text-xl md:text-2xl font-semibold">Your Appointments</h1>
       
       <Tabs defaultValue="upcoming" className="w-full overflow-hidden">
-        <TabsList className="mb-4 md:mb-6 w-full overflow-x-auto hide-scrollbar">
-          <TabsTrigger value="upcoming" className="flex-1">Upcoming</TabsTrigger>
-          <TabsTrigger value="past" className="flex-1">Past</TabsTrigger>
+        <TabsList className="mb-3 sm:mb-4 md:mb-6 w-full overflow-x-auto hide-scrollbar">
+          <TabsTrigger value="upcoming" className="flex-1 text-xs sm:text-sm">Upcoming</TabsTrigger>
+          <TabsTrigger value="past" className="flex-1 text-xs sm:text-sm">Past</TabsTrigger>
         </TabsList>
         
         <TabsContent value="upcoming" className="space-y-3 md:space-y-4">
           {/* Beauty Appointments */}
           {upcomingAppointments.length > 0 && (
-            <div className="space-y-3">
-              <h3 className="font-semibold text-base">Beauty Services</h3>
+            <div className="space-y-2 sm:space-y-3">
+              <h3 className="font-medium text-sm sm:text-base">Beauty Services</h3>
               <AppointmentsList
                 appointments={upcomingAppointments}
                 type="upcoming"
@@ -70,9 +70,9 @@ const AppointmentsTab = ({
 
           {/* Laundry Orders */}
           {upcomingLaundryOrders.length > 0 && (
-            <div className="space-y-3">
-              <h3 className="font-semibold text-base">Laundry Services</h3>
-              <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
+              <h3 className="font-medium text-sm sm:text-base">Laundry Services</h3>
+              <div className="space-y-2 sm:space-y-3">
                 {upcomingLaundryOrders.map(order => (
                   <LaundryAppointmentDetailsCard
                     key={order.id}
@@ -87,10 +87,10 @@ const AppointmentsTab = ({
           {/* Empty State */}
           {upcomingAppointments.length === 0 && upcomingLaundryOrders.length === 0 && !laundryLoading && (
             <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <Package className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No upcoming appointments</h3>
-                <p className="text-muted-foreground text-center">
+              <CardContent className="flex flex-col items-center justify-center py-8 sm:py-12">
+                <Package className="h-8 w-8 sm:h-10 w-10 md:h-12 w-12 text-muted-foreground mb-3 sm:mb-4" />
+                <h3 className="text-base sm:text-lg font-semibold mb-2">No upcoming appointments</h3>
+                <p className="text-muted-foreground text-center text-xs sm:text-sm">
                   You don't have any upcoming appointments or orders.
                 </p>
               </CardContent>
@@ -101,8 +101,8 @@ const AppointmentsTab = ({
         <TabsContent value="past" className="space-y-3 md:space-y-4">
           {/* Beauty Appointments */}
           {pastAppointments.length > 0 && (
-            <div className="space-y-3">
-              <h3 className="font-semibold text-base">Beauty Services</h3>
+            <div className="space-y-2 sm:space-y-3">
+              <h3 className="font-medium text-sm sm:text-base">Beauty Services</h3>
               <AppointmentsList
                 appointments={pastAppointments}
                 type="past"
@@ -112,9 +112,9 @@ const AppointmentsTab = ({
 
           {/* Laundry Orders */}
           {pastLaundryOrders.length > 0 && (
-            <div className="space-y-3">
-              <h3 className="font-semibold text-base">Laundry Services</h3>
-              <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
+              <h3 className="font-medium text-sm sm:text-base">Laundry Services</h3>
+              <div className="space-y-2 sm:space-y-3">
                 {pastLaundryOrders.map(order => (
                   <LaundryAppointmentDetailsCard
                     key={order.id}
@@ -129,10 +129,10 @@ const AppointmentsTab = ({
           {/* Empty State */}
           {pastAppointments.length === 0 && pastLaundryOrders.length === 0 && !laundryLoading && (
             <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <Package className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No past appointments</h3>
-                <p className="text-muted-foreground text-center">
+              <CardContent className="flex flex-col items-center justify-center py-8 sm:py-12">
+                <Package className="h-8 w-8 sm:h-10 w-10 md:h-12 w-12 text-muted-foreground mb-3 sm:mb-4" />
+                <h3 className="text-base sm:text-lg font-semibold mb-2">No past appointments</h3>
+                <p className="text-muted-foreground text-center text-xs sm:text-sm">
                   Your completed appointments and orders will appear here.
                 </p>
               </CardContent>

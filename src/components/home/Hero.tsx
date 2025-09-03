@@ -23,10 +23,10 @@ export const Hero = () => {
       
       <div className="container mx-auto px-4 py-8 md:py-12 lg:py-24">
         <div className="max-w-3xl mx-auto text-center">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight mb-4 md:mb-6 animate-fade-in">
+          <h1 className="text-xl sm:text-2xl md:text-4xl lg:text-5xl font-semibold tracking-tight mb-3 md:mb-6 leading-tight animate-fade-in">
             Experience <span className="text-primary">Premium</span> Booking with your favourite Specialist
           </h1>
-          <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 md:mb-10 text-balance animate-slide-in">
+          <p className="text-sm sm:text-base md:text-lg text-muted-foreground mb-4 md:mb-8 text-balance animate-slide-in leading-relaxed">
             Book appointments with our expert stylists and transform your look.
             We provide exceptional service tailored to your unique style.
           </p>

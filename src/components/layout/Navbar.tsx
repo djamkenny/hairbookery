@@ -28,7 +28,7 @@ export const Navbar = () => {
         <div className="flex items-center justify-between">
           <Link 
             to="/" 
-            className="text-foreground text-lg sm:text-xl font-semibold flex items-center group"
+            className="text-foreground text-base sm:text-lg md:text-xl font-semibold flex items-center group"
           >
             <span className="hairline mr-1">K n L</span>
             <span className="text-primary group-hover:text-foreground transition-colors">bookery</span>
