@@ -25,7 +25,11 @@ const timeSlots = [
   "1:00 PM", "2:00 PM", "3:00 PM", "4:00 PM", "5:00 PM", "6:00 PM"
 ];
 
-export const LaundryBookingForm: React.FC = () => {
+interface LaundryBookingFormProps {
+  specialistId?: string;
+}
+
+export const LaundryBookingForm: React.FC<LaundryBookingFormProps> = ({ specialistId }) => {
   const { user } = useAuth();
   const { isProcessing, initiateLaundryPayment } = useLaundryBooking();
   
@@ -189,6 +193,7 @@ export const LaundryBookingForm: React.FC = () => {
               selectedService={selectedService}
               onServiceSelect={setSelectedService}
               estimatedWeight={estimatedWeight[0]}
+              specialistId={specialistId}
             />
 
             <Button 

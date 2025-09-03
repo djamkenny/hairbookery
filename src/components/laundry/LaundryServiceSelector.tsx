@@ -10,14 +10,16 @@ interface LaundryServiceSelectorProps {
   selectedService: string;
   onServiceSelect: (serviceId: string) => void;
   estimatedWeight: number;
+  specialistId?: string;
 }
 
 export const LaundryServiceSelector: React.FC<LaundryServiceSelectorProps> = ({
   selectedService,
   onServiceSelect,
   estimatedWeight,
+  specialistId,
 }) => {
-  const { services, loading } = useLaundryServices();
+  const { services, loading } = useLaundryServices(specialistId);
 
   if (loading) {
     return (

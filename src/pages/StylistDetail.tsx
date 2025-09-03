@@ -418,9 +418,9 @@ const SpecialistDetail = () => {
               {/* Integrated Booking Form */}
               <div className="animate-fade-in">
                 {specialist.service_type === 'laundry' || specialist.is_laundry_specialist ? (
-                  <LaundryBookingForm />
+                  <LaundryBookingForm specialistId={id!} />
                 ) : specialist.service_type === 'cleaning' || specialist.is_cleaning_specialist ? (
-                  <CleaningBookingForm />
+                  <CleaningBookingForm specialistId={id!} />
                 ) : (
                   <ProfileBookingForm 
                     stylistId={id!}

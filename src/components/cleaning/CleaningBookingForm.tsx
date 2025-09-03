@@ -32,6 +32,10 @@ interface CleaningService {
   service_category: string;
 }
 
+interface CleaningBookingFormProps {
+  specialistId?: string;
+}
+
 const propertyTypes = [
   { value: "apartment", label: "Apartment" },
   { value: "house", label: "House" },
@@ -47,7 +51,7 @@ const addonServices = [
   { id: "carpet_cleaning", label: "Additional Carpet Cleaning", price: 40 }
 ];
 
-export const CleaningBookingForm: React.FC = () => {
+export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specialistId }) => {
   const { user } = useAuth();
   
   const [step, setStep] = useState(1);
@@ -75,10 +79,17 @@ export const CleaningBookingForm: React.FC = () => {
   const fetchCleaningServices = async () => {
     try {
       setLoadingServices(true);
-      const { data, error } = await supabase
+      let query = supabase
         .from('cleaning_services')
         .select('*')
         .order('name');
+
+      // If specialistId is provided, filter by that specialist
+      if (specialistId) {
+        query = query.eq('specialist_id', specialistId);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error('Error fetching cleaning services:', error);

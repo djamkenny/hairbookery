@@ -3,21 +3,28 @@ import { supabase } from "@/integrations/supabase/client";
 import { LaundryService, LaundryOrder } from "@/types/laundry";
 import { toast } from "sonner";
 
-export const useLaundryServices = () => {
+export const useLaundryServices = (specialistId?: string) => {
   const [services, setServices] = useState<LaundryService[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchServices();
-  }, []);
+  }, [specialistId]);
 
   const fetchServices = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      let query = supabase
         .from('laundry_services')
         .select('*')
         .order('name');
+
+      // If specialistId is provided, filter by that specialist
+      if (specialistId) {
+        query = query.eq('specialist_id', specialistId);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error('Error fetching laundry services:', error);
