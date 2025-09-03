@@ -55,6 +55,8 @@ const ServiceTypeSettings = () => {
         const updateData = {
           is_stylist: serviceType === 'beauty',
           is_laundry_specialist: serviceType === 'laundry',
+          availability: true, // Ensure availability remains enabled when switching service types
+          availability_status: 'available', // Reset to available status
           updated_at: new Date().toISOString()
         };
 
