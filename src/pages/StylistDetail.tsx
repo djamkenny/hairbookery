@@ -124,7 +124,7 @@ const SpecialistDetail = () => {
             }));
 
             const categories: ServiceCategory[] = [{
-              name: 'Cleaning Services',
+              name: 'Laundry Services',
               description: 'Professional laundry and dry cleaning services',
               serviceTypes: laundryServiceTypes
             }];

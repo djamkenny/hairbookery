@@ -40,7 +40,7 @@ const settingSections: SettingSection[] = [
   {
     id: "service-type",
     title: "Service Type",
-    description: "Choose between beauty or cleaning services",
+    description: "Choose between beauty or laundry services",
     icon: Briefcase,
     component: ServiceTypeSettings,
   },

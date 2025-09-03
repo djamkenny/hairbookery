@@ -57,7 +57,7 @@ export const ProfessionServiceSelector: React.FC<ProfessionServiceSelectorProps>
 
       if (error) throw error;
 
-      toast.success(`Profile updated as ${profession === 'laundry' ? 'Cleaning Services Specialist' : 'Beauty Specialist'}`);
+      toast.success(`Profile updated as ${profession === 'laundry' ? 'Laundry Services Specialist' : 'Beauty Specialist'}`);
       await fetchUserProfile();
       onProfessionSelect(profession);
     } catch (error: any) {
@@ -87,7 +87,7 @@ export const ProfessionServiceSelector: React.FC<ProfessionServiceSelectorProps>
         </p>
         {currentProfession && (
           <Badge variant="secondary" className="mt-2">
-            Current: {currentProfession === 'laundry' ? 'Cleaning Services Specialist' : 'Beauty Specialist'}
+            Current: {currentProfession === 'laundry' ? 'Laundry Services Specialist' : 'Beauty Specialist'}
           </Badge>
         )}
       </div>
@@ -160,7 +160,7 @@ export const ProfessionServiceSelector: React.FC<ProfessionServiceSelectorProps>
                 <CheckCircle className="absolute -top-2 -right-2 w-6 h-6 text-primary bg-background rounded-full" />
               )}
             </div>
-            <CardTitle className="text-xl">Cleaning Services</CardTitle>
+            <CardTitle className="text-xl">Laundry Services</CardTitle>
             <CardDescription>
               Professional laundry, dry cleaning with pickup and delivery
             </CardDescription>
@@ -190,7 +190,7 @@ export const ProfessionServiceSelector: React.FC<ProfessionServiceSelectorProps>
               className="w-full" 
               variant={currentProfession === 'laundry' ? "default" : "outline"}
             >
-              {currentProfession === 'laundry' ? 'Current Selection' : 'Choose Cleaning Services'}
+              {currentProfession === 'laundry' ? 'Current Selection' : 'Choose Laundry Services'}
             </Button>
           </CardContent>
         </Card>

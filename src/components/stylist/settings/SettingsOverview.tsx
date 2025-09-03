@@ -207,7 +207,7 @@ const SettingsOverview: React.FC<SettingsOverviewProps> = ({ onNavigateToSection
             </div>
             <p className="text-xs text-muted-foreground">
               {settingsStatus.serviceType.selected 
-                ? `Selected: ${settingsStatus.serviceType.type === 'beauty' ? 'Beauty Services' : 'Cleaning Services'}`
+                ? `Selected: ${settingsStatus.serviceType.type === 'beauty' ? 'Beauty Services' : 'Laundry Services'}`
                 : "Choose your service type"
               }
             </p>

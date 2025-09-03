@@ -21,14 +21,14 @@ export const useLaundryServices = () => {
 
       if (error) {
         console.error('Error fetching laundry services:', error);
-        toast.error('Failed to load cleaning services');
+        toast.error('Failed to load laundry services');
         return;
       }
 
       setServices(data || []);
     } catch (error) {
       console.error('Error fetching laundry services:', error);
-      toast.error('Failed to load cleaning services');
+      toast.error('Failed to load laundry services');
     } finally {
       setLoading(false);
     }
@@ -55,14 +55,14 @@ export const useLaundryOrders = () => {
 
       if (error) {
         console.error('Error fetching laundry orders:', error);
-        toast.error('Failed to load cleaning orders');
+        toast.error('Failed to load laundry orders');
         return;
       }
 
       setOrders((data || []) as LaundryOrder[]);
     } catch (error) {
       console.error('Error fetching laundry orders:', error);
-      toast.error('Failed to load cleaning orders');
+      toast.error('Failed to load laundry orders');
     } finally {
       setLoading(false);
     }

@@ -35,7 +35,7 @@ const Specialists = () => {
           const transformedStylists = data?.map(stylist => ({
             id: stylist.id,
             name: stylist.full_name || "Unnamed Specialist",
-            role: stylist.service_type === 'laundry' ? 'Cleaning Services Specialist' : (stylist.specialty || "Beauty Specialist"),
+            role: stylist.service_type === 'laundry' ? 'Laundry Services Specialist' : (stylist.specialty || "Beauty Specialist"),
             bio: stylist.bio || "Professional specialist with expertise in modern techniques.",
             image: stylist.avatar_url || "https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=761&q=80",
             location: stylist.location,
@@ -140,7 +140,7 @@ const Specialists = () => {
             className="animate-fade-in flex items-center gap-2 mb-2"
           >
             <WashingMachine className="h-4 w-4" />
-            Cleaning Services
+            Laundry Services
           </Button>
         </div>
         

@@ -98,7 +98,7 @@ const services = [
   {
     id: 10,
     title: "Dry Cleaning",
-    description: "Professional cleaning service for delicate fabrics and garments that require special care. We handle suits, dresses, and specialty items with expertise.",
+    description: "Professional laundry service for delicate fabrics and garments that require special care. We handle suits, dresses, and specialty items with expertise.",
     price: "GHS10+",
     duration: "24 hours",
     image: "./images/Dry_Cleaning.png",

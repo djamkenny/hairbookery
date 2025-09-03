@@ -68,7 +68,7 @@ const ServiceTypeSettings = () => {
         if (updateError) throw updateError;
 
         setCurrentSelection(serviceType);
-        toast.success(`Service type updated to ${serviceType === 'beauty' ? 'Beauty & Hair Services' : 'Cleaning Services'}`);
+        toast.success(`Service type updated to ${serviceType === 'beauty' ? 'Beauty & Hair Services' : 'Laundry Services'}`);
       }
     } catch (error: any) {
       console.error("Error updating service type:", error);
@@ -108,7 +108,7 @@ const ServiceTypeSettings = () => {
           {currentSelection && (
             <div className="mb-4">
               <Badge variant="secondary" className="mb-2">
-                Current Selection: {currentSelection === 'beauty' ? 'Beauty & Hair Services' : 'Cleaning Services'}
+                Current Selection: {currentSelection === 'beauty' ? 'Beauty & Hair Services' : 'Laundry Services'}
               </Badge>
             </div>
           )}
@@ -195,7 +195,7 @@ const ServiceTypeSettings = () => {
                   </div>
                   
                   <div>
-                    <h3 className="text-lg font-semibold mb-2">Cleaning Services</h3>
+                    <h3 className="text-lg font-semibold mb-2">Laundry Services</h3>
                     <p className="text-sm text-muted-foreground mb-4">
                       Professional laundry, dry cleaning with pickup and delivery
                     </p>
@@ -233,7 +233,7 @@ const ServiceTypeSettings = () => {
                       variant="outline"
                       disabled={saving}
                     >
-                      {saving ? "Updating..." : "Choose Cleaning Services"}
+                      {saving ? "Updating..." : "Choose Laundry Services"}
                     </Button>
                   )}
                 </div>

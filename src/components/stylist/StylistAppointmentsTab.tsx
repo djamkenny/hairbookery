@@ -71,7 +71,7 @@ const SpecialistAppointmentsTab = () => {
         <Tabs defaultValue="beauty" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="beauty">Beauty Services</TabsTrigger>
-              <TabsTrigger value="laundry">Cleaning Services</TabsTrigger>
+              <TabsTrigger value="laundry">Laundry Services</TabsTrigger>
             </TabsList>
           
           <TabsContent value="beauty" className="space-y-6">
@@ -130,7 +130,7 @@ const SpecialistAppointmentsTab = () => {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold">Cleaning Services Dashboard</h1>
+          <h1 className="text-2xl font-bold">Laundry Services Dashboard</h1>
         </div>
         <LaundryAppointmentsList
           orders={laundryOrders}
