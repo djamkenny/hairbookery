@@ -65,23 +65,36 @@ export const useStylistDashboard = () => {
             setLocation(profileData.location || "");
           }
           
-          // Fetch appointments data
+          // Fetch appointments data (beauty, laundry, and cleaning)
           try {
             const { data: appointmentsData, error: appointmentsError } = await supabase
               .from('appointments')
               .select('*');
               
-            if (appointmentsError) throw appointmentsError;
+            const { data: laundryData, error: laundryError } = await supabase
+              .from('laundry_orders')
+              .select('*');
               
+            const { data: cleaningData, error: cleaningError } = await supabase
+              .from('cleaning_orders')
+              .select('*');
+              
+            if (appointmentsError) console.error("Error fetching appointments:", appointmentsError);
+            if (laundryError) console.error("Error fetching laundry orders:", laundryError);
+            if (cleaningError) console.error("Error fetching cleaning orders:", cleaningError);
+              
+            let totalUpcoming = 0;
+            let totalCompleted = 0;
+            let allClients = new Set();
+            
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            // Process beauty appointments
             if (appointmentsData) {
-              // Filter for this stylist's appointments
               const stylistAppointments = appointmentsData.filter(apt => 
                 apt.stylist_id === authUser.id && !apt.canceled_at
               );
-              
-              // Further filter for upcoming vs completed
-              const today = new Date();
-              today.setHours(0, 0, 0, 0); // Start of today
               
               const upcoming = stylistAppointments.filter(apt => 
                 new Date(apt.appointment_date) >= today && apt.status !== 'completed'
@@ -91,15 +104,54 @@ export const useStylistDashboard = () => {
                 apt.status === 'completed'
               );
               
-              setUpcomingAppointments(upcoming.length);
-              setCompletedAppointments(completed.length);
-              
-              // Count unique clients
-              const uniqueClients = new Set(stylistAppointments.map(appointment => appointment.client_id));
-              setTotalClients(uniqueClients.size);
+              totalUpcoming += upcoming.length;
+              totalCompleted += completed.length;
+              stylistAppointments.forEach(apt => allClients.add(apt.client_id));
             }
+            
+            // Process laundry orders
+            if (laundryData) {
+              const specialistOrders = laundryData.filter(order => 
+                order.specialist_id === authUser.id && order.status !== 'canceled'
+              );
+              
+              const upcoming = specialistOrders.filter(order => 
+                new Date(order.pickup_date) >= today && !['delivered', 'completed'].includes(order.status)
+              );
+              
+              const completed = specialistOrders.filter(order => 
+                ['delivered', 'completed'].includes(order.status)
+              );
+              
+              totalUpcoming += upcoming.length;
+              totalCompleted += completed.length;
+              specialistOrders.forEach(order => allClients.add(order.client_id));
+            }
+            
+            // Process cleaning orders
+            if (cleaningData) {
+              const specialistOrders = cleaningData.filter(order => 
+                order.specialist_id === authUser.id && order.status !== 'canceled'
+              );
+              
+              const upcoming = specialistOrders.filter(order => 
+                new Date(order.service_date) >= today && order.status !== 'completed'
+              );
+              
+              const completed = specialistOrders.filter(order => 
+                order.status === 'completed'
+              );
+              
+              totalUpcoming += upcoming.length;
+              totalCompleted += completed.length;
+              specialistOrders.forEach(order => allClients.add(order.client_id));
+            }
+            
+            setUpcomingAppointments(totalUpcoming);
+            setCompletedAppointments(totalCompleted);
+            setTotalClients(allClients.size);
           } catch (err) {
-            console.log("Error fetching appointments:", err);
+            console.log("Error fetching appointment data:", err);
             // Keep default values
             setUpcomingAppointments(0);
             setCompletedAppointments(0);
@@ -125,7 +177,7 @@ export const useStylistDashboard = () => {
         // Fetch fresh data from profiles table
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
-          .select('avatar_url, full_name, phone, specialty, experience, bio, location')
+          .select('avatar_url, full_name, phone, specialty, experience, bio, location, is_stylist, is_laundry_specialist, is_cleaning_specialist')
           .eq('id', user.id)
           .single();
           

@@ -4,15 +4,20 @@ import AppointmentFilters from "./AppointmentFilters";
 import AppointmentDetailsModal from "./AppointmentDetailsModal";
 import { useStylistAppointments } from "@/hooks/useStylistAppointments";
 import { useLaundryAppointments } from "@/hooks/useLaundryAppointments";
+import { useCleaningAppointments } from "@/hooks/useCleaningAppointments";
 import AppointmentsHeader from "./appointments/AppointmentsHeader";
 import AppointmentsContent from "./appointments/AppointmentsContent";
 import { LaundryAppointmentsList } from "@/components/laundry/LaundryAppointmentsList";
 import LaundryAppointmentDetailsModal from "@/components/laundry/LaundryAppointmentDetailsModal";
+import { CleaningAppointmentsList } from "@/components/cleaning/CleaningAppointmentsList";
+import { CleaningAppointmentDetailsModal } from "@/components/cleaning/CleaningAppointmentDetailsModal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 
 const SpecialistAppointmentsTab = () => {
   const [isLaundrySpecialist, setIsLaundrySpecialist] = useState(false);
+  const [isCleaningSpecialist, setIsCleaningSpecialist] = useState(false);
   const [isStylist, setIsStylist] = useState(false);
 
   const {
@@ -44,70 +49,104 @@ const SpecialistAppointmentsTab = () => {
     handleCloseDetailsModal: handleCloseLaundryDetailsModal
   } = useLaundryAppointments();
 
+  const {
+    orders: cleaningOrders,
+    loading: cleaningLoading,
+    selectedOrder: selectedCleaningOrder,
+    isDetailsModalOpen: isCleaningDetailsModalOpen,
+    handleUpdateStatus: handleUpdateCleaningStatus,
+    handleViewDetails: handleViewCleaningDetails,
+    handleCloseDetailsModal: handleCloseCleaningDetailsModal
+  } = useCleaningAppointments();
+
   useEffect(() => {
     const checkUserType = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('is_stylist, is_laundry_specialist')
+          .select('is_stylist, is_laundry_specialist, is_cleaning_specialist')
           .eq('id', user.id)
           .single();
         
         setIsStylist(profile?.is_stylist || false);
         setIsLaundrySpecialist(profile?.is_laundry_specialist || false);
+        setIsCleaningSpecialist(profile?.is_cleaning_specialist || false);
       }
     };
 
     checkUserType();
   }, []);
 
-  // If user is both stylist and laundry specialist, show tabs
-  if (isStylist && isLaundrySpecialist) {
+  // Count active services to determine tab layout
+  const activeServices = [isStylist, isLaundrySpecialist, isCleaningSpecialist].filter(Boolean).length;
+
+  // If user has multiple service types, show tabs
+  if (activeServices > 1) {
     return (
       <div className="space-y-6">
         <AppointmentsHeader />
         
-        <Tabs defaultValue="beauty" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="beauty">Beauty Services</TabsTrigger>
-              <TabsTrigger value="laundry">Laundry Services</TabsTrigger>
-            </TabsList>
+        <Tabs defaultValue={isStylist ? "beauty" : isLaundrySpecialist ? "laundry" : "cleaning"} className="w-full">
+          <TabsList className={cn(
+            "grid w-full",
+            activeServices === 2 ? "grid-cols-2" : activeServices === 3 ? "grid-cols-3" : "grid-cols-1"
+          )}>
+            {isStylist && <TabsTrigger value="beauty">Beauty Services</TabsTrigger>}
+            {isLaundrySpecialist && <TabsTrigger value="laundry">Laundry Services</TabsTrigger>}
+            {isCleaningSpecialist && <TabsTrigger value="cleaning">Cleaning Services</TabsTrigger>}
+          </TabsList>
           
-          <TabsContent value="beauty" className="space-y-6">
-            <AppointmentFilters
-              statusFilter={statusFilter}
-              setStatusFilter={setStatusFilter}
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
-              sortKey={sortKey}
-              sortDirection={sortDirection}
-              handleSort={handleSort}
-              clearFilters={clearFilters}
-            />
-            
-            <AppointmentsContent
-              loading={beautyLoading}
-              statusFilter={statusFilter}
-              filteredAppointments={filteredAppointments}
-              sortKey={sortKey}
-              sortDirection={sortDirection}
-              onUpdateStatus={handleUpdateStatus}
-              onViewDetails={handleViewDetails}
-              clearFilters={clearFilters}
-            />
-          </TabsContent>
+          {isStylist && (
+            <TabsContent value="beauty" className="space-y-6">
+              <AppointmentFilters
+                statusFilter={statusFilter}
+                setStatusFilter={setStatusFilter}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                sortKey={sortKey}
+                sortDirection={sortDirection}
+                handleSort={handleSort}
+                clearFilters={clearFilters}
+              />
+              
+              <AppointmentsContent
+                loading={beautyLoading}
+                statusFilter={statusFilter}
+                filteredAppointments={filteredAppointments}
+                sortKey={sortKey}
+                sortDirection={sortDirection}
+                onUpdateStatus={handleUpdateStatus}
+                onViewDetails={handleViewDetails}
+                clearFilters={clearFilters}
+              />
+            </TabsContent>
+          )}
           
-          <TabsContent value="laundry" className="space-y-6">
-            <LaundryAppointmentsList
-              orders={laundryOrders}
-              loading={laundryLoading}
-              onUpdateStatus={handleUpdateLaundryStatus}
-              onViewDetails={handleViewLaundryDetails}
-            />
-          </TabsContent>
+          {isLaundrySpecialist && (
+            <TabsContent value="laundry" className="space-y-6">
+              <LaundryAppointmentsList
+                orders={laundryOrders}
+                loading={laundryLoading}
+                onUpdateStatus={handleUpdateLaundryStatus}
+                onViewDetails={handleViewLaundryDetails}
+              />
+            </TabsContent>
+          )}
+          
+          {isCleaningSpecialist && (
+            <TabsContent value="cleaning" className="space-y-6">
+              <CleaningAppointmentsList
+                orders={cleaningOrders}
+                loading={cleaningLoading}
+                onUpdateStatus={handleUpdateCleaningStatus}
+                onViewDetails={handleViewCleaningDetails}
+              />
+            </TabsContent>
+          )}
         </Tabs>
 
+        {/* Modals */}
         <AppointmentDetailsModal
           appointment={selectedAppointment}
           isOpen={isDetailsModalOpen}
@@ -121,28 +160,34 @@ const SpecialistAppointmentsTab = () => {
           isOpen={isLaundryDetailsModalOpen}
           onClose={handleCloseLaundryDetailsModal}
         />
+
+        <CleaningAppointmentDetailsModal
+          order={selectedCleaningOrder}
+          isOpen={isCleaningDetailsModalOpen}
+          onClose={handleCloseCleaningDetailsModal}
+        />
       </div>
     );
   }
 
-  // If only laundry specialist, show only laundry orders
-  if (isLaundrySpecialist) {
+  // If only cleaning specialist, show only cleaning orders
+  if (isCleaningSpecialist) {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold">Laundry Services Dashboard</h1>
+          <h1 className="text-2xl font-bold">Cleaning Services Dashboard</h1>
         </div>
-        <LaundryAppointmentsList
-          orders={laundryOrders}
-          loading={laundryLoading}
-          onUpdateStatus={handleUpdateLaundryStatus}
-          onViewDetails={handleViewLaundryDetails}
+        <CleaningAppointmentsList
+          orders={cleaningOrders}
+          loading={cleaningLoading}
+          onUpdateStatus={handleUpdateCleaningStatus}
+          onViewDetails={handleViewCleaningDetails}
         />
 
-        <LaundryAppointmentDetailsModal
-          order={selectedOrder}
-          isOpen={isLaundryDetailsModalOpen}
-          onClose={handleCloseLaundryDetailsModal}
+        <CleaningAppointmentDetailsModal
+          order={selectedCleaningOrder}
+          isOpen={isCleaningDetailsModalOpen}
+          onClose={handleCloseCleaningDetailsModal}
         />
       </div>
     );

@@ -11,7 +11,7 @@ interface StylistRouteProps {
 const StylistRoute = ({ children }: StylistRouteProps) => {
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isStylist, setIsStylist] = useState(false);
+  const [isSpecialist, setIsSpecialist] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
@@ -21,13 +21,20 @@ const StylistRoute = ({ children }: StylistRouteProps) => {
         setIsAuthenticated(!!session);
         
         if (session?.user) {
-          const metadata = session.user.user_metadata || {};
-          setIsStylist(metadata.is_stylist || false);
+          // Check profile table for specialist status
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('is_stylist, is_laundry_specialist, is_cleaning_specialist')
+            .eq('id', session.user.id)
+            .single();
+          
+          const isAnySpecialist = profile?.is_stylist || profile?.is_laundry_specialist || profile?.is_cleaning_specialist;
+          setIsSpecialist(!!isAnySpecialist);
         }
       } catch (error) {
         console.error("Authentication check error:", error);
         setIsAuthenticated(false);
-        setIsStylist(false);
+        setIsSpecialist(false);
       } finally {
         setLoading(false);
       }
@@ -35,14 +42,21 @@ const StylistRoute = ({ children }: StylistRouteProps) => {
 
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      async (_event, session) => {
         setIsAuthenticated(!!session);
         
         if (session?.user) {
-          const metadata = session.user.user_metadata || {};
-          setIsStylist(metadata.is_stylist || false);
+          // Check profile table for specialist status
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('is_stylist, is_laundry_specialist, is_cleaning_specialist')
+            .eq('id', session.user.id)
+            .single();
+          
+          const isAnySpecialist = profile?.is_stylist || profile?.is_laundry_specialist || profile?.is_cleaning_specialist;
+          setIsSpecialist(!!isAnySpecialist);
         } else {
-          setIsStylist(false);
+          setIsSpecialist(false);
         }
         
         setLoading(false);
@@ -68,7 +82,7 @@ const StylistRoute = ({ children }: StylistRouteProps) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (!isStylist) {
+  if (!isSpecialist) {
     return <Navigate to="/profile" replace />;
   }
 
