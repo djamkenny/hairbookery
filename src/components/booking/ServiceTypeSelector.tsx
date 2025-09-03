@@ -69,7 +69,7 @@ export const ServiceTypeSelector: React.FC<ServiceTypeSelectorProps> = ({ onServ
             <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-full flex items-center justify-center mb-4">
               <Shirt className="w-8 h-8 text-white" />
             </div>
-            <CardTitle className="text-xl">Laundry Services</CardTitle>
+            <CardTitle className="text-xl">Cleaning Services</CardTitle>
             <CardDescription>
               Professional laundry, dry cleaning with pickup and delivery
             </CardDescription>
@@ -96,7 +96,7 @@ export const ServiceTypeSelector: React.FC<ServiceTypeSelectorProps> = ({ onServ
             </ul>
             
             <Button className="w-full group">
-              Book Laundry Service
+              Book Cleaning Service
               <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
             </Button>
           </CardContent>

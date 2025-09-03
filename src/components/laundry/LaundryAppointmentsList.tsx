@@ -92,11 +92,11 @@ export const LaundryAppointmentsList: React.FC<LaundryAppointmentsListProps> = (
       {filteredOrders.length === 0 ? (
         <div className="text-center py-12">
           <Package className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-          <h3 className="text-lg font-semibold">No laundry orders found</h3>
+          <h3 className="text-lg font-semibold">No cleaning orders found</h3>
           <p className="text-muted-foreground">
             {statusFilter !== "all" || searchQuery 
               ? "Try adjusting your filters to see more orders."
-              : "You don't have any laundry orders yet."
+              : "You don't have any cleaning orders yet."
             }
           </p>
         </div>

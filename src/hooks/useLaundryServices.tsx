@@ -21,14 +21,14 @@ export const useLaundryServices = () => {
 
       if (error) {
         console.error('Error fetching laundry services:', error);
-        toast.error('Failed to load laundry services');
+        toast.error('Failed to load cleaning services');
         return;
       }
 
       setServices(data || []);
     } catch (error) {
       console.error('Error fetching laundry services:', error);
-      toast.error('Failed to load laundry services');
+      toast.error('Failed to load cleaning services');
     } finally {
       setLoading(false);
     }
@@ -55,14 +55,14 @@ export const useLaundryOrders = () => {
 
       if (error) {
         console.error('Error fetching laundry orders:', error);
-        toast.error('Failed to load laundry orders');
+        toast.error('Failed to load cleaning orders');
         return;
       }
 
       setOrders((data || []) as LaundryOrder[]);
     } catch (error) {
       console.error('Error fetching laundry orders:', error);
-      toast.error('Failed to load laundry orders');
+      toast.error('Failed to load cleaning orders');
     } finally {
       setLoading(false);
     }
@@ -70,12 +70,33 @@ export const useLaundryOrders = () => {
 
   const updateOrderStatus = async (orderId: string, status: string, notes?: string) => {
     try {
+      const updates: any = { 
+        status,
+        updated_at: new Date().toISOString()
+      };
+
+      // Set the appropriate timestamp field based on status
+      switch (status) {
+        case 'picked_up':
+          updates.pickup_completed_at = new Date().toISOString();
+          break;
+        case 'washing':
+          updates.washing_started_at = new Date().toISOString();
+          break;
+        case 'ready':
+          updates.ready_at = new Date().toISOString();
+          break;
+        case 'out_for_delivery':
+          updates.out_for_delivery_at = new Date().toISOString();
+          break;
+        case 'delivered':
+          updates.delivered_at = new Date().toISOString();
+          break;
+      }
+
       const { error } = await supabase
         .from('laundry_orders')
-        .update({ 
-          status,
-          [`${status}_at`]: new Date().toISOString()
-        })
+        .update(updates)
         .eq('id', orderId);
 
       if (error) {
@@ -84,15 +105,18 @@ export const useLaundryOrders = () => {
         return false;
       }
 
-      // Add status history entry if notes provided
-      if (notes) {
-        await supabase
-          .from('laundry_status_history')
-          .insert({
-            order_id: orderId,
-            status,
-            notes,
-          });
+      // Add status history entry
+      const { error: historyError } = await supabase
+        .from('laundry_status_history')
+        .insert({
+          order_id: orderId,
+          status,
+          notes: notes || `Status updated to ${status}`,
+        });
+
+      if (historyError) {
+        console.error('Error adding status history:', historyError);
+        // Don't return false here as the main update succeeded
       }
 
       toast.success('Order status updated successfully');
