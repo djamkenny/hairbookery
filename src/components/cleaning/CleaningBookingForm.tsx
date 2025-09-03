@@ -178,10 +178,8 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
       toast.error('Please fill in service details');
       return;
     }
-    if (step === 3 && (!customerName || !customerPhone || !customerEmail)) {
-      toast.error('Please fill in customer information');
-      return;
-    }
+    // Step 3 (Property Details) doesn't require any mandatory fields to proceed
+    // Customer information validation will happen on form submission
     setStep(step + 1);
   };
 
