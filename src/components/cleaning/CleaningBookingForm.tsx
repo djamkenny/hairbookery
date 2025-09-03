@@ -26,8 +26,7 @@ interface CleaningService {
   id: string;
   name: string;
   description: string;
-  base_price: number;
-  hourly_rate: number;
+  total_price: number;
   duration_hours: number;
   service_category: string;
 }
@@ -109,7 +108,7 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
   // Calculate final price (includes all fees)
   const calculateFinalPrice = () => {
     const selectedService = availableServices.find(s => s.id === serviceType);
-    const basePrice = selectedService?.base_price || 0;
+    const servicePrice = selectedService?.total_price || 0;
     
     // Add addon prices
     const addonPrice = selectedAddons.reduce((total, addonId) => {
@@ -117,8 +116,8 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
       return total + (addon?.price || 0);
     }, 0);
     
-    const servicePrice = basePrice + addonPrice;
-    const { total } = calculateBookingFee(servicePrice);
+    const totalServicePrice = (servicePrice / 100) + addonPrice; // Convert from cents to GHS
+    const { total } = calculateBookingFee(totalServicePrice);
     
     return total;
   };
@@ -259,7 +258,7 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
                       <div className="space-y-2">
                          <div className="flex justify-between items-start">
                            <h3 className="font-semibold">{service.name}</h3>
-                           <span className="text-primary font-bold">{formatPrice(calculateBookingFee(service.base_price).total)}</span>
+                           <span className="text-primary font-bold">{formatPrice(calculateBookingFee(service.total_price / 100).total)}</span>
                          </div>
                         <p className="text-sm text-muted-foreground">{service.description || 'Professional cleaning service'}</p>
                         <div className="text-xs text-muted-foreground">

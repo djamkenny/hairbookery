@@ -261,7 +261,6 @@ export type Database = {
       }
       cleaning_services: {
         Row: {
-          base_price: number
           created_at: string
           description: string | null
           duration_hours: number | null
@@ -270,10 +269,10 @@ export type Database = {
           name: string
           service_category: string
           specialist_id: string | null
+          total_price: number
           updated_at: string
         }
         Insert: {
-          base_price?: number
           created_at?: string
           description?: string | null
           duration_hours?: number | null
@@ -282,10 +281,10 @@ export type Database = {
           name: string
           service_category: string
           specialist_id?: string | null
+          total_price?: number
           updated_at?: string
         }
         Update: {
-          base_price?: number
           created_at?: string
           description?: string | null
           duration_hours?: number | null
@@ -294,6 +293,7 @@ export type Database = {
           name?: string
           service_category?: string
           specialist_id?: string | null
+          total_price?: number
           updated_at?: string
         }
         Relationships: [

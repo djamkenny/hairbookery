@@ -13,8 +13,7 @@ import { toast } from "sonner";
 interface CleaningServiceForm {
   name: string;
   description: string;
-  basePrice: string;
-  hourlyRate: string;
+  totalPrice: string;
   duration: string;
   category: string;
 }
@@ -31,8 +30,7 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
   const [formData, setFormData] = useState<CleaningServiceForm>({
     name: "",
     description: "",
-    basePrice: "",
-    hourlyRate: "",
+    totalPrice: "",
     duration: "",
     category: "",
   });
@@ -83,17 +81,16 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name.trim() || !formData.basePrice || !formData.duration || !formData.category) {
+    if (!formData.name.trim() || !formData.totalPrice || !formData.duration || !formData.category) {
       toast.error("Please fill in all required fields");
       return;
     }
 
-    const basePriceValue = parseFloat(formData.basePrice);
-    const hourlyRateValue = parseFloat(formData.hourlyRate || "0");
+    const totalPriceValue = parseFloat(formData.totalPrice);
     const durationValue = parseInt(formData.duration);
 
-    if (isNaN(basePriceValue) || basePriceValue <= 0) {
-      toast.error("Please enter a valid base price");
+    if (isNaN(totalPriceValue) || totalPriceValue <= 0) {
+      toast.error("Please enter a valid total price");
       return;
     }
 
@@ -109,8 +106,7 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
           .update({
             name: formData.name.trim(),
             description: formData.description.trim() || null,
-            base_price: Math.round(basePriceValue * 100), // Convert to cents
-            hourly_rate: Math.round(hourlyRateValue * 100),
+            total_price: Math.round(totalPriceValue * 100), // Convert to cents
             duration_hours: durationValue,
             service_category: formData.category,
           })
@@ -131,8 +127,7 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
           .insert({
             name: formData.name.trim(),
             description: formData.description.trim() || null,
-            base_price: Math.round(basePriceValue * 100),
-            hourly_rate: Math.round(hourlyRateValue * 100),
+            total_price: Math.round(totalPriceValue * 100),
             duration_hours: durationValue,
             service_category: formData.category,
             specialist_id: user.id,
@@ -145,8 +140,7 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
       setFormData({
         name: "",
         description: "",
-        basePrice: "",
-        hourlyRate: "",
+        totalPrice: "",
         duration: "",
         category: "",
       });
@@ -164,8 +158,7 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
     setFormData({
       name: service.name,
       description: service.description || "",
-      basePrice: (service.base_price / 100).toFixed(2),
-      hourlyRate: (service.hourly_rate / 100).toFixed(2),
+      totalPrice: (service.total_price / 100).toFixed(2),
       duration: service.duration_hours.toString(),
       category: service.service_category,
     });
@@ -196,8 +189,7 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
     setFormData({
       name: "",
       description: "",
-      basePrice: "",
-      hourlyRate: "",
+      totalPrice: "",
       duration: "",
       category: "",
     });
@@ -352,30 +344,18 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
                 </div>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="basePrice">Base Price (GHS) *</Label>
+                  <Label htmlFor="totalPrice">Service Price (GHS) *</Label>
                   <Input
-                    id="basePrice"
+                    id="totalPrice"
                     type="number"
                     step="0.01"
                     min="0"
-                    value={formData.basePrice}
-                    onChange={(e) => setFormData({ ...formData, basePrice: e.target.value })}
-                    placeholder="80.00"
+                    value={formData.totalPrice}
+                    onChange={(e) => setFormData({ ...formData, totalPrice: e.target.value })}
+                    placeholder="150.00"
                     required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="hourlyRate">Hourly Rate (GHS)</Label>
-                  <Input
-                    id="hourlyRate"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={formData.hourlyRate}
-                    onChange={(e) => setFormData({ ...formData, hourlyRate: e.target.value })}
-                    placeholder="25.00"
                   />
                 </div>
                 <div>
@@ -448,13 +428,8 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
                         <h4 className="font-semibold text-sm sm:text-base">{service.name}</h4>
                         <div className="flex gap-2">
                           <Badge variant="secondary" className="text-xs">
-                            GHS {(service.base_price / 100).toFixed(2)} base
+                            GHS {(service.total_price / 100).toFixed(2)}
                           </Badge>
-                          {service.hourly_rate > 0 && (
-                            <Badge variant="outline" className="text-xs">
-                              GHS {(service.hourly_rate / 100).toFixed(2)}/hr
-                            </Badge>
-                          )}
                           <Badge variant="outline" className="text-xs">
                             {service.duration_hours}h
                           </Badge>
