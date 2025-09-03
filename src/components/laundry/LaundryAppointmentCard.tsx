@@ -12,7 +12,7 @@ interface LaundryAppointmentCardProps {
     client_name?: string;
     client_phone?: string;
   };
-  onUpdateStatus: (orderId: string, newStatus: string) => void;
+  onUpdateStatus: (order: LaundryOrder, newStatus: string) => void;
   onViewDetails: () => void;
 }
 
@@ -98,7 +98,7 @@ export const LaundryAppointmentCard: React.FC<LaundryAppointmentCardProps> = ({
           {nextStatus && order.status !== 'delivered' && order.status !== 'cancelled' && (
             <Button
               size="sm"
-              onClick={() => onUpdateStatus(order.id, nextStatus)}
+              onClick={() => onUpdateStatus(order, nextStatus)}
               className="flex-1"
             >
               Mark as {LAUNDRY_STATUS_LABELS[nextStatus as keyof typeof LAUNDRY_STATUS_LABELS]}

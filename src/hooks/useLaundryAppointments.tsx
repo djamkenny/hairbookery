@@ -108,38 +108,73 @@ export const useLaundryAppointments = () => {
     loadLaundryOrders();
   }, []);
 
-  const handleUpdateStatus = async (orderId: string, newStatus: string) => {
+  const handleUpdateStatus = async (order: LaundryOrder, newStatus: string) => {
     try {
+      const updates: any = { 
+        status: newStatus,
+        updated_at: new Date().toISOString()
+      };
+
+      // Set the appropriate timestamp field based on status
+      switch (newStatus) {
+        case 'picked_up':
+          updates.pickup_completed_at = new Date().toISOString();
+          break;
+        case 'washing':
+          updates.washing_started_at = new Date().toISOString();
+          break;
+        case 'ready':
+          updates.ready_at = new Date().toISOString();
+          break;
+        case 'out_for_delivery':
+          updates.out_for_delivery_at = new Date().toISOString();
+          break;
+        case 'delivered':
+          updates.delivered_at = new Date().toISOString();
+          break;
+      }
+
       const { error } = await supabase
         .from('laundry_orders')
-        .update({ 
-          status: newStatus,
-          [`${newStatus}_at`]: new Date().toISOString() // Update timestamp field
-        })
-        .eq('id', orderId);
+        .update(updates)
+        .eq('id', order.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating order status:', error);
+        throw error;
+      }
+
+      // Add status history entry
+      const { error: historyError } = await supabase
+        .from('laundry_status_history')
+        .insert({
+          order_id: order.id,
+          status: newStatus,
+          notes: `Status updated to ${newStatus.replace('_', ' ')}`
+        });
+
+      if (historyError) {
+        console.error('Error adding status history:', historyError);
+        // Don't throw here as the main update succeeded
+      }
 
       // Update local state
-      setOrders(prev => prev.map(order => 
-        order.id === orderId 
-          ? { ...order, status: newStatus as LaundryOrderStatus }
-          : order
+      setOrders(prev => prev.map(prevOrder => 
+        prevOrder.id === order.id 
+          ? { ...prevOrder, status: newStatus as LaundryOrderStatus }
+          : prevOrder
       ));
 
       // Send notification to client
-      const order = orders.find(o => o.id === orderId);
-      if (order) {
-        await supabase
-          .from('notifications')
-          .insert({
-            user_id: order.client_id,
-            title: 'Laundry Order Update',
-            message: `Your laundry order #${order.order_number} status has been updated to: ${newStatus.replace('_', ' ')}`,
-            type: 'laundry_status_update',
-            related_id: orderId
-          });
-      }
+      await supabase
+        .from('notifications')
+        .insert({
+          user_id: order.client_id,
+          title: 'Laundry Order Update',
+          message: `Your laundry order #${order.order_number} status has been updated to: ${newStatus.replace('_', ' ')}`,
+          type: 'laundry_status_update',
+          related_id: order.id
+        });
 
       toast.success(`Order status updated to ${newStatus.replace('_', ' ')}`);
     } catch (error: any) {

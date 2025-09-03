@@ -10,7 +10,7 @@ import { LAUNDRY_STATUS_LABELS } from "@/types/laundry";
 interface LaundryAppointmentsListProps {
   orders: (LaundryOrder & { client_name?: string; client_phone?: string })[];
   loading: boolean;
-  onUpdateStatus: (orderId: string, newStatus: string) => void;
+  onUpdateStatus: (order: LaundryOrder, newStatus: string) => void;
   onViewDetails: (order: LaundryOrder) => void;
 }
 
