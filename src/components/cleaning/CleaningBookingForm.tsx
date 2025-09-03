@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -15,19 +15,22 @@ import { format } from "date-fns";
 import { CalendarIcon, MapPin, Clock, Package, ChevronRight, Home, Users, Bath, Square } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const timeSlots = [
   "8:00 AM", "9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM",
   "1:00 PM", "2:00 PM", "3:00 PM", "4:00 PM", "5:00 PM", "6:00 PM"
 ];
 
-const serviceTypes = [
-  { value: "home", label: "Home Cleaning", basePrice: 80, description: "Regular cleaning for homes and apartments" },
-  { value: "office", label: "Office Cleaning", basePrice: 60, description: "Professional cleaning for office spaces" },
-  { value: "deep", label: "Deep Cleaning", basePrice: 150, description: "Thorough cleaning including hard-to-reach areas" },
-  { value: "carpet", label: "Carpet Cleaning", basePrice: 100, description: "Professional carpet and upholstery cleaning" },
-  { value: "post_construction", label: "Post-Construction", basePrice: 200, description: "Specialized cleaning after construction" }
-];
+interface CleaningService {
+  id: string;
+  name: string;
+  description: string;
+  base_price: number;
+  hourly_rate: number;
+  duration_hours: number;
+  service_category: string;
+}
 
 const propertyTypes = [
   { value: "apartment", label: "Apartment" },
@@ -48,6 +51,8 @@ export const CleaningBookingForm: React.FC = () => {
   const { user } = useAuth();
   
   const [step, setStep] = useState(1);
+  const [availableServices, setAvailableServices] = useState<CleaningService[]>([]);
+  const [loadingServices, setLoadingServices] = useState(true);
   const [serviceType, setServiceType] = useState("");
   const [serviceDate, setServiceDate] = useState<Date>();
   const [serviceTime, setServiceTime] = useState("");
@@ -63,10 +68,37 @@ export const CleaningBookingForm: React.FC = () => {
   const [customerEmail, setCustomerEmail] = useState("");
   const [estimatedHours, setEstimatedHours] = useState(3);
 
+  useEffect(() => {
+    fetchCleaningServices();
+  }, []);
+
+  const fetchCleaningServices = async () => {
+    try {
+      setLoadingServices(true);
+      const { data, error } = await supabase
+        .from('cleaning_services')
+        .select('*')
+        .order('name');
+
+      if (error) {
+        console.error('Error fetching cleaning services:', error);
+        toast.error('Failed to load cleaning services');
+        return;
+      }
+
+      setAvailableServices(data || []);
+    } catch (error) {
+      console.error('Error fetching cleaning services:', error);
+      toast.error('Failed to load cleaning services');
+    } finally {
+      setLoadingServices(false);
+    }
+  };
+
   // Calculate total price
   const calculatePrice = () => {
-    const selectedService = serviceTypes.find(s => s.value === serviceType);
-    const basePrice = selectedService?.basePrice || 0;
+    const selectedService = availableServices.find(s => s.id === serviceType);
+    const basePrice = selectedService?.base_price || 0;
     
     // Add addon prices
     const addonPrice = selectedAddons.reduce((total, addonId) => {
@@ -199,28 +231,41 @@ export const CleaningBookingForm: React.FC = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {serviceTypes.map((service) => (
-                <Card 
-                  key={service.value}
-                  className={cn(
-                    "cursor-pointer transition-all hover:shadow-md border-2",
-                    serviceType === service.value ? "border-primary bg-primary/5" : "hover:border-primary"
-                  )}
-                  onClick={() => setServiceType(service.value)}
-                >
-                  <CardContent className="p-4">
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-start">
-                        <h3 className="font-semibold">{service.label}</h3>
-                        <span className="text-primary font-bold">{formatPrice(service.basePrice)}</span>
+            {loadingServices ? (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">Loading cleaning services...</p>
+              </div>
+            ) : availableServices.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">No cleaning services available at the moment.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {availableServices.map((service) => (
+                  <Card 
+                    key={service.id}
+                    className={cn(
+                      "cursor-pointer transition-all hover:shadow-md border-2",
+                      serviceType === service.id ? "border-primary bg-primary/5" : "hover:border-primary"
+                    )}
+                    onClick={() => setServiceType(service.id)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-start">
+                          <h3 className="font-semibold">{service.name}</h3>
+                          <span className="text-primary font-bold">₵{service.base_price}</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{service.description || 'Professional cleaning service'}</p>
+                        <div className="text-xs text-muted-foreground">
+                          Duration: {service.duration_hours} hours
+                        </div>
                       </div>
-                      <p className="text-sm text-muted-foreground">{service.description}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
 
             <Button 
               onClick={nextStep} 
@@ -494,7 +539,7 @@ export const CleaningBookingForm: React.FC = () => {
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span>Service Type:</span>
-                  <span className="font-semibold">{serviceTypes.find(s => s.value === serviceType)?.label}</span>
+                  <span className="font-semibold">{availableServices.find(s => s.id === serviceType)?.name || 'Not selected'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Service Date:</span>
