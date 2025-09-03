@@ -23,13 +23,19 @@ export function useLaundryPaymentStatus(reference: string | null): LaundryPaymen
       }
 
       try {
+        // Clear any previous error before processing
+        setError(null);
         const result = await processLaundryPaymentSuccess(reference);
-        setSuccess(result);
-        if (!result) {
+        
+        if (result) {
+          setSuccess(true);
+        } else {
+          setSuccess(false);
           setError('Payment verification failed');
         }
       } catch (err: any) {
         console.error('Laundry payment status check error:', err);
+        setSuccess(false);
         setError(err.message || 'Failed to verify payment');
       } finally {
         setLoading(false);

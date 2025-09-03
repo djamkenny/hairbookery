@@ -87,12 +87,12 @@ export const useBookingPayment = () => {
         throw new Error(data?.error || 'Payment verification failed');
       }
 
-      toast.success('Appointment booked successfully!');
+      // Don't show toast here - let PaymentReturnResult handle it
       return true;
     } catch (error: any) {
       console.error('Payment processing error:', error);
-      toast.error(error.message || 'Failed to process payment');
-      return false;
+      // Don't show toast here - let PaymentReturnResult handle it
+      throw error; // Re-throw to let the calling component handle it
     }
   };
 
