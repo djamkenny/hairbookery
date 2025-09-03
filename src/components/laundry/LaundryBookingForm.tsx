@@ -386,7 +386,7 @@ export const LaundryBookingForm: React.FC = () => {
                 Back
               </Button>
               <Button onClick={nextStep} className="flex-1">
-                Continue to Summary
+                Continue
                 <ChevronRight className="ml-2 h-4 w-4" />
               </Button>
             </div>
