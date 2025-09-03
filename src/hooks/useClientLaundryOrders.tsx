@@ -105,9 +105,9 @@ export const useClientLaundryOrders = (userId: string | undefined) => {
               const newStatus = payload.new.status;
               const orderNumber = payload.new.order_number;
               
-              if (newStatus === 'pickup_completed') {
+              if (newStatus === 'picked_up') {
                 toast.success(`Your laundry has been picked up. Order: ${orderNumber}`);
-              } else if (newStatus === 'washing_started') {
+              } else if (newStatus === 'washing') {
                 toast.success(`Washing has started for order: ${orderNumber}`);
               } else if (newStatus === 'ready') {
                 toast.success(`Your laundry is ready for delivery. Order: ${orderNumber}`);
