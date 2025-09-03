@@ -265,7 +265,7 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
                       <div className="space-y-2">
                         <div className="flex justify-between items-start">
                           <h3 className="font-semibold">{service.name}</h3>
-                          <span className="text-primary font-bold">₵{service.base_price}</span>
+                          <span className="text-primary font-bold">₵{(service.base_price / 100).toFixed(2)}</span>
                         </div>
                         <p className="text-sm text-muted-foreground">{service.description || 'Professional cleaning service'}</p>
                         <div className="text-xs text-muted-foreground">
