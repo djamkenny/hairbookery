@@ -90,25 +90,30 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
     try {
       setLoading(true);
       
-      // Fetch cleaning services
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("User not authenticated");
+        return;
+      }
+      
+      // Fetch cleaning services for current specialist only
       const { data: servicesData } = await supabase
         .from('cleaning_services')
         .select('*')
+        .eq('specialist_id', user.id)
         .order('name');
       
       setCleaningServices(servicesData || []);
 
       // Fetch user profile for service areas
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('service_areas')
-          .eq('id', user.id)
-          .single();
-        
-        setServiceAreas(profile?.service_areas || []);
-      }
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('service_areas')
+        .eq('id', user.id)
+        .single();
+      
+      setServiceAreas(profile?.service_areas || []);
     } catch (error: any) {
       console.error("Error fetching data:", error);
       toast.error("Failed to load cleaning services");
@@ -156,6 +161,13 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
         if (error) throw error;
         toast.success("Cleaning service updated successfully");
       } else {
+        // Get current user for specialist_id
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          toast.error("User not authenticated");
+          return;
+        }
+
         const { error } = await supabase
           .from('cleaning_services')
           .insert({
@@ -165,6 +177,7 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
             hourly_rate: Math.round(hourlyRateValue * 100),
             duration_hours: durationValue,
             service_category: formData.category,
+            specialist_id: user.id,
           });
         
         if (error) throw error;

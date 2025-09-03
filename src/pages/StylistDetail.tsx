@@ -105,7 +105,8 @@ const SpecialistDetail = () => {
           // Fetch laundry services for laundry specialists
           const { data: laundryServicesData, error: laundryError } = await supabase
             .from('laundry_services')
-            .select('*');
+            .select('*')
+            .eq('specialist_id', id);
 
           if (laundryError) {
             console.error("Error fetching laundry services:", laundryError);
@@ -138,7 +139,8 @@ const SpecialistDetail = () => {
           // Fetch cleaning services for cleaning specialists
           const { data: cleaningServicesData, error: cleaningError } = await supabase
             .from('cleaning_services')
-            .select('*');
+            .select('*')
+            .eq('specialist_id', id);
 
           if (cleaningError) {
             console.error("Error fetching cleaning services:", cleaningError);

@@ -269,6 +269,7 @@ export type Database = {
           id: string
           name: string
           service_category: string
+          specialist_id: string | null
           updated_at: string
         }
         Insert: {
@@ -280,6 +281,7 @@ export type Database = {
           id?: string
           name: string
           service_category: string
+          specialist_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -291,9 +293,18 @@ export type Database = {
           id?: string
           name?: string
           service_category?: string
+          specialist_id?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "cleaning_services_specialist_id_fkey"
+            columns: ["specialist_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       direct_messages: {
         Row: {
@@ -450,6 +461,7 @@ export type Database = {
           is_express: boolean | null
           name: string
           price_per_kg: number
+          specialist_id: string | null
           turnaround_days: number
           updated_at: string
         }
@@ -461,6 +473,7 @@ export type Database = {
           is_express?: boolean | null
           name: string
           price_per_kg: number
+          specialist_id?: string | null
           turnaround_days?: number
           updated_at?: string
         }
@@ -472,10 +485,19 @@ export type Database = {
           is_express?: boolean | null
           name?: string
           price_per_kg?: number
+          specialist_id?: string | null
           turnaround_days?: number
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "laundry_services_specialist_id_fkey"
+            columns: ["specialist_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       laundry_status_history: {
         Row: {

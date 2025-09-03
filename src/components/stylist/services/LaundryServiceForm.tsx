@@ -78,25 +78,30 @@ export const LaundryServiceForm: React.FC<LaundryServiceFormProps> = ({ onServic
     try {
       setLoading(true);
       
-      // Fetch laundry services
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("User not authenticated");
+        return;
+      }
+      
+      // Fetch laundry services for current specialist only
       const { data: servicesData } = await supabase
         .from('laundry_services')
         .select('*')
+        .eq('specialist_id', user.id)
         .order('name');
       
       setLaundryServices(servicesData || []);
 
       // Fetch user profile for service areas
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('service_areas')
-          .eq('id', user.id)
-          .single();
-        
-        setServiceAreas(profile?.service_areas || []);
-      }
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('service_areas')
+        .eq('id', user.id)
+        .single();
+      
+      setServiceAreas(profile?.service_areas || []);
     } catch (error: any) {
       console.error("Error fetching data:", error);
       toast.error("Failed to load laundry services");
@@ -144,6 +149,13 @@ export const LaundryServiceForm: React.FC<LaundryServiceFormProps> = ({ onServic
         if (error) throw error;
         toast.success("Laundry service updated successfully");
       } else {
+        // Get current user for specialist_id
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          toast.error("User not authenticated");
+          return;
+        }
+
         const { error } = await supabase
           .from('laundry_services')
           .insert({
@@ -153,6 +165,7 @@ export const LaundryServiceForm: React.FC<LaundryServiceFormProps> = ({ onServic
             base_price: Math.round(basePriceValue * 100),
             turnaround_days: turnaroundValue,
             is_express: formData.isExpress,
+            specialist_id: user.id,
           });
         
         if (error) throw error;
