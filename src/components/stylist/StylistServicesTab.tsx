@@ -1,17 +1,18 @@
 
 import React, { useState, useEffect } from "react";
-import { ProfessionServiceSelector } from "./services/ProfessionServiceSelector";
 import { BeautyServiceForm } from "./services/BeautyServiceForm";
 import { LaundryServiceForm } from "./services/LaundryServiceForm";
 import { CleaningServiceForm } from "./services/CleaningServiceForm";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Settings } from "lucide-react";
 
 const SpecialistServicesTab = () => {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedProfession, setSelectedProfession] = useState<'beauty' | 'laundry' | 'cleaning' | null>(null);
 
   useEffect(() => {
     fetchUserProfile();
@@ -30,15 +31,6 @@ const SpecialistServicesTab = () => {
         .single();
 
       setUserProfile(profile);
-      
-      // Set profession based on profile
-      if (profile?.is_cleaning_specialist) {
-        setSelectedProfession('cleaning');
-      } else if (profile?.is_laundry_specialist) {
-        setSelectedProfession('laundry');
-      } else if (profile?.is_stylist) {
-        setSelectedProfession('beauty');
-      }
     } catch (error: any) {
       console.error("Error fetching profile:", error);
       toast.error("Failed to load profile");
@@ -47,10 +39,6 @@ const SpecialistServicesTab = () => {
     }
   };
 
-  const handleProfessionSelect = (profession: 'beauty' | 'laundry' | 'cleaning') => {
-    setSelectedProfession(profession);
-    fetchUserProfile(); // Refresh profile to get updated data
-  };
 
   if (loading) {
     return (
@@ -60,34 +48,50 @@ const SpecialistServicesTab = () => {
     );
   }
 
-  // If no profession is selected, show profession selector
-  if (!selectedProfession) {
+  // Determine current profession from profile
+  const currentProfession = userProfile?.is_cleaning_specialist ? 'cleaning' :
+                            userProfile?.is_laundry_specialist ? 'laundry' : 
+                            userProfile?.is_stylist ? 'beauty' : null;
+
+  // If no profession is set, show message to go to settings
+  if (!currentProfession) {
     return (
-      <ProfessionServiceSelector 
-        onProfessionSelect={handleProfessionSelect}
-        selectedProfession={selectedProfession}
-      />
+      <div className="space-y-6">
+        <Card>
+          <CardHeader className="text-center">
+            <CardTitle className="flex items-center justify-center gap-2">
+              <Settings className="h-5 w-5" />
+              Service Type Required
+            </CardTitle>
+            <CardDescription>
+              You need to select your service type before you can manage services
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-center">
+            <p className="text-muted-foreground mb-4">
+              Please go to Settings → Service Type to choose whether you want to offer Beauty, Laundry, or Cleaning services.
+            </p>
+            <Button onClick={() => window.location.href = '/stylist/settings'}>
+              Go to Settings
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Show profession selector for changing */}
-      <ProfessionServiceSelector 
-        onProfessionSelect={handleProfessionSelect}
-        selectedProfession={selectedProfession}
-      />
-      
-      {/* Show appropriate service form */}
-      {selectedProfession === 'beauty' && (
+      {/* Show appropriate service form based on current profession */}
+      {currentProfession === 'beauty' && (
         <BeautyServiceForm onServicesChange={fetchUserProfile} />
       )}
       
-      {selectedProfession === 'laundry' && (
+      {currentProfession === 'laundry' && (
         <LaundryServiceForm onServicesChange={fetchUserProfile} />
       )}
       
-      {selectedProfession === 'cleaning' && (
+      {currentProfession === 'cleaning' && (
         <CleaningServiceForm onServicesChange={fetchUserProfile} />
       )}
     </div>
