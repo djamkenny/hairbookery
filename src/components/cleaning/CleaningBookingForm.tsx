@@ -105,10 +105,10 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
     }
   };
 
-  // Calculate final price (includes all fees)
-  const calculateFinalPrice = () => {
+  // Calculate service cost breakdown
+  const calculatePriceBreakdown = () => {
     const selectedService = availableServices.find(s => s.id === serviceType);
-    const servicePrice = selectedService?.total_price || 0;
+    const servicePrice = selectedService ? selectedService.total_price / 100 : 0; // Convert from cents to GHS
     
     // Add addon prices
     const addonPrice = selectedAddons.reduce((total, addonId) => {
@@ -116,10 +116,14 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
       return total + (addon?.price || 0);
     }, 0);
     
-    const totalServicePrice = (servicePrice / 100) + addonPrice; // Convert from cents to GHS
-    const { total } = calculateBookingFee(totalServicePrice);
+    const totalServiceCost = servicePrice + addonPrice;
+    const { fee: bookingFee, total } = calculateBookingFee(totalServiceCost);
     
-    return total;
+    return {
+      serviceCost: totalServiceCost,
+      bookingFee,
+      total
+    };
   };
 
   const handleAddonToggle = (addonId: string) => {
@@ -160,7 +164,7 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
       customerPhone,  
       customerEmail,
       estimatedHours,
-      totalAmount: calculateFinalPrice()
+      totalAmount: calculatePriceBreakdown().total
     });
   };
 
@@ -258,7 +262,7 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
                       <div className="space-y-2">
                          <div className="flex justify-between items-start">
                            <h3 className="font-semibold">{service.name}</h3>
-                           <span className="text-primary font-bold">{formatPrice(calculateBookingFee(service.total_price / 100).total)}</span>
+                           <span className="text-primary font-bold">{formatPrice(service.total_price / 100)}</span>
                          </div>
                         <p className="text-sm text-muted-foreground">{service.description || 'Professional cleaning service'}</p>
                         <div className="text-xs text-muted-foreground">
@@ -559,10 +563,18 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
                     <span>{selectedAddons.length} selected</span>
                   </div>
                 )}
-                 <div className="border-t pt-2">
-                   <div className="flex justify-between font-bold text-lg">
+                 <div className="border-t pt-2 space-y-2">
+                   <div className="flex justify-between">
+                     <span>Service Cost:</span>
+                     <span>{formatPrice(calculatePriceBreakdown().serviceCost)}</span>
+                   </div>
+                   <div className="flex justify-between text-sm text-muted-foreground">
+                     <span>Booking Fee:</span>
+                     <span>{formatPrice(calculatePriceBreakdown().bookingFee)}</span>
+                   </div>
+                   <div className="flex justify-between font-bold text-lg border-t pt-2">
                      <span>Total Price:</span>
-                     <span className="text-primary">{formatPrice(calculateFinalPrice())}</span>
+                     <span className="text-primary">{formatPrice(calculatePriceBreakdown().total)}</span>
                    </div>
                  </div>
               </div>

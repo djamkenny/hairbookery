@@ -155,7 +155,7 @@ const SpecialistDetail = () => {
               service_id: service.id, // Use the same ID for cleaning services
               name: service.name,
               description: service.description,
-              price: service.total_price || 0,
+              price: service.total_price / 100, // Convert from cents to GHS, show service price only (no booking fee)
               duration: (service.duration_hours || 2) * 60, // Convert hours to minutes
               created_at: service.created_at,
               updated_at: service.updated_at
