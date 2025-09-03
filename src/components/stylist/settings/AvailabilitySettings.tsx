@@ -17,8 +17,17 @@ interface WorkingHours {
 }
 
 const AvailabilitySettings = () => {
-  const [availability, setAvailability] = useState(true);
   const [dailyAppointmentLimit, setDailyAppointmentLimit] = useState(10);
+  const [availabilityEnabled, setAvailabilityEnabled] = useState(true);
+  const [workingHours, setWorkingHours] = useState<WorkingHours[]>([
+    { day: 'Monday', enabled: true, startTime: '09:00', endTime: '17:00' },
+    { day: 'Tuesday', enabled: true, startTime: '09:00', endTime: '17:00' },
+    { day: 'Wednesday', enabled: true, startTime: '09:00', endTime: '17:00' },
+    { day: 'Thursday', enabled: true, startTime: '09:00', endTime: '17:00' },
+    { day: 'Friday', enabled: true, startTime: '09:00', endTime: '17:00' },
+    { day: 'Saturday', enabled: false, startTime: '09:00', endTime: '17:00' },
+    { day: 'Sunday', enabled: false, startTime: '09:00', endTime: '17:00' },
+  ]);
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
 
@@ -44,7 +53,7 @@ const AvailabilitySettings = () => {
             console.error("Error loading profile:", profileError);
             toast.error("Failed to load settings");
           } else if (profileData) {
-            setAvailability(profileData.availability !== false);
+            setAvailabilityEnabled(profileData.availability !== false);
             setDailyAppointmentLimit(profileData.daily_appointment_limit || 10);
           }
         }
@@ -67,7 +76,7 @@ const AvailabilitySettings = () => {
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
-          availability: availability,
+          availability: availabilityEnabled,
           daily_appointment_limit: dailyAppointmentLimit,
           updated_at: new Date().toISOString()
         })
@@ -108,8 +117,8 @@ const AvailabilitySettings = () => {
             </div>
             <Switch 
               id="availability" 
-              checked={availability}
-              onCheckedChange={setAvailability}
+              checked={availabilityEnabled}
+              onCheckedChange={setAvailabilityEnabled}
               disabled={loading}
             />
           </div>

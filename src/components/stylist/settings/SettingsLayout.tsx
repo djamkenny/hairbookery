@@ -9,7 +9,8 @@ import {
   Shield, 
   User, 
   Clock,
-  ChevronRight
+  ChevronRight,
+  Briefcase
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import AvailabilitySettings from "./AvailabilitySettings";
@@ -17,6 +18,8 @@ import NotificationSettings from "./NotificationSettings";
 import BookingSettings from "./BookingSettings";
 import SecuritySettings from "./SecuritySettings";
 import PreferencesSettings from "./PreferencesSettings";
+import ServiceTypeSettings from "./ServiceTypeSettings";
+import ProfileSettings from "./ProfileSettings";
 
 interface SettingSection {
   id: string;
@@ -27,6 +30,20 @@ interface SettingSection {
 }
 
 const settingSections: SettingSection[] = [
+  {
+    id: "profile",
+    title: "Profile Information",
+    description: "Update your personal and professional details",
+    icon: User,
+    component: ProfileSettings,
+  },
+  {
+    id: "service-type",
+    title: "Service Type",
+    description: "Choose between beauty or cleaning services",
+    icon: Briefcase,
+    component: ServiceTypeSettings,
+  },
   {
     id: "availability",
     title: "Availability",
@@ -65,11 +82,11 @@ const settingSections: SettingSection[] = [
 ];
 
 const SettingsLayout = () => {
-  const [activeSection, setActiveSection] = useState("availability");
+  const [activeSection, setActiveSection] = useState("profile");
   const [showSidebar, setShowSidebar] = useState(true);
   const isMobile = useIsMobile();
 
-  const ActiveComponent = settingSections.find(s => s.id === activeSection)?.component || AvailabilitySettings;
+  const ActiveComponent = settingSections.find(s => s.id === activeSection)?.component || ProfileSettings;
   const activeTitle = settingSections.find(s => s.id === activeSection)?.title || "Settings";
 
   if (isMobile) {
