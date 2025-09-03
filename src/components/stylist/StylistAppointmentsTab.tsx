@@ -7,6 +7,7 @@ import { useLaundryAppointments } from "@/hooks/useLaundryAppointments";
 import AppointmentsHeader from "./appointments/AppointmentsHeader";
 import AppointmentsContent from "./appointments/AppointmentsContent";
 import { LaundryAppointmentsList } from "@/components/laundry/LaundryAppointmentsList";
+import LaundryAppointmentDetailsModal from "@/components/laundry/LaundryAppointmentDetailsModal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -114,6 +115,12 @@ const SpecialistAppointmentsTab = () => {
           onUpdateStatus={handleUpdateStatus}
           onCancelAppointment={handleCancelAppointment}
         />
+
+        <LaundryAppointmentDetailsModal
+          order={selectedOrder}
+          isOpen={isLaundryDetailsModalOpen}
+          onClose={handleCloseLaundryDetailsModal}
+        />
       </div>
     );
   }
@@ -130,6 +137,12 @@ const SpecialistAppointmentsTab = () => {
           loading={laundryLoading}
           onUpdateStatus={handleUpdateLaundryStatus}
           onViewDetails={handleViewLaundryDetails}
+        />
+
+        <LaundryAppointmentDetailsModal
+          order={selectedOrder}
+          isOpen={isLaundryDetailsModalOpen}
+          onClose={handleCloseLaundryDetailsModal}
         />
       </div>
     );
