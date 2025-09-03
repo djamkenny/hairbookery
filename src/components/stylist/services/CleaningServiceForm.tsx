@@ -23,48 +23,6 @@ interface CleaningServiceFormProps {
   onServicesChange?: () => void;
 }
 
-const CLEANING_SERVICE_TYPES = [
-  {
-    name: "Standard Home Cleaning",
-    description: "Regular cleaning for homes and apartments",
-    suggestedBasePrice: "80.00",
-    suggestedHourlyRate: "25.00",
-    duration: "3",
-    category: "home"
-  },
-  {
-    name: "Deep Cleaning",
-    description: "Thorough cleaning including hard-to-reach areas",
-    suggestedBasePrice: "150.00",
-    suggestedHourlyRate: "35.00",
-    duration: "5",
-    category: "deep"
-  },
-  {
-    name: "Office Cleaning",
-    description: "Professional cleaning for office spaces",
-    suggestedBasePrice: "60.00",
-    suggestedHourlyRate: "30.00",
-    duration: "2",
-    category: "office"
-  },
-  {
-    name: "Post-Construction Cleaning",
-    description: "Specialized cleaning after construction or renovation",
-    suggestedBasePrice: "200.00",
-    suggestedHourlyRate: "40.00",
-    duration: "6",
-    category: "post_construction"
-  },
-  {
-    name: "Carpet Cleaning",
-    description: "Professional carpet and upholstery cleaning",
-    suggestedBasePrice: "100.00",
-    suggestedHourlyRate: "45.00",
-    duration: "4",
-    category: "carpet"
-  }
-];
 
 export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServicesChange }) => {
   const [cleaningServices, setCleaningServices] = useState<any[]>([]);
@@ -294,16 +252,6 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
     }
   };
 
-  const loadPreset = (preset: typeof CLEANING_SERVICE_TYPES[0]) => {
-    setFormData({
-      name: preset.name,
-      description: preset.description,
-      basePrice: preset.suggestedBasePrice,
-      hourlyRate: preset.suggestedHourlyRate,
-      duration: preset.duration,
-      category: preset.category,
-    });
-  };
 
   if (loading) {
     return (

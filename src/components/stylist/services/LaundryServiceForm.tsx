@@ -23,36 +23,6 @@ interface LaundryServiceFormProps {
   onServicesChange?: () => void;
 }
 
-const LAUNDRY_SERVICE_TYPES = [
-  {
-    name: "Wash & Fold",
-    description: "Basic washing, drying, and folding service",
-    suggestedPricePerKg: "8.00",
-    suggestedBasePrice: "15.00",
-    turnaroundDays: "2"
-  },
-  {
-    name: "Dry Cleaning",
-    description: "Professional dry cleaning for delicate items",
-    suggestedPricePerKg: "25.00",
-    suggestedBasePrice: "30.00",
-    turnaroundDays: "3"
-  },
-  {
-    name: "Ironing & Pressing",
-    description: "Professional ironing and pressing service",
-    suggestedPricePerKg: "12.00",
-    suggestedBasePrice: "20.00",
-    turnaroundDays: "1"
-  },
-  {
-    name: "Express Service",
-    description: "Same-day or next-day service with premium pricing",
-    suggestedPricePerKg: "15.00",
-    suggestedBasePrice: "25.00",
-    turnaroundDays: "1"
-  }
-];
 
 export const LaundryServiceForm: React.FC<LaundryServiceFormProps> = ({ onServicesChange }) => {
   const [laundryServices, setLaundryServices] = useState<any[]>([]);
@@ -282,16 +252,6 @@ export const LaundryServiceForm: React.FC<LaundryServiceFormProps> = ({ onServic
     }
   };
 
-  const loadPreset = (preset: typeof LAUNDRY_SERVICE_TYPES[0]) => {
-    setFormData({
-      name: preset.name,
-      description: preset.description,
-      pricePerKg: preset.suggestedPricePerKg,
-      basePrice: preset.suggestedBasePrice,
-      turnaroundDays: preset.turnaroundDays,
-      isExpress: preset.name.includes("Express"),
-    });
-  };
 
   if (loading) {
     return (
