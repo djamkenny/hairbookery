@@ -1,0 +1,548 @@
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useAuth } from "@/hooks/useAuth";
+import { formatPrice } from "@/components/booking/utils/formatUtils";
+import { calculateBookingFee } from "@/components/booking/utils/feeUtils";
+import { format } from "date-fns";
+import { CalendarIcon, MapPin, Clock, Package, ChevronRight, Home, Users, Bath, Square } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+
+const timeSlots = [
+  "8:00 AM", "9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM",
+  "1:00 PM", "2:00 PM", "3:00 PM", "4:00 PM", "5:00 PM", "6:00 PM"
+];
+
+const serviceTypes = [
+  { value: "home", label: "Home Cleaning", basePrice: 80, description: "Regular cleaning for homes and apartments" },
+  { value: "office", label: "Office Cleaning", basePrice: 60, description: "Professional cleaning for office spaces" },
+  { value: "deep", label: "Deep Cleaning", basePrice: 150, description: "Thorough cleaning including hard-to-reach areas" },
+  { value: "carpet", label: "Carpet Cleaning", basePrice: 100, description: "Professional carpet and upholstery cleaning" },
+  { value: "post_construction", label: "Post-Construction", basePrice: 200, description: "Specialized cleaning after construction" }
+];
+
+const propertyTypes = [
+  { value: "apartment", label: "Apartment" },
+  { value: "house", label: "House" },
+  { value: "office", label: "Office" },
+  { value: "commercial", label: "Commercial Space" }
+];
+
+const addonServices = [
+  { id: "laundry", label: "Laundry Service", price: 25 },
+  { id: "dishwashing", label: "Dishwashing", price: 15 },
+  { id: "window_cleaning", label: "Window Cleaning", price: 30 },
+  { id: "fridge_cleaning", label: "Fridge/Oven Cleaning", price: 20 },
+  { id: "carpet_cleaning", label: "Additional Carpet Cleaning", price: 40 }
+];
+
+export const CleaningBookingForm: React.FC = () => {
+  const { user } = useAuth();
+  
+  const [step, setStep] = useState(1);
+  const [serviceType, setServiceType] = useState("");
+  const [serviceDate, setServiceDate] = useState<Date>();
+  const [serviceTime, setServiceTime] = useState("");
+  const [serviceAddress, setServiceAddress] = useState("");
+  const [propertyType, setPropertyType] = useState("");
+  const [numRooms, setNumRooms] = useState("");
+  const [numBathrooms, setNumBathrooms] = useState("");
+  const [squareFootage, setSquareFootage] = useState("");
+  const [specialInstructions, setSpecialInstructions] = useState("");
+  const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
+  const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+  const [customerEmail, setCustomerEmail] = useState("");
+  const [estimatedHours, setEstimatedHours] = useState(3);
+
+  // Calculate total price
+  const calculatePrice = () => {
+    const selectedService = serviceTypes.find(s => s.value === serviceType);
+    const basePrice = selectedService?.basePrice || 0;
+    
+    // Add addon prices
+    const addonPrice = selectedAddons.reduce((total, addonId) => {
+      const addon = addonServices.find(a => a.id === addonId);
+      return total + (addon?.price || 0);
+    }, 0);
+    
+    const servicePrice = basePrice + addonPrice;
+    const { fee, total } = calculateBookingFee(servicePrice);
+    
+    return {
+      servicePrice,
+      bookingFee: fee,
+      totalPrice: total
+    };
+  };
+
+  const handleAddonToggle = (addonId: string) => {
+    setSelectedAddons(prev => 
+      prev.includes(addonId) 
+        ? prev.filter(id => id !== addonId)
+        : [...prev, addonId]
+    );
+  };
+
+  const handleSubmit = async () => {
+    if (!user) {
+      toast.error('Please log in to book a cleaning service');
+      return;
+    }
+
+    if (!serviceType || !serviceDate || !serviceTime || !serviceAddress || !customerName || !customerPhone || !customerEmail) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    // Here you would integrate with your booking system
+    toast.success('Cleaning service booking submitted! You will be redirected to payment.');
+    
+    // For now, just log the booking data
+    console.log({
+      serviceType,
+      serviceDate: format(serviceDate, 'yyyy-MM-dd'),
+      serviceTime,
+      serviceAddress,
+      propertyType,
+      numRooms: parseInt(numRooms) || null,
+      numBathrooms: parseInt(numBathrooms) || null,
+      squareFootage: parseInt(squareFootage) || null,
+      specialInstructions,
+      selectedAddons,
+      customerName,
+      customerPhone,  
+      customerEmail,
+      estimatedHours,
+      totalAmount: calculatePrice().totalPrice
+    });
+  };
+
+  const nextStep = () => {
+    if (step === 1 && !serviceType) {
+      toast.error('Please select a service type');
+      return;
+    }
+    if (step === 2 && (!serviceDate || !serviceTime || !serviceAddress)) {
+      toast.error('Please fill in service details');
+      return;
+    }
+    if (step === 3 && (!customerName || !customerPhone || !customerEmail)) {
+      toast.error('Please fill in customer information');
+      return;
+    }
+    setStep(step + 1);
+  };
+
+  const prevStep = () => setStep(step - 1);
+
+  if (!user) {
+    return (
+      <div className="max-w-2xl mx-auto p-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Login Required</CardTitle>
+            <CardDescription>
+              Please log in to book a cleaning service.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild>
+              <a href="/login">Go to Login</a>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-4xl mx-auto p-6 space-y-6">
+      {/* Progress Steps */}
+      <div className="flex items-center justify-center space-x-4 mb-8">
+        {[1, 2, 3, 4].map((num) => (
+          <div key={num} className="flex items-center">
+            <div className={cn(
+              "w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold",
+              step >= num ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+            )}>
+              {num}
+            </div>
+            {num < 4 && (
+              <div className={cn(
+                "w-12 h-0.5 mx-2",
+                step > num ? "bg-primary" : "bg-muted"
+              )} />
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Step 1: Service Type Selection */}
+      {step === 1 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Package className="w-5 h-5 mr-2" />
+              Select Service Type
+            </CardTitle>
+            <CardDescription>
+              Choose the type of cleaning service you need
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {serviceTypes.map((service) => (
+                <Card 
+                  key={service.value}
+                  className={cn(
+                    "cursor-pointer transition-all hover:shadow-md border-2",
+                    serviceType === service.value ? "border-primary bg-primary/5" : "hover:border-primary"
+                  )}
+                  onClick={() => setServiceType(service.value)}
+                >
+                  <CardContent className="p-4">
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-start">
+                        <h3 className="font-semibold">{service.label}</h3>
+                        <span className="text-primary font-bold">{formatPrice(service.basePrice)}</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{service.description}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            <Button 
+              onClick={nextStep} 
+              className="w-full"
+              disabled={!serviceType}
+            >
+              Continue to Service Details
+              <ChevronRight className="ml-2 h-4 w-4" />
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Step 2: Service Date, Time & Location */}
+      {step === 2 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <MapPin className="w-5 h-5 mr-2" />
+              Service Details
+            </CardTitle>
+            <CardDescription>
+              When and where should we provide the service?
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="serviceDate">Service Date *</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "justify-start text-left font-normal",
+                        !serviceDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {serviceDate ? format(serviceDate, "PPP") : <span>Select service date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={serviceDate}
+                      onSelect={setServiceDate}
+                      initialFocus
+                      disabled={(date) => date < new Date()}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="serviceTime">Service Time *</Label>
+                <Select value={serviceTime} onValueChange={setServiceTime}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select service time" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {timeSlots.map((time) => (
+                      <SelectItem key={time} value={time}>
+                        <div className="flex items-center">
+                          <Clock className="mr-2 h-3.5 w-3.5" />
+                          {time}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="serviceAddress">Service Address *</Label>
+              <Textarea
+                id="serviceAddress"
+                placeholder="Enter the full address where cleaning will take place"
+                value={serviceAddress}
+                onChange={(e) => setServiceAddress(e.target.value)}
+                rows={3}
+              />
+            </div>
+
+            <div className="flex gap-4">
+              <Button variant="outline" onClick={prevStep}>
+                Back
+              </Button>
+              <Button onClick={nextStep} className="flex-1">
+                Continue to Property Details
+                <ChevronRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Step 3: Property Details & Add-ons */}
+      {step === 3 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Home className="w-5 h-5 mr-2" />
+              Property Details
+            </CardTitle>
+            <CardDescription>
+              Tell us about your property and any additional services
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="propertyType">Property Type</Label>
+                <Select value={propertyType} onValueChange={setPropertyType}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select property type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {propertyTypes.map((type) => (
+                      <SelectItem key={type.value} value={type.value}>
+                        {type.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="squareFootage">Square Footage (approx.)</Label>
+                <div className="relative">
+                  <Square className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="squareFootage"
+                    type="number"
+                    placeholder="e.g., 1200"
+                    value={squareFootage}
+                    onChange={(e) => setSquareFootage(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="numRooms">Number of Rooms</Label>
+                <div className="relative">
+                  <Home className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="numRooms"
+                    type="number"
+                    placeholder="e.g., 3"
+                    value={numRooms}
+                    onChange={(e) => setNumRooms(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="numBathrooms">Number of Bathrooms</Label>
+                <div className="relative">
+                  <Bath className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="numBathrooms"
+                    type="number"
+                    placeholder="e.g., 2"
+                    value={numBathrooms}
+                    onChange={(e) => setNumBathrooms(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <Label>Add-on Services</Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {addonServices.map((addon) => (
+                  <div key={addon.id} className="flex items-center space-x-2 p-3 border rounded-lg">
+                    <Checkbox
+                      id={addon.id}
+                      checked={selectedAddons.includes(addon.id)}
+                      onCheckedChange={() => handleAddonToggle(addon.id)}
+                    />
+                    <div className="flex-1">
+                      <Label htmlFor={addon.id} className="font-medium">{addon.label}</Label>
+                      <p className="text-sm text-primary font-semibold">+{formatPrice(addon.price)}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex gap-4">
+              <Button variant="outline" onClick={prevStep}>
+                Back
+              </Button>
+              <Button onClick={nextStep} className="flex-1">
+                Continue to Customer Information
+                <ChevronRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Step 4: Customer Information & Summary */}
+      {step === 4 && (
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Users className="w-5 h-5 mr-2" />
+                Customer Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="customerName">Full Name *</Label>
+                  <Input
+                    id="customerName"
+                    placeholder="Enter your full name"
+                    value={customerName}
+                    onChange={(e) => setCustomerName(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="customerPhone">Phone Number *</Label>
+                  <Input
+                    id="customerPhone"
+                    placeholder="Enter your phone number"
+                    value={customerPhone}
+                    onChange={(e) => setCustomerPhone(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="customerEmail">Email Address *</Label>
+                <Input
+                  id="customerEmail"
+                  type="email"
+                  placeholder="Enter your email address"
+                  value={customerEmail}
+                  onChange={(e) => setCustomerEmail(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="specialInstructions">Special Instructions</Label>
+                <Textarea
+                  id="specialInstructions"
+                  placeholder="Any special care instructions or notes (e.g., 'pet in the house', 'use eco-friendly products')"
+                  value={specialInstructions}
+                  onChange={(e) => setSpecialInstructions(e.target.value)}
+                  rows={3}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Booking Summary</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span>Service Type:</span>
+                  <span className="font-semibold">{serviceTypes.find(s => s.value === serviceType)?.label}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Service Date:</span>
+                  <span>{serviceDate ? format(serviceDate, "PPP") : "Not selected"}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Service Time:</span>
+                  <span>{serviceTime || "Not selected"}</span>
+                </div>
+                {selectedAddons.length > 0 && (
+                  <div className="flex justify-between">
+                    <span>Add-on Services:</span>
+                    <span>{selectedAddons.length} selected</span>
+                  </div>
+                )}
+                <div className="border-t pt-2 space-y-2">
+                  <div className="flex justify-between">
+                    <span>Service Cost:</span>
+                    <span>{formatPrice(calculatePrice().servicePrice)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm text-muted-foreground">
+                    <span>Booking Fee (15%):</span>
+                    <span>{formatPrice(calculatePrice().bookingFee)}</span>
+                  </div>
+                  <div className="flex justify-between font-bold text-lg border-t pt-2">
+                    <span>Total:</span>
+                    <span className="text-primary">{formatPrice(calculatePrice().totalPrice)}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <Button variant="outline" onClick={prevStep}>
+                  Back
+                </Button>
+                <Button 
+                  onClick={handleSubmit} 
+                  className="flex-1"
+                  disabled={!customerName || !customerPhone || !customerEmail}
+                >
+                  Proceed to Payment
+                  <ChevronRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+    </div>
+  );
+};

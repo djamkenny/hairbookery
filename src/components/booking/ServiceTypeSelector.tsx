@@ -1,10 +1,10 @@
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Scissors, Shirt, ArrowRight } from "lucide-react";
+import { Scissors, Shirt, ArrowRight, Home } from "lucide-react";
 
 interface ServiceTypeSelectorProps {
-  onServiceTypeSelect: (type: 'beauty' | 'laundry') => void;
+  onServiceTypeSelect: (type: 'beauty' | 'laundry' | 'cleaning') => void;
 }
 
 export const ServiceTypeSelector: React.FC<ServiceTypeSelectorProps> = ({ onServiceTypeSelect }) => {
@@ -17,7 +17,7 @@ export const ServiceTypeSelector: React.FC<ServiceTypeSelectorProps> = ({ onServ
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Beauty Services */}
         <Card 
           className="cursor-pointer transition-all hover:shadow-lg hover:scale-[1.02] border-2 hover:border-primary"
@@ -97,6 +97,48 @@ export const ServiceTypeSelector: React.FC<ServiceTypeSelectorProps> = ({ onServ
             
             <Button className="w-full group">
               Book Laundry Service
+              <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Cleaning Services */}
+        <Card 
+          className="cursor-pointer transition-all hover:shadow-lg hover:scale-[1.02] border-2 hover:border-primary"
+          onClick={() => onServiceTypeSelect('cleaning')}
+        >
+          <CardHeader className="text-center pb-4">
+            <div className="mx-auto w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center mb-4">
+              <Home className="w-8 h-8 text-white" />
+            </div>
+            <CardTitle className="text-xl">Cleaning Services</CardTitle>
+            <CardDescription>
+              Professional home and office cleaning with flexible scheduling
+            </CardDescription>
+          </CardHeader>
+          
+          <CardContent className="space-y-4">
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li className="flex items-center">
+                <div className="w-2 h-2 bg-primary rounded-full mr-2" />
+                Home & office cleaning
+              </li>
+              <li className="flex items-center">
+                <div className="w-2 h-2 bg-primary rounded-full mr-2" />
+                Deep cleaning & maintenance
+              </li>
+              <li className="flex items-center">
+                <div className="w-2 h-2 bg-primary rounded-full mr-2" />
+                Carpet & upholstery cleaning
+              </li>
+              <li className="flex items-center">
+                <div className="w-2 h-2 bg-primary rounded-full mr-2" />
+                Post-construction cleanup
+              </li>
+            </ul>
+            
+            <Button className="w-full group">
+              Book Cleaning Service
               <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
             </Button>
           </CardContent>

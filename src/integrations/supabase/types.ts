@@ -181,6 +181,120 @@ export type Database = {
           },
         ]
       }
+      cleaning_orders: {
+        Row: {
+          addon_services: string[] | null
+          amount: number | null
+          client_id: string
+          created_at: string
+          customer_email: string
+          customer_name: string
+          customer_phone: string
+          duration_hours: number
+          id: string
+          num_bathrooms: number | null
+          num_rooms: number | null
+          order_number: string
+          payment_id: string | null
+          property_type: string
+          service_address: string
+          service_date: string
+          service_time: string
+          service_type: string
+          special_instructions: string | null
+          specialist_id: string | null
+          square_footage: number | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          addon_services?: string[] | null
+          amount?: number | null
+          client_id: string
+          created_at?: string
+          customer_email: string
+          customer_name: string
+          customer_phone: string
+          duration_hours?: number
+          id?: string
+          num_bathrooms?: number | null
+          num_rooms?: number | null
+          order_number?: string
+          payment_id?: string | null
+          property_type: string
+          service_address: string
+          service_date: string
+          service_time: string
+          service_type: string
+          special_instructions?: string | null
+          specialist_id?: string | null
+          square_footage?: number | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          addon_services?: string[] | null
+          amount?: number | null
+          client_id?: string
+          created_at?: string
+          customer_email?: string
+          customer_name?: string
+          customer_phone?: string
+          duration_hours?: number
+          id?: string
+          num_bathrooms?: number | null
+          num_rooms?: number | null
+          order_number?: string
+          payment_id?: string | null
+          property_type?: string
+          service_address?: string
+          service_date?: string
+          service_time?: string
+          service_type?: string
+          special_instructions?: string | null
+          specialist_id?: string | null
+          square_footage?: number | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      cleaning_services: {
+        Row: {
+          base_price: number
+          created_at: string
+          description: string | null
+          duration_hours: number | null
+          hourly_rate: number | null
+          id: string
+          name: string
+          service_category: string
+          updated_at: string
+        }
+        Insert: {
+          base_price?: number
+          created_at?: string
+          description?: string | null
+          duration_hours?: number | null
+          hourly_rate?: number | null
+          id?: string
+          name: string
+          service_category: string
+          updated_at?: string
+        }
+        Update: {
+          base_price?: number
+          created_at?: string
+          description?: string | null
+          duration_hours?: number | null
+          hourly_rate?: number | null
+          id?: string
+          name?: string
+          service_category?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       direct_messages: {
         Row: {
           created_at: string
@@ -566,6 +680,7 @@ export type Database = {
           experience: string | null
           full_name: string | null
           id: string
+          is_cleaning_specialist: boolean | null
           is_laundry_specialist: boolean | null
           is_stylist: boolean | null
           location: string | null
@@ -586,6 +701,7 @@ export type Database = {
           experience?: string | null
           full_name?: string | null
           id: string
+          is_cleaning_specialist?: boolean | null
           is_laundry_specialist?: boolean | null
           is_stylist?: boolean | null
           location?: string | null
@@ -606,6 +722,7 @@ export type Database = {
           experience?: string | null
           full_name?: string | null
           id?: string
+          is_cleaning_specialist?: boolean | null
           is_laundry_specialist?: boolean | null
           is_stylist?: boolean | null
           location?: string | null
@@ -1118,6 +1235,7 @@ export type Database = {
           experience: string
           full_name: string
           id: string
+          is_cleaning_specialist: boolean
           is_laundry_specialist: boolean
           is_stylist: boolean
           location: string

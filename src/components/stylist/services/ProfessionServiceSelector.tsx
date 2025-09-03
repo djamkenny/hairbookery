@@ -2,13 +2,13 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Scissors, Shirt, Sparkles, CheckCircle } from "lucide-react";
+import { Scissors, Shirt, Sparkles, CheckCircle, Home } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 interface ProfessionServiceSelectorProps {
-  onProfessionSelect: (profession: 'beauty' | 'laundry') => void;
-  selectedProfession?: 'beauty' | 'laundry' | null;
+  onProfessionSelect: (profession: 'beauty' | 'laundry' | 'cleaning') => void;
+  selectedProfession?: 'beauty' | 'laundry' | 'cleaning' | null;
 }
 
 export const ProfessionServiceSelector: React.FC<ProfessionServiceSelectorProps> = ({
@@ -41,14 +41,16 @@ export const ProfessionServiceSelector: React.FC<ProfessionServiceSelectorProps>
     }
   };
 
-  const updateProfessionType = async (profession: 'beauty' | 'laundry') => {
+  const updateProfessionType = async (profession: 'beauty' | 'laundry' | 'cleaning') => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
       const updates = profession === 'laundry' 
-        ? { is_laundry_specialist: true, is_stylist: false }
-        : { is_stylist: true, is_laundry_specialist: false };
+        ? { is_laundry_specialist: true, is_stylist: false, is_cleaning_specialist: false }
+        : profession === 'cleaning'
+        ? { is_cleaning_specialist: true, is_stylist: false, is_laundry_specialist: false }
+        : { is_stylist: true, is_laundry_specialist: false, is_cleaning_specialist: false };
 
       const { error } = await supabase
         .from('profiles')
@@ -57,7 +59,11 @@ export const ProfessionServiceSelector: React.FC<ProfessionServiceSelectorProps>
 
       if (error) throw error;
 
-      toast.success(`Profile updated as ${profession === 'laundry' ? 'Laundry Services Specialist' : 'Beauty Specialist'}`);
+      const specialistType = profession === 'laundry' ? 'Laundry Services Specialist' 
+        : profession === 'cleaning' ? 'Cleaning Services Specialist' 
+        : 'Beauty Specialist';
+      
+      toast.success(`Profile updated as ${specialistType}`);
       await fetchUserProfile();
       onProfessionSelect(profession);
     } catch (error: any) {
@@ -75,7 +81,8 @@ export const ProfessionServiceSelector: React.FC<ProfessionServiceSelectorProps>
   }
 
   // If user already has a profession set, show the current selection
-  const currentProfession = userProfile?.is_laundry_specialist ? 'laundry' : 
+  const currentProfession = userProfile?.is_cleaning_specialist ? 'cleaning' :
+                            userProfile?.is_laundry_specialist ? 'laundry' : 
                             userProfile?.is_stylist ? 'beauty' : null;
 
   return (
@@ -87,12 +94,13 @@ export const ProfessionServiceSelector: React.FC<ProfessionServiceSelectorProps>
         </p>
         {currentProfession && (
           <Badge variant="secondary" className="mt-2">
-            Current: {currentProfession === 'laundry' ? 'Laundry Services Specialist' : 'Beauty Specialist'}
+            Current: {currentProfession === 'cleaning' ? 'Cleaning Services Specialist' : 
+                     currentProfession === 'laundry' ? 'Laundry Services Specialist' : 'Beauty Specialist'}
           </Badge>
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Beauty Services */}
         <Card 
           className={`cursor-pointer transition-all hover:shadow-lg hover:scale-[1.02] border-2 ${
@@ -191,6 +199,57 @@ export const ProfessionServiceSelector: React.FC<ProfessionServiceSelectorProps>
               variant={currentProfession === 'laundry' ? "default" : "outline"}
             >
               {currentProfession === 'laundry' ? 'Current Selection' : 'Choose Laundry Services'}
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Cleaning Services */}
+        <Card 
+          className={`cursor-pointer transition-all hover:shadow-lg hover:scale-[1.02] border-2 ${
+            currentProfession === 'cleaning' || selectedProfession === 'cleaning' 
+              ? 'border-primary bg-primary/5' 
+              : 'hover:border-primary'
+          }`}
+          onClick={() => updateProfessionType('cleaning')}
+        >
+          <CardHeader className="text-center pb-4">
+            <div className="mx-auto w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center mb-4 relative">
+              <Home className="w-8 h-8 text-white" />
+              {currentProfession === 'cleaning' && (
+                <CheckCircle className="absolute -top-2 -right-2 w-6 h-6 text-primary bg-background rounded-full" />
+              )}
+            </div>
+            <CardTitle className="text-xl">Cleaning Services</CardTitle>
+            <CardDescription>
+              Professional home and office cleaning with flexible scheduling
+            </CardDescription>
+          </CardHeader>
+          
+          <CardContent className="space-y-4">
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li className="flex items-center">
+                <div className="w-2 h-2 bg-primary rounded-full mr-2" />
+                Home & office cleaning
+              </li>
+              <li className="flex items-center">
+                <div className="w-2 h-2 bg-primary rounded-full mr-2" />
+                Deep cleaning & post-construction
+              </li>
+              <li className="flex items-center">
+                <div className="w-2 h-2 bg-primary rounded-full mr-2" />
+                Carpet & upholstery cleaning
+              </li>
+              <li className="flex items-center">
+                <div className="w-2 h-2 bg-primary rounded-full mr-2" />
+                Flexible appointment scheduling
+              </li>
+            </ul>
+            
+            <Button 
+              className="w-full" 
+              variant={currentProfession === 'cleaning' ? "default" : "outline"}
+            >
+              {currentProfession === 'cleaning' ? 'Current Selection' : 'Choose Cleaning Services'}
             </Button>
           </CardContent>
         </Card>
