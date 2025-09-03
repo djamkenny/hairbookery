@@ -19,14 +19,11 @@ const RealTimeBalance = ({ stylistId }: RealTimeBalanceProps) => {
     try {
       setFetchError(null);
       setLoading(true);
-      console.log("Fetching real-time balance for stylist:", stylistId);
 
-      // Fetch earnings using RPC function
       const { data: earnings, error: earningsError } = await supabase
         .rpc('get_stylist_earnings', { stylist_uuid: stylistId });
 
       if (earningsError) {
-        console.error("Error fetching earnings:", earningsError);
         setFetchError("Failed to fetch from Supabase: " + earningsError.message);
         toast.error("Failed to fetch balance");
         setAvailableBalance(0);
@@ -34,9 +31,6 @@ const RealTimeBalance = ({ stylistId }: RealTimeBalanceProps) => {
         return;
       }
 
-      console.log("Earnings returned:", earnings);
-
-      // Calculate balances
       const available = (earnings || [])
         .filter((e: any) => e.status === 'available')
         .reduce((sum: number, e: any) => sum + (e.net_amount || 0), 0);
@@ -47,13 +41,10 @@ const RealTimeBalance = ({ stylistId }: RealTimeBalanceProps) => {
       setAvailableBalance(available);
       setTotalEarnings(total);
 
-      // Debug: show in UI if empty
       if ((earnings || []).length === 0) {
         setFetchError("No earnings data found for your account. Please confirm you are viewing your stylist account.");
       }
-      console.log("Balance updated - Available:", available, "Total:", total);
     } catch (error) {
-      console.error("Error fetching balance:", error);
       setFetchError("Unexpected error: " + (error as any)?.message);
       toast.error("Failed to fetch balance");
     } finally {
@@ -76,9 +67,7 @@ const RealTimeBalance = ({ stylistId }: RealTimeBalanceProps) => {
           schema: 'public',
           table: 'payments'
         },
-        (payload) => {
-          console.log('Payment update detected:', payload);
-          // Small delay to ensure related earnings are processed
+        () => {
           setTimeout(fetchBalance, 1000);
         }
       )
@@ -89,8 +78,7 @@ const RealTimeBalance = ({ stylistId }: RealTimeBalanceProps) => {
           schema: 'public',
           table: 'specialist_earnings'
         },
-        (payload) => {
-          console.log('Earnings update detected:', payload);
+        () => {
           fetchBalance();
         }
       )

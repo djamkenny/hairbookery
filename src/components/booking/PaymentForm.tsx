@@ -31,7 +31,6 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
 
       // Convert GHS to pesewas (1 GHS = 100 pesewas)
       const amountInPesewas = Math.round(amount * 100);
-      console.log("Payment amount:", { original: amount, inPesewas: amountInPesewas });
 
       if (amountInPesewas < 100) {
         throw new Error("Payment amount must be at least 1 GHS");
@@ -64,9 +63,6 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
         // Ensure serviceId is stored for verification
         if (serviceId) {
           localStorage.setItem('bookingServiceId', serviceId);
-          console.log('Stored serviceId for verification:', serviceId);
-        } else {
-          console.warn('No serviceId found to store for verification');
         }
         
         if (isMobile) {
@@ -83,7 +79,6 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
         }
       }
     } catch (error) {
-      console.error("Payment failed:", error);
       toast.error(error instanceof Error ? error.message : "Payment failed. Please try again.");
     } finally {
       setProcessing(false);

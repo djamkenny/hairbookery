@@ -13,51 +13,26 @@ export interface BookingAnalytics {
 export const bookingAnalyticsService = {
   async getBookingAnalytics(): Promise<BookingAnalytics> {
     try {
-      console.log('Fetching comprehensive booking analytics...');
-      
-      // Get all appointments
       const { data: appointments, error: appointmentsError } = await supabase
         .from('appointments')
         .select('id, status, created_at');
 
       if (appointmentsError) {
-        console.error('Error fetching appointments:', appointmentsError);
         throw appointmentsError;
       }
 
-      // Get all completed payments for revenue calculation
       const { data: payments, error: paymentsError } = await supabase
         .from('payments')
         .select('amount, status, created_at')
         .eq('status', 'completed');
 
-      if (paymentsError) {
-        console.error('Error fetching payments:', paymentsError);
-      }
-
-      // Get revenue tracking data
       const { data: revenueData, error: revenueError } = await supabase
         .from('revenue_tracking')
         .select('booking_fee, total_revenue');
 
-      if (revenueError) {
-        console.error('Error fetching revenue data:', revenueError);
-      }
-
-      // Get earnings data for platform fees
       const { data: earnings, error: earningsError } = await supabase
         .from('specialist_earnings')
         .select('platform_fee, gross_amount');
-
-      if (earningsError) {
-        console.error('Error fetching earnings:', earningsError);
-      }
-
-      console.log('=== BOOKING ANALYTICS DEBUG ===');
-      console.log('Appointments found:', appointments?.length || 0);
-      console.log('Completed payments found:', payments?.length || 0);
-      console.log('Revenue records found:', revenueData?.length || 0);
-      console.log('Earnings records found:', earnings?.length || 0);
 
       const totalBookings = appointments?.length || 0;
       const completedBookings = appointments?.filter(a => a.status === 'completed').length || 0;
@@ -84,13 +59,6 @@ export const bookingAnalyticsService = {
 
       totalRevenue = revenueFromBookingFees + revenueFromPlatformFees + revenueFromPayments;
 
-      console.log('Revenue calculation breakdown:');
-      console.log('- From booking fees:', revenueFromBookingFees);
-      console.log('- From platform fees:', revenueFromPlatformFees);
-      console.log('- From payments (15%):', revenueFromPayments);
-      console.log('- Total platform revenue:', totalRevenue);
-
-      // Calculate bookings this month
       const thisMonth = new Date();
       thisMonth.setDate(1);
       thisMonth.setHours(0, 0, 0, 0);
@@ -99,7 +67,7 @@ export const bookingAnalyticsService = {
         new Date(a.created_at) >= thisMonth
       ).length || 0;
 
-      const result = {
+      return {
         totalBookings,
         completedBookings,
         pendingBookings,
@@ -107,11 +75,7 @@ export const bookingAnalyticsService = {
         totalRevenue: Math.round(totalRevenue * 100) / 100,
         bookingsThisMonth
       };
-
-      console.log('Final Booking Analytics Result:', result);
-      return result;
     } catch (error) {
-      console.error('Error in getBookingAnalytics:', error);
       return { 
         totalBookings: 0, 
         completedBookings: 0, 

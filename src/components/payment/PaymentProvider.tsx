@@ -64,7 +64,6 @@ export const PaymentProvider: React.FC<PaymentProviderProps> = ({ children }) =>
         reference: data.reference
       };
     } catch (error) {
-      console.error("Payment creation failed:", error);
       toast.error("Failed to create payment");
       return null;
     }
@@ -84,7 +83,6 @@ export const PaymentProvider: React.FC<PaymentProviderProps> = ({ children }) =>
         customer_email: data.customer_email
       };
     } catch (error) {
-      console.error("Session status check failed:", error);
       toast.error("Failed to check session status");
       return null;
     }
