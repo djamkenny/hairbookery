@@ -11,8 +11,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/hooks/useAuth";
 import { formatPrice } from "@/components/booking/utils/formatUtils";
 import { calculateBookingFee } from "@/components/booking/utils/feeUtils";
+import { useCleaningBooking } from "@/hooks/useCleaningBooking";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { format } from "date-fns";
-import { CalendarIcon, MapPin, Clock, Package, ChevronRight, Home, Users, Bath, Square } from "lucide-react";
+import { CalendarIcon, MapPin, Clock, Package, ChevronRight, Home, Users, Bath, Square, Loader2, CreditCard } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -52,6 +54,8 @@ const addonServices = [
 
 export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specialistId }) => {
   const { user } = useAuth();
+  const { isProcessing, initiateCleaningPayment } = useCleaningBooking();
+  const isMobile = useIsMobile();
   
   const [step, setStep] = useState(1);
   const [availableServices, setAvailableServices] = useState<CleaningService[]>([]);
@@ -73,7 +77,29 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
 
   useEffect(() => {
     fetchCleaningServices();
-  }, []);
+    // Initialize customer data from user profile
+    if (user) {
+      const initializeCustomerData = async () => {
+        try {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('full_name, email, phone')
+            .eq('id', user.id)
+            .single();
+            
+          if (profile) {
+            if (profile.full_name && !customerName) setCustomerName(profile.full_name);
+            if (profile.email && !customerEmail) setCustomerEmail(profile.email);
+            if (profile.phone && !customerPhone) setCustomerPhone(profile.phone);
+          }
+        } catch (error) {
+          console.error('Error loading user profile:', error);
+        }
+      };
+      
+      initializeCustomerData();
+    }
+  }, [user]);
 
   const fetchCleaningServices = async () => {
     try {
@@ -145,27 +171,40 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
       return;
     }
 
-    // Here you would integrate with your booking system
-    toast.success('Cleaning service booking submitted! You will be redirected to payment.');
-    
-    // For now, just log the booking data
-    console.log({
+    const bookingData = {
       serviceType,
       serviceDate: format(serviceDate, 'yyyy-MM-dd'),
       serviceTime,
       serviceAddress,
       propertyType,
-      numRooms: parseInt(numRooms) || null,
-      numBathrooms: parseInt(numBathrooms) || null,
-      squareFootage: parseInt(squareFootage) || null,
+      numRooms: parseInt(numRooms) || undefined,
+      numBathrooms: parseInt(numBathrooms) || undefined,
+      squareFootage: parseInt(squareFootage) || undefined,
       specialInstructions,
       selectedAddons,
       customerName,
-      customerPhone,  
+      customerPhone,
       customerEmail,
-      estimatedHours,
-      totalAmount: calculatePriceBreakdown().total
-    });
+      totalAmount: calculatePriceBreakdown().total,
+      specialistId
+    };
+
+    try {
+      const result = await initiateCleaningPayment(bookingData);
+
+      if (result.success && result.paymentUrl) {
+        if (isMobile) {
+          window.location.href = result.paymentUrl;
+        } else {
+          window.open(result.paymentUrl, '_blank');
+        }
+      } else {
+        toast.error(result.error || 'Failed to initiate payment');
+      }
+    } catch (error: any) {
+      console.error('Payment error:', error);
+      toast.error('Payment failed: ' + error.message);
+    }
   };
 
   const nextStep = () => {
@@ -583,14 +622,23 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
                 <Button variant="outline" onClick={prevStep}>
                   Back
                 </Button>
-                <Button 
-                  onClick={handleSubmit} 
-                  className="flex-1"
-                  disabled={!customerName || !customerPhone || !customerEmail}
-                >
-                  Proceed to Payment
-                  <ChevronRight className="ml-2 h-4 w-4" />
-                </Button>
+                 <Button 
+                   onClick={handleSubmit} 
+                   className="flex-1"
+                   disabled={!customerName || !customerPhone || !customerEmail || isProcessing}
+                 >
+                   {isProcessing ? (
+                     <>
+                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                       Processing Payment...
+                     </>
+                   ) : (
+                     <>
+                       <CreditCard className="mr-2 h-4 w-4" />
+                       Pay {formatPrice(calculatePriceBreakdown().total)}
+                     </>
+                   )}
+                 </Button>
               </div>
             </CardContent>
           </Card>

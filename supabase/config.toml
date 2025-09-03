@@ -107,3 +107,18 @@ verify_jwt = false
 [functions.finalize-booking]
 verify_jwt = true
 
+[functions.create-cleaning-payment]
+verify_jwt = true
+
+[functions.finalize-cleaning-booking]
+verify_jwt = false
+
+[functions.finalize-laundry-booking]
+verify_jwt = false
+
+[functions.process-earnings]
+verify_jwt = false
+
+[functions.admin-actions]
+verify_jwt = false
+
