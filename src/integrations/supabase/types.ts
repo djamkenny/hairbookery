@@ -261,6 +261,7 @@ export type Database = {
       }
       cleaning_services: {
         Row: {
+          addons: Json | null
           created_at: string
           description: string | null
           duration_hours: number | null
@@ -273,6 +274,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          addons?: Json | null
           created_at?: string
           description?: string | null
           duration_hours?: number | null
@@ -285,6 +287,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          addons?: Json | null
           created_at?: string
           description?: string | null
           duration_hours?: number | null

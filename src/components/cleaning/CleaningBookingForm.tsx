@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -31,7 +31,7 @@ interface CleaningService {
   total_price: number;
   duration_hours: number;
   service_category: string;
-  addons?: any[];
+  addons?: any;
 }
 
 interface CleaningBookingFormProps {
@@ -45,13 +45,6 @@ const propertyTypes = [
   { value: "commercial", label: "Commercial Space" }
 ];
 
-const addonServices = [
-  { id: "laundry", label: "Laundry Service", price: 25 },
-  { id: "dishwashing", label: "Dishwashing", price: 15 },
-  { id: "window_cleaning", label: "Window Cleaning", price: 30 },
-  { id: "fridge_cleaning", label: "Fridge/Oven Cleaning", price: 20 },
-  { id: "carpet_cleaning", label: "Additional Carpet Cleaning", price: 40 }
-];
 
 export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specialistId }) => {
   const { user } = useAuth();
@@ -75,6 +68,13 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [estimatedHours, setEstimatedHours] = useState(3);
+  
+  // Get available addons from selected service
+  const availableAddons = useMemo(() => {
+    const selectedService = availableServices.find(s => s.id === serviceType);
+    const addons = selectedService?.addons;
+    return Array.isArray(addons) ? addons : [];
+  }, [serviceType, availableServices]);
 
   useEffect(() => {
     fetchCleaningServices();
@@ -143,7 +143,7 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
     const servicePrice = pricePerRoom * rooms;
     
     // Add selected addon prices from the service's addons
-    const serviceAddons = selectedService.addons || [];
+    const serviceAddons = Array.isArray(selectedService.addons) ? selectedService.addons : [];
     const addonPrice = selectedAddons.reduce((total, addonId) => {
       const addon = serviceAddons.find((a: any) => a.id === addonId);
       return total + (addon ? parseFloat(addon.price) : 0);
@@ -308,11 +308,11 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
                        <div className="space-y-2">
                           <div className="flex justify-between items-start">
                             <h3 className="font-semibold">{service.name}</h3>
-                            <span className="text-primary font-bold">{formatPrice(service.total_price / 100)} per room</span>
+                            <span className="text-primary font-bold">Room-based pricing</span>
                           </div>
                          <p className="text-sm text-muted-foreground">{service.description || 'Professional cleaning service'}</p>
                          <div className="text-xs text-muted-foreground">
-                           Duration: {service.duration_hours} hours • Price varies by room count
+                           Duration: {service.duration_hours} hours • Price calculated by number of rooms
                          </div>
                        </div>
                      </CardContent>
@@ -496,24 +496,43 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
               </div>
             </div>
 
-            <div className="space-y-4">
-              <Label>Add-on Services</Label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {addonServices.map((addon) => (
-                  <div key={addon.id} className="flex items-center space-x-2 p-3 border rounded-lg">
-                    <Checkbox
-                      id={addon.id}
-                      checked={selectedAddons.includes(addon.id)}
-                      onCheckedChange={() => handleAddonToggle(addon.id)}
-                    />
-                    <div className="flex-1">
-                      <Label htmlFor={addon.id} className="font-medium">{addon.label}</Label>
-                      <p className="text-sm text-primary font-semibold">+{formatPrice(addon.price)}</p>
+            {/* Add-ons Section */}
+            {availableAddons.length > 0 && (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-base font-medium">Additional Services</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Select any additional services you'd like to include
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {availableAddons.map((addon) => (
+                    <div
+                      key={addon.id}
+                      className="flex items-start space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-muted/50"
+                      onClick={() => handleAddonToggle(addon.id)}
+                    >
+                      <Checkbox
+                        checked={selectedAddons.includes(addon.id)}
+                        onChange={() => {}}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm font-medium">{addon.name}</p>
+                          <span className="text-sm font-semibold text-primary">
+                            GHS {parseFloat(addon.price).toFixed(2)}
+                          </span>
+                        </div>
+                        {addon.description && (
+                          <p className="text-xs text-muted-foreground mt-1">{addon.description}</p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="flex gap-4">
               <Button variant="outline" onClick={prevStep}>

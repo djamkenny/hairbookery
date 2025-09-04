@@ -441,20 +441,23 @@ const SpecialistDetail = () => {
                                 key={serviceType.id}
                                 className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 border rounded-lg bg-muted/20"
                               >
-                                <div className="flex-1">
-                                  <h4 className="font-medium">{serviceType.name}</h4>
-                                  <div className="flex gap-2 mt-1">
-                                    <Badge variant="secondary">
-                                      GHS {serviceType.price}
-                                    </Badge>
-                                    <Badge variant="outline">
-                                      {Math.round(serviceType.duration / 60)}h
-                                    </Badge>
-                                  </div>
-                                  {serviceType.description && (
-                                    <p className="text-sm text-muted-foreground mt-1">{serviceType.description}</p>
-                                  )}
-                                </div>
+                                 <div className="flex-1">
+                                   <h4 className="font-medium">{serviceType.name}</h4>
+                                   <div className="flex gap-2 mt-1">
+                                     {/* Only show price for non-cleaning services */}
+                                     {!specialist?.is_cleaning_specialist && (
+                                       <Badge variant="secondary">
+                                         GHS {serviceType.price}
+                                       </Badge>
+                                     )}
+                                     <Badge variant="outline">
+                                       {Math.round(serviceType.duration / 60)}h
+                                     </Badge>
+                                   </div>
+                                   {serviceType.description && (
+                                     <p className="text-sm text-muted-foreground mt-1">{serviceType.description}</p>
+                                   )}
+                                 </div>
                                 
                                 {(specialist?.service_type === 'cleaning' || specialist?.is_cleaning_specialist) && (
                                   <Button

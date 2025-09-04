@@ -151,7 +151,7 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
           duration_hours: parseInt(tier.duration),
           service_category: formData.category,
           specialist_id: user.id,
-          addons: tier.addons, // Store addons as JSONB
+          addons: JSON.stringify(tier.addons), // Store addons as JSON
         };
       });
 
@@ -168,6 +168,7 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
             total_price: Math.round(pricePerRoom * 100), // Store price per room
             duration_hours: parseInt(firstTier.duration),
             service_category: formData.category,
+            addons: JSON.stringify(firstTier.addons), // Store addons as JSON string
           })
           .eq('id', editingId);
 
@@ -205,6 +206,18 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
     // Get per room price from stored price
     const pricePerRoom = service.total_price / 100; // Convert from cents
     
+    // Parse addons from JSON if string, or use as-is if already array
+    let parsedAddons = [];
+    try {
+      if (typeof service.addons === 'string') {
+        parsedAddons = JSON.parse(service.addons);
+      } else if (Array.isArray(service.addons)) {
+        parsedAddons = service.addons;
+      }
+    } catch (e) {
+      parsedAddons = [];
+    }
+    
     setFormData({
       name: service.name,
       description: service.description || "",
@@ -215,7 +228,7 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
           description: service.description || "",
           pricePerRoom: pricePerRoom.toString(),
           duration: service.duration_hours.toString(),
-          addons: service.addons || []
+          addons: parsedAddons
         }
       ],
     });
