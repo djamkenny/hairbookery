@@ -134,7 +134,12 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
   // Calculate service cost breakdown
   const calculatePriceBreakdown = () => {
     const selectedService = availableServices.find(s => s.id === serviceType);
-    const servicePrice = selectedService ? selectedService.total_price / 100 : 0; // Convert from cents to GHS
+    if (!selectedService) return { serviceCost: 0, bookingFee: 0, total: 0 };
+    
+    // Calculate based on price per room and selected number of rooms
+    const pricePerRoom = selectedService.total_price / 100; // Convert from cents
+    const rooms = parseInt(numRooms) || 1; // Default to 1 room if not specified
+    const servicePrice = pricePerRoom * rooms;
     
     // Add addon prices
     const addonPrice = selectedAddons.reduce((total, addonId) => {
@@ -297,18 +302,18 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
                     )}
                     onClick={() => setServiceType(service.id)}
                   >
-                    <CardContent className="p-4">
-                      <div className="space-y-2">
-                         <div className="flex justify-between items-start">
-                           <h3 className="font-semibold">{service.name}</h3>
-                           <span className="text-primary font-bold">{formatPrice(service.total_price / 100)}</span>
+                     <CardContent className="p-4">
+                       <div className="space-y-2">
+                          <div className="flex justify-between items-start">
+                            <h3 className="font-semibold">{service.name}</h3>
+                            <span className="text-primary font-bold">{formatPrice(service.total_price / 100)} per room</span>
+                          </div>
+                         <p className="text-sm text-muted-foreground">{service.description || 'Professional cleaning service'}</p>
+                         <div className="text-xs text-muted-foreground">
+                           Duration: {service.duration_hours} hours • Price varies by room count
                          </div>
-                        <p className="text-sm text-muted-foreground">{service.description || 'Professional cleaning service'}</p>
-                        <div className="text-xs text-muted-foreground">
-                          Duration: {service.duration_hours} hours
-                        </div>
-                      </div>
-                    </CardContent>
+                       </div>
+                     </CardContent>
                   </Card>
                 ))}
               </div>

@@ -15,7 +15,6 @@ interface PricingTier {
   name: string;
   description: string;
   pricePerRoom: string;
-  maxRooms: string;
   duration: string;
 }
 
@@ -41,7 +40,7 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
     description: "",
     category: "",
     pricingTiers: [
-      { name: "Standard", description: "", pricePerRoom: "30", maxRooms: "5", duration: "2" }
+      { name: "Standard", description: "", pricePerRoom: "30", duration: "2" }
     ],
   });
   const [serviceAreas, setServiceAreas] = useState<string[]>([]);
@@ -98,22 +97,16 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
 
     // Validate each pricing tier
     for (const tier of formData.pricingTiers) {
-      if (!tier.name.trim() || !tier.pricePerRoom || !tier.maxRooms || !tier.duration) {
+      if (!tier.name.trim() || !tier.pricePerRoom || !tier.duration) {
         toast.error("Please complete all pricing tier information");
         return;
       }
       
       const pricePerRoomValue = parseFloat(tier.pricePerRoom);
-      const maxRoomsValue = parseInt(tier.maxRooms);
       const durationValue = parseInt(tier.duration);
 
       if (isNaN(pricePerRoomValue) || pricePerRoomValue <= 0) {
         toast.error("Please enter valid price per room for all tiers");
-        return;
-      }
-
-      if (isNaN(maxRoomsValue) || maxRoomsValue <= 0) {
-        toast.error("Please enter valid maximum rooms for all tiers");
         return;
       }
 
@@ -131,16 +124,14 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
         return;
       }
 
-      // Calculate price for each tier (price per room * max rooms)
+      // Store price per room (we'll use a default of 1 room for display price)
       const servicesToProcess = formData.pricingTiers.map(tier => {
         const pricePerRoom = parseFloat(tier.pricePerRoom);
-        const maxRooms = parseInt(tier.maxRooms);
-        const totalPrice = pricePerRoom * maxRooms;
         
         return {
           name: `${formData.name.trim()} - ${tier.name.trim()}`,
           description: tier.description.trim() || formData.description.trim() || null,
-          total_price: Math.round(totalPrice * 100), // Convert to cents
+          total_price: Math.round(pricePerRoom * 100), // Store price per room in cents
           duration_hours: parseInt(tier.duration),
           service_category: formData.category,
           specialist_id: user.id,
@@ -151,15 +142,13 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
         // For editing, just update the first service (simplified for now)
         const firstTier = formData.pricingTiers[0];
         const pricePerRoom = parseFloat(firstTier.pricePerRoom);
-        const maxRooms = parseInt(firstTier.maxRooms);
-        const totalPrice = pricePerRoom * maxRooms;
         
         const { error } = await supabase
           .from('cleaning_services')
           .update({
             name: formData.name.trim(),
             description: firstTier.description.trim() || formData.description.trim() || null,
-            total_price: Math.round(totalPrice * 100),
+            total_price: Math.round(pricePerRoom * 100), // Store price per room
             duration_hours: parseInt(firstTier.duration),
             service_category: formData.category,
           })
@@ -182,7 +171,7 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
         description: "",
         category: "",
         pricingTiers: [
-          { name: "Standard", description: "", pricePerRoom: "30", maxRooms: "5", duration: "2" }
+          { name: "Standard", description: "", pricePerRoom: "30", duration: "2" }
         ],
       });
       setIsAdding(false);
@@ -196,9 +185,8 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
   };
 
   const handleEdit = (service: any) => {
-    // Calculate per room price from total price (simplified for now)
-    const totalPrice = service.total_price / 100;
-    const estimatedPricePerRoom = Math.floor(totalPrice / 5); // Assuming 5 rooms as default
+    // Get per room price from stored price
+    const pricePerRoom = service.total_price / 100; // Convert from cents
     
     setFormData({
       name: service.name,
@@ -208,8 +196,7 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
         {
           name: "Standard",
           description: service.description || "",
-          pricePerRoom: estimatedPricePerRoom.toString(),
-          maxRooms: "5",
+          pricePerRoom: pricePerRoom.toString(),
           duration: service.duration_hours.toString(),
         }
       ],
@@ -243,7 +230,7 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
       description: "",
       category: "",
       pricingTiers: [
-        { name: "Standard", description: "", pricePerRoom: "30", maxRooms: "5", duration: "2" }
+        { name: "Standard", description: "", pricePerRoom: "30", duration: "2" }
       ],
     });
     setIsAdding(false);
@@ -255,7 +242,7 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
       ...prev,
       pricingTiers: [
         ...prev.pricingTiers,
-        { name: "", description: "", pricePerRoom: "", maxRooms: "1", duration: "2" }
+        { name: "", description: "", pricePerRoom: "", duration: "2" }
       ]
     }));
   };
@@ -491,19 +478,6 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
                          />
                        </div>
                        <div>
-                         <Label htmlFor={`tier-max-rooms-${index}`}>Max Rooms *</Label>
-                         <Input
-                           id={`tier-max-rooms-${index}`}
-                           type="number"
-                           min="1"
-                           max="20"
-                           value={tier.maxRooms}
-                           onChange={(e) => updatePricingTier(index, 'maxRooms', e.target.value)}
-                           placeholder="5"
-                           required
-                         />
-                       </div>
-                       <div>
                          <Label htmlFor={`tier-duration-${index}`}>Duration (Hours) *</Label>
                          <Input
                            id={`tier-duration-${index}`}
@@ -529,12 +503,9 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
                      {/* Price Preview */}
                      <div className="mt-3 p-3 bg-muted/50 rounded-lg">
                        <p className="text-sm text-muted-foreground">
-                         <strong>Price Preview:</strong> GHS {tier.pricePerRoom ? parseFloat(tier.pricePerRoom).toFixed(2) : '0.00'} per room 
-                         × {tier.maxRooms} rooms = Total: GHS {
-                           tier.pricePerRoom && tier.maxRooms 
-                             ? (parseFloat(tier.pricePerRoom) * parseInt(tier.maxRooms)).toFixed(2)
-                             : '0.00'
-                         }
+                         <strong>Price Preview:</strong> GHS {tier.pricePerRoom ? parseFloat(tier.pricePerRoom).toFixed(2) : '0.00'} per room
+                         <br />
+                         <small>Clients will select number of rooms when booking</small>
                        </p>
                      </div>
                   </Card>
@@ -586,17 +557,17 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
                     <div className="flex-1 space-y-2">
                       <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                         <h4 className="font-semibold text-sm sm:text-base">{service.name}</h4>
-                        <div className="flex gap-2">
-                          <Badge variant="secondary" className="text-xs">
-                            GHS {(service.total_price / 100).toFixed(2)}
-                          </Badge>
-                          <Badge variant="outline" className="text-xs">
-                            {service.duration_hours}h
-                          </Badge>
-                          <Badge variant="outline" className="text-xs capitalize">
-                            {service.service_category.replace('_', ' ')}
-                          </Badge>
-                        </div>
+                         <div className="flex gap-2">
+                           <Badge variant="secondary" className="text-xs">
+                             GHS {(service.total_price / 100).toFixed(2)} per room
+                           </Badge>
+                           <Badge variant="outline" className="text-xs">
+                             {service.duration_hours}h
+                           </Badge>
+                           <Badge variant="outline" className="text-xs capitalize">
+                             {service.service_category.replace('_', ' ')}
+                           </Badge>
+                         </div>
                       </div>
                       {service.description && (
                         <p className="text-xs text-muted-foreground">{service.description}</p>
