@@ -84,7 +84,7 @@ serve(async (req) => {
       )
     }
 
-    // Convert amount to kobo (Paystack uses kobo - 1 GHS = 100 pesewas)
+    // Convert booking fee amount to kobo (Paystack uses kobo - 1 GHS = 100 pesewas)
     const amountInPesewas = Math.round(bookingData.totalAmount * 100)
 
     // Initialize Paystack payment
@@ -110,7 +110,7 @@ serve(async (req) => {
         user_id: user.id,
         amount: amountInPesewas,
         currency: 'ghs',
-        description: `Cleaning Service: ${serviceData.name}`,
+        description: `Cleaning Service Booking Fee: ${serviceData.name}`,
         paystack_reference: reference,
         metadata: {
           booking_type: 'cleaning',
@@ -163,7 +163,8 @@ serve(async (req) => {
           customer_name: bookingData.customerName,
           customer_phone: bookingData.customerPhone,
           service_date: bookingData.serviceDate,
-          service_time: bookingData.serviceTime
+          service_time: bookingData.serviceTime,
+          payment_type: 'booking_fee'
         }
       })
     })

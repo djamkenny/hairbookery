@@ -89,7 +89,29 @@ serve(async (req) => {
       })
       .eq('id', paymentRecord.id)
 
+    // Get metadata from payment record
     const metadata = paymentRecord.metadata as any
+
+    // Get cleaning order details and calculate full service cost
+    const { data: serviceData, error: serviceError } = await supabase
+      .from('cleaning_services')
+      .select('*')
+      .eq('id', metadata.service_id)
+      .single()
+
+    if (serviceError || !serviceData) {
+      console.error('Service data fetch error:', serviceError)
+      return new Response(
+        JSON.stringify({ success: false, error: 'Service data not found' }),
+        { 
+          status: 404, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
+    }
+
+    // Calculate full service cost (not just booking fee)
+    const fullServiceCost = serviceData.total_price; // This is already in pesewas
 
     // Create cleaning order
     const { data: cleaningOrder, error: orderError } = await supabase
@@ -110,7 +132,7 @@ serve(async (req) => {
         customer_name: metadata.customer_name,
         customer_phone: metadata.customer_phone,
         customer_email: metadata.customer_email,
-        amount: paymentRecord.amount,
+        amount: fullServiceCost, // Store full service amount, not just booking fee
         payment_id: paymentRecord.id,
         status: 'pending'
       })

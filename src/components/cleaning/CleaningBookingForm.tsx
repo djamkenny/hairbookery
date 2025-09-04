@@ -185,7 +185,7 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
       customerName,
       customerPhone,
       customerEmail,
-      totalAmount: calculatePriceBreakdown().total,
+      totalAmount: calculatePriceBreakdown().bookingFee,
       specialistId
     };
 
@@ -605,15 +605,14 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
                  <div className="border-t pt-2 space-y-2">
                    <div className="flex justify-between">
                      <span>Service Cost:</span>
-                     <span>{formatPrice(calculatePriceBreakdown().serviceCost)}</span>
-                   </div>
-                   <div className="flex justify-between text-sm text-muted-foreground">
-                     <span>Booking Fee:</span>
-                     <span>{formatPrice(calculatePriceBreakdown().bookingFee)}</span>
+                     <div className="text-right">
+                       <span>{formatPrice(calculatePriceBreakdown().serviceCost)}</span>
+                       <div className="text-xs text-muted-foreground">Pay at appointment</div>
+                     </div>
                    </div>
                    <div className="flex justify-between font-bold text-lg border-t pt-2">
-                     <span>Total Price:</span>
-                     <span className="text-primary">{formatPrice(calculatePriceBreakdown().total)}</span>
+                     <span>Booking Fee (Pay Now):</span>
+                     <span className="text-primary">{formatPrice(calculatePriceBreakdown().bookingFee)}</span>
                    </div>
                  </div>
               </div>
@@ -635,7 +634,7 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
                    ) : (
                      <>
                        <CreditCard className="mr-2 h-4 w-4" />
-                       Pay {formatPrice(calculatePriceBreakdown().total)}
+                       Pay Booking Fee {formatPrice(calculatePriceBreakdown().bookingFee)}
                      </>
                    )}
                  </Button>
