@@ -4,12 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/components/booking/utils/formatUtils";
 import { format } from "date-fns";
-import { Calendar, MapPin, Clock, Home, User } from "lucide-react";
+import { Calendar, MapPin, Clock, Home, User, Eye } from "lucide-react";
 import { CleaningOrder } from "@/hooks/useCleaningAppointments";
 
 interface CleaningAppointmentsListProps {
   orders: CleaningOrder[];
   loading: boolean;
+  onViewDetails: (order: CleaningOrder) => void;
   onUpdateStatus: (orderId: string, status: string) => void;
 }
 
@@ -68,6 +69,7 @@ const getStatusActions = (status: string, orderId: string, onUpdateStatus: (orde
 export const CleaningAppointmentsList: React.FC<CleaningAppointmentsListProps> = ({
   orders,
   loading,
+  onViewDetails,
   onUpdateStatus
 }) => {
   if (loading) {
@@ -178,6 +180,15 @@ export const CleaningAppointmentsList: React.FC<CleaningAppointmentsListProps> =
                 <span className="font-semibold text-lg">
                   {order.amount ? formatPrice(order.amount / 100) : 'Pending'}
                 </span>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => onViewDetails(order)}
+                  className="flex items-center gap-2"
+                >
+                  <Eye className="h-4 w-4" />
+                  View Details
+                </Button>
               </div>
               
               <div className="flex items-center gap-2">

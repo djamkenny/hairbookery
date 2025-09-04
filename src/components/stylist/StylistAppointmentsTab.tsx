@@ -139,6 +139,7 @@ const SpecialistAppointmentsTab = () => {
               <CleaningAppointmentsList
                 orders={cleaningOrders}
                 loading={cleaningLoading}
+                onViewDetails={handleViewCleaningDetails}
                 onUpdateStatus={handleUpdateCleaningStatus}
               />
             </TabsContent>
@@ -179,6 +180,7 @@ const SpecialistAppointmentsTab = () => {
         <CleaningAppointmentsList
           orders={cleaningOrders}
           loading={cleaningLoading}
+          onViewDetails={handleViewCleaningDetails}
           onUpdateStatus={handleUpdateCleaningStatus}
         />
 
