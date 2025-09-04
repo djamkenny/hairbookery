@@ -122,22 +122,7 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
     }
   };
 
-  // Calculate service cost breakdown based on property details
-  const calculatePriceBreakdown = () => {
-    const rooms = parseInt(numRooms) || 1;
-    const bathrooms = parseInt(numBathrooms) || 1;
-    
-    // Base pricing: ₵30 per room + ₵15 per bathroom
-    const servicePrice = (rooms * 30) + (bathrooms * 15);
-    
-    const { fee: bookingFee, total } = calculateBookingFee(servicePrice);
-    
-    return {
-      serviceCost: servicePrice,
-      bookingFee,
-      total
-    };
-  };
+  // Fixed booking fee of 10 GHS
 
   const handleSubmit = async () => {
     if (!user) {
@@ -164,7 +149,7 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
       customerName,
       customerPhone,
       customerEmail,
-      totalAmount: calculatePriceBreakdown().bookingFee,
+      totalAmount: 10, // Fixed booking fee
       specialistId
     };
 
@@ -474,17 +459,15 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
             </div>
 
             {/* Booking Fee */}
-            {numRooms && (
-              <div className="bg-muted/50 p-4 rounded-lg">
-                <div className="flex justify-between items-center">
-                  <span className="font-medium">Booking Fee (Pay now)</span>
-                  <span className="text-lg font-semibold text-primary">₵{calculatePriceBreakdown().bookingFee}</span>
-                </div>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Specialist will contact you for service pricing details
-                </p>
+            <div className="bg-muted/50 p-4 rounded-lg">
+              <div className="flex justify-between items-center">
+                <span className="font-medium">Booking Fee (Pay now)</span>
+                <span className="text-lg font-semibold text-primary">₵10</span>
               </div>
-            )}
+              <p className="text-xs text-muted-foreground mt-2">
+                Specialist will contact you for service pricing details
+              </p>
+            </div>
 
             <div className="flex gap-4">
               <Button variant="outline" onClick={prevStep}>
@@ -582,7 +565,7 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
               <div className="border-t pt-4">
                 <div className="flex justify-between items-center text-lg font-semibold">
                   <span>Booking Fee (Pay Now)</span>
-                  <span className="text-primary">₵{calculatePriceBreakdown().bookingFee}</span>
+                  <span className="text-primary">₵10</span>
                 </div>
                 <p className="text-sm text-muted-foreground mt-1">
                   Specialist will contact you for service pricing details
@@ -607,7 +590,7 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
                 ) : (
                   <>
                     <CreditCard className="mr-2 h-4 w-4" />
-                    Pay ₵{calculatePriceBreakdown().bookingFee} & Book Now
+                    Pay ₵10 & Book Now
                   </>
                 )}
               </Button>

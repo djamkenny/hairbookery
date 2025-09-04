@@ -84,8 +84,9 @@ serve(async (req) => {
       )
     }
 
-    // Convert booking fee amount to kobo (Paystack uses kobo - 1 GHS = 100 pesewas)
-    const amountInPesewas = Math.round(bookingData.totalAmount * 100)
+    // Fixed booking fee of 10 GHS (1000 pesewas)
+    const fixedBookingFee = 10
+    const amountInPesewas = fixedBookingFee * 100
 
     // Initialize Paystack payment
     const paystackSecretKey = Deno.env.get('PAYSTACK_SECRET_KEY')
@@ -110,7 +111,7 @@ serve(async (req) => {
         user_id: user.id,
         amount: amountInPesewas,
         currency: 'ghs',
-        description: `Cleaning Service Booking Fee: ${serviceData.name}`,
+        description: `Cleaning Service Booking Fee (GHS ${fixedBookingFee}): ${serviceData.name}`,
         paystack_reference: reference,
         metadata: {
           booking_type: 'cleaning',
