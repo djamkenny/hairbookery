@@ -16,6 +16,14 @@ interface PricingTier {
   description: string;
   pricePerRoom: string;
   duration: string;
+  addons: AddonService[];
+}
+
+interface AddonService {
+  id: string;
+  name: string;
+  price: string;
+  description?: string;
 }
 
 interface CleaningServiceForm {
@@ -40,7 +48,7 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
     description: "",
     category: "",
     pricingTiers: [
-      { name: "Standard", description: "", pricePerRoom: "30", duration: "2" }
+      { name: "Standard", description: "", pricePerRoom: "30", duration: "2", addons: [] }
     ],
   });
   const [serviceAreas, setServiceAreas] = useState<string[]>([]);
@@ -114,6 +122,14 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
         toast.error("Please enter valid durations for all tiers");
         return;
       }
+
+      // Validate addons
+      for (const addon of tier.addons) {
+        if (!addon.name.trim() || !addon.price || isNaN(parseFloat(addon.price)) || parseFloat(addon.price) <= 0) {
+          toast.error("Please enter valid addon information");
+          return;
+        }
+      }
     }
 
     try {
@@ -124,7 +140,7 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
         return;
       }
 
-      // Store price per room (we'll use a default of 1 room for display price)
+      // Store price per room and addons (we'll use a default of 1 room for display price)
       const servicesToProcess = formData.pricingTiers.map(tier => {
         const pricePerRoom = parseFloat(tier.pricePerRoom);
         
@@ -135,6 +151,7 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
           duration_hours: parseInt(tier.duration),
           service_category: formData.category,
           specialist_id: user.id,
+          addons: tier.addons, // Store addons as JSONB
         };
       });
 
@@ -171,7 +188,7 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
         description: "",
         category: "",
         pricingTiers: [
-          { name: "Standard", description: "", pricePerRoom: "30", duration: "2" }
+          { name: "Standard", description: "", pricePerRoom: "30", duration: "2", addons: [] }
         ],
       });
       setIsAdding(false);
@@ -198,6 +215,7 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
           description: service.description || "",
           pricePerRoom: pricePerRoom.toString(),
           duration: service.duration_hours.toString(),
+          addons: service.addons || []
         }
       ],
     });
@@ -230,7 +248,7 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
       description: "",
       category: "",
       pricingTiers: [
-        { name: "Standard", description: "", pricePerRoom: "30", duration: "2" }
+        { name: "Standard", description: "", pricePerRoom: "30", duration: "2", addons: [] }
       ],
     });
     setIsAdding(false);
@@ -242,7 +260,7 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
       ...prev,
       pricingTiers: [
         ...prev.pricingTiers,
-        { name: "", description: "", pricePerRoom: "", duration: "2" }
+        { name: "", description: "", pricePerRoom: "", duration: "2", addons: [] }
       ]
     }));
   };
@@ -255,11 +273,54 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
     }));
   };
 
-  const updatePricingTier = (index: number, field: keyof PricingTier, value: string) => {
+  const updatePricingTier = (index: number, field: keyof PricingTier, value: string | AddonService[]) => {
     setFormData(prev => ({
       ...prev,
       pricingTiers: prev.pricingTiers.map((tier, i) => 
         i === index ? { ...tier, [field]: value } : tier
+      )
+    }));
+  };
+
+  const addAddon = (tierIndex: number) => {
+    const newAddon: AddonService = {
+      id: Date.now().toString(),
+      name: "",
+      price: "",
+      description: ""
+    };
+    
+    setFormData(prev => ({
+      ...prev,
+      pricingTiers: prev.pricingTiers.map((tier, i) => 
+        i === tierIndex ? { ...tier, addons: [...tier.addons, newAddon] } : tier
+      )
+    }));
+  };
+
+  const removeAddon = (tierIndex: number, addonIndex: number) => {
+    setFormData(prev => ({
+      ...prev,
+      pricingTiers: prev.pricingTiers.map((tier, i) => 
+        i === tierIndex 
+          ? { ...tier, addons: tier.addons.filter((_, ai) => ai !== addonIndex) }
+          : tier
+      )
+    }));
+  };
+
+  const updateAddon = (tierIndex: number, addonIndex: number, field: keyof AddonService, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      pricingTiers: prev.pricingTiers.map((tier, i) => 
+        i === tierIndex 
+          ? { 
+              ...tier, 
+              addons: tier.addons.map((addon, ai) => 
+                ai === addonIndex ? { ...addon, [field]: value } : addon
+              )
+            }
+          : tier
       )
     }));
   };
@@ -500,12 +561,84 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
                        </div>
                      </div>
                      
+                     {/* Addons Section */}
+                     <div className="space-y-3">
+                       <div className="flex items-center justify-between">
+                         <Label className="text-sm font-medium">Add-on Services</Label>
+                         <Button
+                           type="button"
+                           variant="outline"
+                           size="sm"
+                           onClick={() => addAddon(index)}
+                         >
+                           <Plus className="h-4 w-4 mr-1" />
+                           Add Addon
+                         </Button>
+                       </div>
+                       
+                       {tier.addons.map((addon, addonIndex) => (
+                         <div key={addon.id} className="border rounded-lg p-3 space-y-2">
+                           <div className="flex items-center justify-between">
+                             <Label className="text-xs font-medium">Addon {addonIndex + 1}</Label>
+                             <Button
+                               type="button"
+                               variant="ghost"
+                               size="sm"
+                               onClick={() => removeAddon(index, addonIndex)}
+                             >
+                               <X className="h-3 w-3" />
+                             </Button>
+                           </div>
+                           <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                             <div>
+                               <Label htmlFor={`addon-name-${index}-${addonIndex}`}>Name *</Label>
+                               <Input
+                                 id={`addon-name-${index}-${addonIndex}`}
+                                 value={addon.name}
+                                 onChange={(e) => updateAddon(index, addonIndex, 'name', e.target.value)}
+                                 placeholder="e.g., Window Cleaning"
+                                 required
+                               />
+                             </div>
+                             <div>
+                               <Label htmlFor={`addon-price-${index}-${addonIndex}`}>Price (GHS) *</Label>
+                               <Input
+                                 id={`addon-price-${index}-${addonIndex}`}
+                                 type="number"
+                                 step="0.01"
+                                 min="0"
+                                 value={addon.price}
+                                 onChange={(e) => updateAddon(index, addonIndex, 'price', e.target.value)}
+                                 placeholder="15.00"
+                                 required
+                               />
+                             </div>
+                             <div>
+                               <Label htmlFor={`addon-description-${index}-${addonIndex}`}>Description</Label>
+                               <Input
+                                 id={`addon-description-${index}-${addonIndex}`}
+                                 value={addon.description || ""}
+                                 onChange={(e) => updateAddon(index, addonIndex, 'description', e.target.value)}
+                                 placeholder="Brief description"
+                               />
+                             </div>
+                           </div>
+                         </div>
+                       ))}
+                     </div>
+                     
                      {/* Price Preview */}
                      <div className="mt-3 p-3 bg-muted/50 rounded-lg">
                        <p className="text-sm text-muted-foreground">
                          <strong>Price Preview:</strong> GHS {tier.pricePerRoom ? parseFloat(tier.pricePerRoom).toFixed(2) : '0.00'} per room
                          <br />
                          <small>Clients will select number of rooms when booking</small>
+                         {tier.addons.length > 0 && (
+                           <>
+                             <br />
+                             <small>Add-ons: {tier.addons.map(a => a.name).join(', ')}</small>
+                           </>
+                         )}
                        </p>
                      </div>
                   </Card>

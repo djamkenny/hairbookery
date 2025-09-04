@@ -31,6 +31,7 @@ interface CleaningService {
   total_price: number;
   duration_hours: number;
   service_category: string;
+  addons?: any[];
 }
 
 interface CleaningBookingFormProps {
@@ -141,10 +142,11 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
     const rooms = parseInt(numRooms) || 1; // Default to 1 room if not specified
     const servicePrice = pricePerRoom * rooms;
     
-    // Add addon prices
+    // Add selected addon prices from the service's addons
+    const serviceAddons = selectedService.addons || [];
     const addonPrice = selectedAddons.reduce((total, addonId) => {
-      const addon = addonServices.find(a => a.id === addonId);
-      return total + (addon?.price || 0);
+      const addon = serviceAddons.find((a: any) => a.id === addonId);
+      return total + (addon ? parseFloat(addon.price) : 0);
     }, 0);
     
     const totalServiceCost = servicePrice + addonPrice;
