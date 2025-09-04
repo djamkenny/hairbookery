@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Edit, Trash2, Save, MapPin, X, Eye } from "lucide-react";
+import { Plus, Edit, Trash2, Save, MapPin, X, Eye, Home } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { CleaningServiceDetailsDialog } from "@/components/cleaning/CleaningServiceDetailsDialog";
@@ -26,15 +26,19 @@ interface AddonService {
   description?: string;
 }
 
+interface PropertyDetail {
+  id: string;
+  name: string;
+  value: string;
+  description?: string;
+}
+
 interface CleaningServiceForm {
   name: string;
   description: string;
   category: string;
   pricingTiers: PricingTier[];
-  propertyType: string;
-  squareFootage: string;
-  numRooms: string;
-  numBathrooms: string;
+  propertyDetails: PropertyDetail[];
 }
 
 interface CleaningServiceFormProps {
@@ -54,10 +58,7 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
     pricingTiers: [
       { name: "Standard", description: "", pricePerRoom: "30", duration: "2", addons: [] }
     ],
-    propertyType: "",
-    squareFootage: "",
-    numRooms: "",
-    numBathrooms: "",
+    propertyDetails: [],
   });
   const [serviceAreas, setServiceAreas] = useState<string[]>([]);
   const [newServiceArea, setNewServiceArea] = useState("");
@@ -160,10 +161,7 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
           service_category: formData.category,
           specialist_id: user.id,
           addons: JSON.stringify(tier.addons), // Store addons as JSON
-          property_type: formData.propertyType || null,
-          square_footage: formData.squareFootage ? parseInt(formData.squareFootage) : null,
-          num_rooms: formData.numRooms ? parseInt(formData.numRooms) : null,
-          num_bathrooms: formData.numBathrooms ? parseInt(formData.numBathrooms) : null,
+          property_details: JSON.stringify(formData.propertyDetails), // Store custom property details as JSON
         };
       });
 
@@ -181,10 +179,7 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
             duration_hours: parseInt(firstTier.duration),
             service_category: formData.category,
             addons: JSON.stringify(firstTier.addons), // Store addons as JSON string
-            property_type: formData.propertyType || null,
-            square_footage: formData.squareFootage ? parseInt(formData.squareFootage) : null,
-            num_rooms: formData.numRooms ? parseInt(formData.numRooms) : null,
-            num_bathrooms: formData.numBathrooms ? parseInt(formData.numBathrooms) : null,
+            property_details: JSON.stringify(formData.propertyDetails), // Store custom property details as JSON
           })
           .eq('id', editingId);
 
@@ -207,10 +202,7 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
         pricingTiers: [
           { name: "Standard", description: "", pricePerRoom: "30", duration: "2", addons: [] }
         ],
-        propertyType: "",
-        squareFootage: "",
-        numRooms: "",
-        numBathrooms: "",
+        propertyDetails: [],
       });
       setIsAdding(false);
       setEditingId(null);
@@ -237,6 +229,18 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
     } catch (e) {
       parsedAddons = [];
     }
+
+    // Parse property details
+    let parsedPropertyDetails = [];
+    try {
+      if (typeof service.property_details === 'string') {
+        parsedPropertyDetails = JSON.parse(service.property_details);
+      } else if (Array.isArray(service.property_details)) {
+        parsedPropertyDetails = service.property_details;
+      }
+    } catch (e) {
+      parsedPropertyDetails = [];
+    }
     
     setFormData({
       name: service.name,
@@ -251,10 +255,7 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
           addons: parsedAddons
         }
       ],
-      propertyType: service.property_type || "",
-      squareFootage: service.square_footage ? service.square_footage.toString() : "",
-      numRooms: service.num_rooms ? service.num_rooms.toString() : "",
-      numBathrooms: service.num_bathrooms ? service.num_bathrooms.toString() : "",
+      propertyDetails: parsedPropertyDetails,
     });
     setEditingId(service.id);
     setIsAdding(true);
@@ -287,10 +288,7 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
       pricingTiers: [
         { name: "Standard", description: "", pricePerRoom: "30", duration: "2", addons: [] }
       ],
-      propertyType: "",
-      squareFootage: "",
-      numRooms: "",
-      numBathrooms: "",
+      propertyDetails: [],
     });
     setIsAdding(false);
     setEditingId(null);
@@ -362,6 +360,36 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
               )
             }
           : tier
+      )
+    }));
+  };
+
+  const addPropertyDetail = () => {
+    const newDetail: PropertyDetail = {
+      id: Date.now().toString(),
+      name: "",
+      value: "",
+      description: ""
+    };
+    
+    setFormData(prev => ({
+      ...prev,
+      propertyDetails: [...prev.propertyDetails, newDetail]
+    }));
+  };
+
+  const removePropertyDetail = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      propertyDetails: prev.propertyDetails.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updatePropertyDetail = (index: number, field: keyof PropertyDetail, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      propertyDetails: prev.propertyDetails.map((detail, i) => 
+        i === index ? { ...detail, [field]: value } : detail
       )
     }));
   };
@@ -525,62 +553,78 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
 
               {/* Property Details Section */}
               <div className="space-y-4">
-                <h3 className="text-lg font-medium">Property Details</h3>
-                <p className="text-sm text-muted-foreground">
-                  Set the property specifications for this service. These will be used for pricing calculations.
-                </p>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex items-center justify-between">
                   <div>
-                    <Label htmlFor="propertyType">Property Type</Label>
-                    <Select value={formData.propertyType} onValueChange={(value) => setFormData({ ...formData, propertyType: value })}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select property type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="apartment">Apartment</SelectItem>
-                        <SelectItem value="house">House</SelectItem>
-                        <SelectItem value="office">Office</SelectItem>
-                        <SelectItem value="commercial">Commercial Space</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <h3 className="text-lg font-medium">Property Details</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Add any property specifications that are relevant to this service.
+                    </p>
                   </div>
-
-                  <div>
-                    <Label htmlFor="squareFootage">Square Footage (approx.)</Label>
-                    <Input
-                      id="squareFootage"
-                      type="number"
-                      placeholder="e.g., 1200"
-                      value={formData.squareFootage}
-                      onChange={(e) => setFormData({ ...formData, squareFootage: e.target.value })}
-                    />
-                  </div>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={addPropertyDetail}
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add Detail
+                  </Button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="numRooms">Number of Rooms</Label>
-                    <Input
-                      id="numRooms"
-                      type="number"
-                      placeholder="e.g., 6"
-                      value={formData.numRooms}
-                      onChange={(e) => setFormData({ ...formData, numRooms: e.target.value })}
-                    />
+                {formData.propertyDetails.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Home className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p>No property details added yet.</p>
+                    <p className="text-sm">Click "Add Detail" to specify property requirements.</p>
                   </div>
-
-                  <div>
-                    <Label htmlFor="numBathrooms">Number of Bathrooms</Label>
-                    <Input
-                      id="numBathrooms"
-                      type="number"
-                      placeholder="e.g., 2"
-                      value={formData.numBathrooms}
-                      onChange={(e) => setFormData({ ...formData, numBathrooms: e.target.value })}
-                    />
+                ) : (
+                  <div className="space-y-3">
+                    {formData.propertyDetails.map((detail, index) => (
+                      <div key={detail.id} className="grid grid-cols-1 md:grid-cols-3 gap-3 p-4 border rounded-lg">
+                        <div>
+                          <Label htmlFor={`detail-name-${index}`}>Detail Name *</Label>
+                          <Input
+                            id={`detail-name-${index}`}
+                            placeholder="e.g., Number of Rooms, Property Type"
+                            value={detail.name}
+                            onChange={(e) => updatePropertyDetail(index, 'name', e.target.value)}
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor={`detail-value-${index}`}>Value *</Label>
+                          <Input
+                            id={`detail-value-${index}`}
+                            placeholder="e.g., 3, Apartment, 1200 sqft"
+                            value={detail.value}
+                            onChange={(e) => updatePropertyDetail(index, 'value', e.target.value)}
+                          />
+                        </div>
+                        
+                        <div className="flex items-end gap-2">
+                          <div className="flex-1">
+                            <Label htmlFor={`detail-desc-${index}`}>Description</Label>
+                            <Input
+                              id={`detail-desc-${index}`}
+                              placeholder="Optional description"
+                              value={detail.description || ''}
+                              onChange={(e) => updatePropertyDetail(index, 'description', e.target.value)}
+                            />
+                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => removePropertyDetail(index)}
+                            className="text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                </div>
+                )}
               </div>
 
               {/* Pricing Tiers */}
