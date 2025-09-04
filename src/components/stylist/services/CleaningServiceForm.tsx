@@ -14,7 +14,6 @@ import { CleaningServiceDetailsDialog } from "@/components/cleaning/CleaningServ
 interface PricingTier {
   name: string;
   description: string;
-  basePrice: string;
   pricePerRoom: string;
   maxRooms: string;
   duration: string;
@@ -42,7 +41,7 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
     description: "",
     category: "",
     pricingTiers: [
-      { name: "Standard", description: "", basePrice: "80", pricePerRoom: "30", maxRooms: "5", duration: "2" }
+      { name: "Standard", description: "", pricePerRoom: "30", maxRooms: "5", duration: "2" }
     ],
   });
   const [serviceAreas, setServiceAreas] = useState<string[]>([]);
@@ -99,18 +98,17 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
 
     // Validate each pricing tier
     for (const tier of formData.pricingTiers) {
-      if (!tier.name.trim() || !tier.basePrice || !tier.pricePerRoom || !tier.maxRooms || !tier.duration) {
+      if (!tier.name.trim() || !tier.pricePerRoom || !tier.maxRooms || !tier.duration) {
         toast.error("Please complete all pricing tier information");
         return;
       }
       
-      const basePriceValue = parseFloat(tier.basePrice);
       const pricePerRoomValue = parseFloat(tier.pricePerRoom);
       const maxRoomsValue = parseInt(tier.maxRooms);
       const durationValue = parseInt(tier.duration);
 
-      if (isNaN(basePriceValue) || basePriceValue <= 0 || isNaN(pricePerRoomValue) || pricePerRoomValue <= 0) {
-        toast.error("Please enter valid prices for all tiers");
+      if (isNaN(pricePerRoomValue) || pricePerRoomValue <= 0) {
+        toast.error("Please enter valid price per room for all tiers");
         return;
       }
 
@@ -133,12 +131,11 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
         return;
       }
 
-      // Calculate price for each tier (base price + (price per room * max rooms))
+      // Calculate price for each tier (price per room * max rooms)
       const servicesToProcess = formData.pricingTiers.map(tier => {
-        const basePrice = parseFloat(tier.basePrice);
         const pricePerRoom = parseFloat(tier.pricePerRoom);
         const maxRooms = parseInt(tier.maxRooms);
-        const totalPrice = basePrice + (pricePerRoom * maxRooms);
+        const totalPrice = pricePerRoom * maxRooms;
         
         return {
           name: `${formData.name.trim()} - ${tier.name.trim()}`,
@@ -153,10 +150,9 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
       if (editingId) {
         // For editing, just update the first service (simplified for now)
         const firstTier = formData.pricingTiers[0];
-        const basePrice = parseFloat(firstTier.basePrice);
         const pricePerRoom = parseFloat(firstTier.pricePerRoom);
         const maxRooms = parseInt(firstTier.maxRooms);
-        const totalPrice = basePrice + (pricePerRoom * maxRooms);
+        const totalPrice = pricePerRoom * maxRooms;
         
         const { error } = await supabase
           .from('cleaning_services')
@@ -186,7 +182,7 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
         description: "",
         category: "",
         pricingTiers: [
-          { name: "Standard", description: "", basePrice: "80", pricePerRoom: "30", maxRooms: "5", duration: "2" }
+          { name: "Standard", description: "", pricePerRoom: "30", maxRooms: "5", duration: "2" }
         ],
       });
       setIsAdding(false);
@@ -200,10 +196,9 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
   };
 
   const handleEdit = (service: any) => {
-    // Calculate base price and per room price from total price (simplified for now)
+    // Calculate per room price from total price (simplified for now)
     const totalPrice = service.total_price / 100;
-    const estimatedBasePrice = Math.floor(totalPrice * 0.5);
-    const estimatedPricePerRoom = Math.floor((totalPrice - estimatedBasePrice) / 5);
+    const estimatedPricePerRoom = Math.floor(totalPrice / 5); // Assuming 5 rooms as default
     
     setFormData({
       name: service.name,
@@ -213,7 +208,6 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
         {
           name: "Standard",
           description: service.description || "",
-          basePrice: estimatedBasePrice.toString(),
           pricePerRoom: estimatedPricePerRoom.toString(),
           maxRooms: "5",
           duration: service.duration_hours.toString(),
@@ -249,7 +243,7 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
       description: "",
       category: "",
       pricingTiers: [
-        { name: "Standard", description: "", basePrice: "80", pricePerRoom: "30", maxRooms: "5", duration: "2" }
+        { name: "Standard", description: "", pricePerRoom: "30", maxRooms: "5", duration: "2" }
       ],
     });
     setIsAdding(false);
@@ -261,7 +255,7 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
       ...prev,
       pricingTiers: [
         ...prev.pricingTiers,
-        { name: "", description: "", basePrice: "", pricePerRoom: "", maxRooms: "1", duration: "2" }
+        { name: "", description: "", pricePerRoom: "", maxRooms: "1", duration: "2" }
       ]
     }));
   };
@@ -472,7 +466,7 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
                       )}
                     </div>
                     
-                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                        <div>
                          <Label htmlFor={`tier-name-${index}`}>Tier Name *</Label>
                          <Input
@@ -480,19 +474,6 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
                            value={tier.name}
                            onChange={(e) => updatePricingTier(index, 'name', e.target.value)}
                            placeholder="e.g., Basic, Premium, Deluxe"
-                           required
-                         />
-                       </div>
-                       <div>
-                         <Label htmlFor={`tier-base-price-${index}`}>Base Price (GHS) *</Label>
-                         <Input
-                           id={`tier-base-price-${index}`}
-                           type="number"
-                           step="0.01"
-                           min="0"
-                           value={tier.basePrice}
-                           onChange={(e) => updatePricingTier(index, 'basePrice', e.target.value)}
-                           placeholder="80.00"
                            required
                          />
                        </div>
@@ -548,13 +529,12 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
                      {/* Price Preview */}
                      <div className="mt-3 p-3 bg-muted/50 rounded-lg">
                        <p className="text-sm text-muted-foreground">
-                         <strong>Price Preview:</strong> GHS {tier.basePrice ? parseFloat(tier.basePrice).toFixed(2) : '0.00'} base + 
-                         GHS {tier.pricePerRoom ? parseFloat(tier.pricePerRoom).toFixed(2) : '0.00'} per room 
-                         (Max {tier.maxRooms} rooms = Total: GHS {
-                           tier.basePrice && tier.pricePerRoom && tier.maxRooms 
-                             ? (parseFloat(tier.basePrice) + parseFloat(tier.pricePerRoom) * parseInt(tier.maxRooms)).toFixed(2)
+                         <strong>Price Preview:</strong> GHS {tier.pricePerRoom ? parseFloat(tier.pricePerRoom).toFixed(2) : '0.00'} per room 
+                         × {tier.maxRooms} rooms = Total: GHS {
+                           tier.pricePerRoom && tier.maxRooms 
+                             ? (parseFloat(tier.pricePerRoom) * parseInt(tier.maxRooms)).toFixed(2)
                              : '0.00'
-                         })
+                         }
                        </p>
                      </div>
                   </Card>
