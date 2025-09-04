@@ -473,30 +473,16 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
               </div>
             </div>
 
-            {/* Pricing Preview */}
+            {/* Booking Fee */}
             {numRooms && (
               <div className="bg-muted/50 p-4 rounded-lg">
-                <h4 className="font-medium mb-2">Pricing Estimate</h4>
-                <div className="space-y-1 text-sm">
-                  <div className="flex justify-between">
-                    <span>{numRooms} room{parseInt(numRooms) > 1 ? 's' : ''} × ₵30</span>
-                    <span>₵{parseInt(numRooms) * 30}</span>
-                  </div>
-                  {numBathrooms && (
-                    <div className="flex justify-between">
-                      <span>{numBathrooms} bathroom{parseInt(numBathrooms) > 1 ? 's' : ''} × ₵15</span>
-                      <span>₵{parseInt(numBathrooms) * 15}</span>
-                    </div>
-                  )}
-                  <div className="border-t pt-1 flex justify-between font-medium">
-                    <span>Service Cost (Pay at appointment)</span>
-                    <span>₵{calculatePriceBreakdown().serviceCost}</span>
-                  </div>
-                  <div className="flex justify-between text-primary font-medium">
-                    <span>Booking Fee (Pay now)</span>
-                    <span>₵{calculatePriceBreakdown().bookingFee}</span>
-                  </div>
+                <div className="flex justify-between items-center">
+                  <span className="font-medium">Booking Fee (Pay now)</span>
+                  <span className="text-lg font-semibold text-primary">₵{calculatePriceBreakdown().bookingFee}</span>
                 </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Specialist will contact you for service pricing details
+                </p>
               </div>
             )}
 
@@ -599,7 +585,7 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
                   <span className="text-primary">₵{calculatePriceBreakdown().bookingFee}</span>
                 </div>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Service cost of ₵{calculatePriceBreakdown().serviceCost} will be paid at appointment
+                  Specialist will contact you for service pricing details
                 </p>
               </div>
             </div>
