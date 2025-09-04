@@ -261,45 +261,33 @@ export type Database = {
       }
       cleaning_services: {
         Row: {
-          addons: Json | null
           created_at: string
           description: string | null
           duration_hours: number | null
-          hourly_rate: number | null
           id: string
           name: string
-          property_details: Json | null
           service_category: string
           specialist_id: string | null
-          total_price: number
           updated_at: string
         }
         Insert: {
-          addons?: Json | null
           created_at?: string
           description?: string | null
           duration_hours?: number | null
-          hourly_rate?: number | null
           id?: string
           name: string
-          property_details?: Json | null
           service_category: string
           specialist_id?: string | null
-          total_price?: number
           updated_at?: string
         }
         Update: {
-          addons?: Json | null
           created_at?: string
           description?: string | null
           duration_hours?: number | null
-          hourly_rate?: number | null
           id?: string
           name?: string
-          property_details?: Json | null
           service_category?: string
           specialist_id?: string | null
-          total_price?: number
           updated_at?: string
         }
         Relationships: [

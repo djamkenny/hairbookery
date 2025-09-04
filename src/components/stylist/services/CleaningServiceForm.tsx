@@ -6,45 +6,20 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Edit, Trash2, Save, MapPin, X, Eye, Home } from "lucide-react";
+import { Plus, Edit, Trash2, Save, MapPin, X, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { CleaningServiceDetailsDialog } from "@/components/cleaning/CleaningServiceDetailsDialog";
-
-interface PricingTier {
-  name: string;
-  description: string;
-  pricePerRoom: string;
-  duration: string;
-  addons: AddonService[];
-}
-
-interface AddonService {
-  id: string;
-  name: string;
-  price: string;
-  description?: string;
-}
-
-interface PropertyDetail {
-  id: string;
-  name: string;
-  value: string;
-  description?: string;
-}
 
 interface CleaningServiceForm {
   name: string;
   description: string;
   category: string;
-  pricingTiers: PricingTier[];
-  propertyDetails: PropertyDetail[];
 }
 
 interface CleaningServiceFormProps {
   onServicesChange?: () => void;
 }
-
 
 export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServicesChange }) => {
   const [cleaningServices, setCleaningServices] = useState<any[]>([]);
@@ -55,10 +30,6 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
     name: "",
     description: "",
     category: "",
-    pricingTiers: [
-      { name: "Standard", description: "", pricePerRoom: "30", duration: "2", addons: [] }
-    ],
-    propertyDetails: [],
   });
   const [serviceAreas, setServiceAreas] = useState<string[]>([]);
   const [newServiceArea, setNewServiceArea] = useState("");
@@ -107,38 +78,9 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name.trim() || !formData.category || formData.pricingTiers.length === 0) {
+    if (!formData.name.trim() || !formData.category) {
       toast.error("Please fill in all required fields");
       return;
-    }
-
-    // Validate each pricing tier
-    for (const tier of formData.pricingTiers) {
-      if (!tier.name.trim() || !tier.pricePerRoom || !tier.duration) {
-        toast.error("Please complete all pricing tier information");
-        return;
-      }
-      
-      const pricePerRoomValue = parseFloat(tier.pricePerRoom);
-      const durationValue = parseInt(tier.duration);
-
-      if (isNaN(pricePerRoomValue) || pricePerRoomValue <= 0) {
-        toast.error("Please enter valid price per room for all tiers");
-        return;
-      }
-
-      if (isNaN(durationValue) || durationValue <= 0) {
-        toast.error("Please enter valid durations for all tiers");
-        return;
-      }
-
-      // Validate addons
-      for (const addon of tier.addons) {
-        if (!addon.name.trim() || !addon.price || isNaN(parseFloat(addon.price)) || parseFloat(addon.price) <= 0) {
-          toast.error("Please enter valid addon information");
-          return;
-        }
-      }
     }
 
     try {
@@ -149,60 +91,35 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
         return;
       }
 
-      // Store price per room and addons (we'll use a default of 1 room for display price)
-        const servicesToProcess = formData.pricingTiers.map(tier => {
-        const pricePerRoom = parseFloat(tier.pricePerRoom);
-        
-        return {
-          name: `${formData.name.trim()} - ${tier.name.trim()}`,
-          description: tier.description.trim() || formData.description.trim() || null,
-          total_price: Math.round(pricePerRoom * 100), // Store price per room in cents
-          duration_hours: parseInt(tier.duration),
-          service_category: formData.category,
-          specialist_id: user.id,
-          addons: JSON.stringify(tier.addons), // Store addons as JSON
-          property_details: JSON.stringify(formData.propertyDetails), // Store custom property details as JSON
-        };
-      });
+      const serviceData = {
+        name: formData.name.trim(),
+        description: formData.description.trim() || null,
+        service_category: formData.category,
+        specialist_id: user.id,
+        duration_hours: 2, // Default duration
+      };
 
       if (editingId) {
-        // For editing, just update the first service (simplified for now)
-        const firstTier = formData.pricingTiers[0];
-        const pricePerRoom = parseFloat(firstTier.pricePerRoom);
-        
         const { error } = await supabase
           .from('cleaning_services')
-          .update({
-            name: formData.name.trim(),
-            description: firstTier.description.trim() || formData.description.trim() || null,
-            total_price: Math.round(pricePerRoom * 100), // Store price per room
-            duration_hours: parseInt(firstTier.duration),
-            service_category: formData.category,
-            addons: JSON.stringify(firstTier.addons), // Store addons as JSON string
-            property_details: JSON.stringify(formData.propertyDetails), // Store custom property details as JSON
-          })
+          .update(serviceData)
           .eq('id', editingId);
 
         if (error) throw error;
         toast.success("Cleaning service updated successfully");
       } else {
-        // Insert all pricing tiers as separate services
         const { error } = await supabase
           .from('cleaning_services')
-          .insert(servicesToProcess);
+          .insert([serviceData]);
         
         if (error) throw error;
-        toast.success("Cleaning services added successfully");
+        toast.success("Cleaning service added successfully");
       }
 
       setFormData({
         name: "",
         description: "",
         category: "",
-        pricingTiers: [
-          { name: "Standard", description: "", pricePerRoom: "30", duration: "2", addons: [] }
-        ],
-        propertyDetails: [],
       });
       setIsAdding(false);
       setEditingId(null);
@@ -215,47 +132,10 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
   };
 
   const handleEdit = (service: any) => {
-    // Get per room price from stored price
-    const pricePerRoom = service.total_price / 100; // Convert from cents
-    
-    // Parse addons from JSON if string, or use as-is if already array
-    let parsedAddons = [];
-    try {
-      if (typeof service.addons === 'string') {
-        parsedAddons = JSON.parse(service.addons);
-      } else if (Array.isArray(service.addons)) {
-        parsedAddons = service.addons;
-      }
-    } catch (e) {
-      parsedAddons = [];
-    }
-
-    // Parse property details
-    let parsedPropertyDetails = [];
-    try {
-      if (typeof service.property_details === 'string') {
-        parsedPropertyDetails = JSON.parse(service.property_details);
-      } else if (Array.isArray(service.property_details)) {
-        parsedPropertyDetails = service.property_details;
-      }
-    } catch (e) {
-      parsedPropertyDetails = [];
-    }
-    
     setFormData({
       name: service.name,
       description: service.description || "",
       category: service.service_category,
-      pricingTiers: [
-        {
-          name: "Standard",
-          description: service.description || "",
-          pricePerRoom: pricePerRoom.toString(),
-          duration: service.duration_hours.toString(),
-          addons: parsedAddons
-        }
-      ],
-      propertyDetails: parsedPropertyDetails,
     });
     setEditingId(service.id);
     setIsAdding(true);
@@ -285,113 +165,9 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
       name: "",
       description: "",
       category: "",
-      pricingTiers: [
-        { name: "Standard", description: "", pricePerRoom: "30", duration: "2", addons: [] }
-      ],
-      propertyDetails: [],
     });
     setIsAdding(false);
     setEditingId(null);
-  };
-
-  const addPricingTier = () => {
-    setFormData(prev => ({
-      ...prev,
-      pricingTiers: [
-        ...prev.pricingTiers,
-        { name: "", description: "", pricePerRoom: "", duration: "2", addons: [] }
-      ]
-    }));
-  };
-
-  const removePricingTier = (index: number) => {
-    if (formData.pricingTiers.length <= 1) return;
-    setFormData(prev => ({
-      ...prev,
-      pricingTiers: prev.pricingTiers.filter((_, i) => i !== index)
-    }));
-  };
-
-  const updatePricingTier = (index: number, field: keyof PricingTier, value: string | AddonService[]) => {
-    setFormData(prev => ({
-      ...prev,
-      pricingTiers: prev.pricingTiers.map((tier, i) => 
-        i === index ? { ...tier, [field]: value } : tier
-      )
-    }));
-  };
-
-  const addAddon = (tierIndex: number) => {
-    const newAddon: AddonService = {
-      id: Date.now().toString(),
-      name: "",
-      price: "",
-      description: ""
-    };
-    
-    setFormData(prev => ({
-      ...prev,
-      pricingTiers: prev.pricingTiers.map((tier, i) => 
-        i === tierIndex ? { ...tier, addons: [...tier.addons, newAddon] } : tier
-      )
-    }));
-  };
-
-  const removeAddon = (tierIndex: number, addonIndex: number) => {
-    setFormData(prev => ({
-      ...prev,
-      pricingTiers: prev.pricingTiers.map((tier, i) => 
-        i === tierIndex 
-          ? { ...tier, addons: tier.addons.filter((_, ai) => ai !== addonIndex) }
-          : tier
-      )
-    }));
-  };
-
-  const updateAddon = (tierIndex: number, addonIndex: number, field: keyof AddonService, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      pricingTiers: prev.pricingTiers.map((tier, i) => 
-        i === tierIndex 
-          ? { 
-              ...tier, 
-              addons: tier.addons.map((addon, ai) => 
-                ai === addonIndex ? { ...addon, [field]: value } : addon
-              )
-            }
-          : tier
-      )
-    }));
-  };
-
-  const addPropertyDetail = () => {
-    const newDetail: PropertyDetail = {
-      id: Date.now().toString(),
-      name: "",
-      value: "",
-      description: ""
-    };
-    
-    setFormData(prev => ({
-      ...prev,
-      propertyDetails: [...prev.propertyDetails, newDetail]
-    }));
-  };
-
-  const removePropertyDetail = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      propertyDetails: prev.propertyDetails.filter((_, i) => i !== index)
-    }));
-  };
-
-  const updatePropertyDetail = (index: number, field: keyof PropertyDetail, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      propertyDetails: prev.propertyDetails.map((detail, i) => 
-        i === index ? { ...detail, [field]: value } : detail
-      )
-    }));
   };
 
   const addServiceArea = async () => {
@@ -441,7 +217,6 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
     }
   };
 
-
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -455,12 +230,12 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-xl sm:text-2xl font-semibold">Cleaning Services</h2>
-          <p className="text-sm text-muted-foreground">Manage your cleaning services and pricing</p>
+          <p className="text-sm text-muted-foreground">Manage your cleaning service types</p>
         </div>
         {!isAdding && (
           <Button onClick={() => setIsAdding(true)} className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" />
-            Add Cleaning Service
+            Add Service Type
           </Button>
         )}
       </div>
@@ -502,299 +277,67 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
         </CardContent>
       </Card>
 
-
-      {/* Add/Edit Form */}
+      {/* Add/Edit Service Form */}
       {isAdding && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">
-              {editingId ? "Edit Cleaning Service" : "Add Cleaning Service"}
+            <CardTitle className="flex items-center justify-between">
+              {editingId ? 'Edit Service Type' : 'Add New Service Type'}
+              <Button variant="ghost" size="sm" onClick={handleCancel}>
+                <X className="h-4 w-4" />
+              </Button>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="name">Service Name *</Label>
                   <Input
                     id="name"
+                    placeholder="e.g., Deep House Cleaning"
                     value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="e.g., Premium Home Cleaning"
+                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                     required
                   />
                 </div>
-                <div>
+
+                <div className="space-y-2">
                   <Label htmlFor="category">Service Category *</Label>
-                  <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
+                  <Select 
+                    value={formData.category} 
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="home">Home Cleaning</SelectItem>
-                      <SelectItem value="office">Office Cleaning</SelectItem>
-                      <SelectItem value="deep">Deep Cleaning</SelectItem>
-                      <SelectItem value="carpet">Carpet Cleaning</SelectItem>
-                      <SelectItem value="post_construction">Post-Construction</SelectItem>
+                      <SelectItem value="residential">Residential</SelectItem>
+                      <SelectItem value="commercial">Commercial</SelectItem>
+                      <SelectItem value="deep_cleaning">Deep Cleaning</SelectItem>
+                      <SelectItem value="regular_cleaning">Regular Cleaning</SelectItem>
+                      <SelectItem value="move_in_out">Move In/Out</SelectItem>
+                      <SelectItem value="post_construction">Post Construction</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
-              
-              <div>
-                <Label htmlFor="description">General Description</Label>
+
+              <div className="space-y-2">
+                <Label htmlFor="description">Description</Label>
                 <Textarea
                   id="description"
+                  placeholder="Describe what this service includes..."
                   value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="General description of the service offering"
+                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                  rows={3}
                 />
               </div>
 
-              {/* Property Details Section */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-lg font-medium">Property Details</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Add any property specifications that are relevant to this service.
-                    </p>
-                  </div>
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={addPropertyDetail}
-                  >
-                    <Plus className="h-4 w-4 mr-1" />
-                    Add Detail
-                  </Button>
-                </div>
-
-                {formData.propertyDetails.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Home className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p>No property details added yet.</p>
-                    <p className="text-sm">Click "Add Detail" to specify property requirements.</p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {formData.propertyDetails.map((detail, index) => (
-                      <div key={detail.id} className="grid grid-cols-1 md:grid-cols-3 gap-3 p-4 border rounded-lg">
-                        <div>
-                          <Label htmlFor={`detail-name-${index}`}>Detail Name *</Label>
-                          <Input
-                            id={`detail-name-${index}`}
-                            placeholder="e.g., Number of Rooms, Property Type"
-                            value={detail.name}
-                            onChange={(e) => updatePropertyDetail(index, 'name', e.target.value)}
-                          />
-                        </div>
-                        
-                        <div>
-                          <Label htmlFor={`detail-value-${index}`}>Value *</Label>
-                          <Input
-                            id={`detail-value-${index}`}
-                            placeholder="e.g., 3, Apartment, 1200 sqft"
-                            value={detail.value}
-                            onChange={(e) => updatePropertyDetail(index, 'value', e.target.value)}
-                          />
-                        </div>
-                        
-                        <div className="flex items-end gap-2">
-                          <div className="flex-1">
-                            <Label htmlFor={`detail-desc-${index}`}>Description</Label>
-                            <Input
-                              id={`detail-desc-${index}`}
-                              placeholder="Optional description"
-                              value={detail.description || ''}
-                              onChange={(e) => updatePropertyDetail(index, 'description', e.target.value)}
-                            />
-                          </div>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => removePropertyDetail(index)}
-                            className="text-destructive hover:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Pricing Tiers */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label className="text-base font-medium">Pricing Tiers *</Label>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={addPricingTier}
-                    disabled={formData.pricingTiers.length >= 5}
-                  >
-                    <Plus className="h-4 w-4 mr-1" />
-                    Add Tier
-                  </Button>
-                </div>
-                
-                {formData.pricingTiers.map((tier, index) => (
-                  <Card key={index} className="p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <Label className="text-sm font-medium">Tier {index + 1}</Label>
-                      {formData.pricingTiers.length > 1 && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removePricingTier(index)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                    
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                       <div>
-                         <Label htmlFor={`tier-name-${index}`}>Tier Name *</Label>
-                         <Input
-                           id={`tier-name-${index}`}
-                           value={tier.name}
-                           onChange={(e) => updatePricingTier(index, 'name', e.target.value)}
-                           placeholder="e.g., Basic, Premium, Deluxe"
-                           required
-                         />
-                       </div>
-                       <div>
-                         <Label htmlFor={`tier-per-room-${index}`}>Price Per Room (GHS) *</Label>
-                         <Input
-                           id={`tier-per-room-${index}`}
-                           type="number"
-                           step="0.01"
-                           min="0"
-                           value={tier.pricePerRoom}
-                           onChange={(e) => updatePricingTier(index, 'pricePerRoom', e.target.value)}
-                           placeholder="30.00"
-                           required
-                         />
-                       </div>
-                       <div>
-                         <Label htmlFor={`tier-duration-${index}`}>Duration (Hours) *</Label>
-                         <Input
-                           id={`tier-duration-${index}`}
-                           type="number"
-                           min="1"
-                           value={tier.duration}
-                           onChange={(e) => updatePricingTier(index, 'duration', e.target.value)}
-                           placeholder="2"
-                           required
-                         />
-                       </div>
-                       <div>
-                         <Label htmlFor={`tier-description-${index}`}>Tier Description</Label>
-                         <Input
-                           id={`tier-description-${index}`}
-                           value={tier.description}
-                           onChange={(e) => updatePricingTier(index, 'description', e.target.value)}
-                           placeholder="What's included in this tier"
-                         />
-                       </div>
-                     </div>
-                     
-                     {/* Addons Section */}
-                     <div className="space-y-3">
-                       <div className="flex items-center justify-between">
-                         <Label className="text-sm font-medium">Add-on Services</Label>
-                         <Button
-                           type="button"
-                           variant="outline"
-                           size="sm"
-                           onClick={() => addAddon(index)}
-                         >
-                           <Plus className="h-4 w-4 mr-1" />
-                           Add Addon
-                         </Button>
-                       </div>
-                       
-                       {tier.addons.map((addon, addonIndex) => (
-                         <div key={addon.id} className="border rounded-lg p-3 space-y-2">
-                           <div className="flex items-center justify-between">
-                             <Label className="text-xs font-medium">Addon {addonIndex + 1}</Label>
-                             <Button
-                               type="button"
-                               variant="ghost"
-                               size="sm"
-                               onClick={() => removeAddon(index, addonIndex)}
-                             >
-                               <X className="h-3 w-3" />
-                             </Button>
-                           </div>
-                           <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                             <div>
-                               <Label htmlFor={`addon-name-${index}-${addonIndex}`}>Name *</Label>
-                               <Input
-                                 id={`addon-name-${index}-${addonIndex}`}
-                                 value={addon.name}
-                                 onChange={(e) => updateAddon(index, addonIndex, 'name', e.target.value)}
-                                 placeholder="e.g., Window Cleaning"
-                                 required
-                               />
-                             </div>
-                             <div>
-                               <Label htmlFor={`addon-price-${index}-${addonIndex}`}>Price (GHS) *</Label>
-                               <Input
-                                 id={`addon-price-${index}-${addonIndex}`}
-                                 type="number"
-                                 step="0.01"
-                                 min="0"
-                                 value={addon.price}
-                                 onChange={(e) => updateAddon(index, addonIndex, 'price', e.target.value)}
-                                 placeholder="15.00"
-                                 required
-                               />
-                             </div>
-                             <div>
-                               <Label htmlFor={`addon-description-${index}-${addonIndex}`}>Description</Label>
-                               <Input
-                                 id={`addon-description-${index}-${addonIndex}`}
-                                 value={addon.description || ""}
-                                 onChange={(e) => updateAddon(index, addonIndex, 'description', e.target.value)}
-                                 placeholder="Brief description"
-                               />
-                             </div>
-                           </div>
-                         </div>
-                       ))}
-                     </div>
-                     
-                     {/* Price Preview */}
-                     <div className="mt-3 p-3 bg-muted/50 rounded-lg">
-                       <p className="text-sm text-muted-foreground">
-                         <strong>Price Preview:</strong> GHS {tier.pricePerRoom ? parseFloat(tier.pricePerRoom).toFixed(2) : '0.00'} per room
-                         <br />
-                         <small>Clients will select number of rooms when booking</small>
-                         {tier.addons.length > 0 && (
-                           <>
-                             <br />
-                             <small>Add-ons: {tier.addons.map(a => a.name).join(', ')}</small>
-                           </>
-                         )}
-                       </p>
-                     </div>
-                  </Card>
-                ))}
-              </div>
-              
-              
-              <div className="flex gap-2">
-                <Button type="submit">
+              <div className="flex gap-4">
+                <Button type="submit" className="flex-1">
                   <Save className="h-4 w-4 mr-2" />
-                  {editingId ? "Update" : "Add"} Service
+                  {editingId ? 'Update Service' : 'Add Service'}
                 </Button>
                 <Button type="button" variant="outline" onClick={handleCancel}>
                   Cancel
@@ -806,76 +349,66 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
       )}
 
       {/* Services List */}
-      <div className="space-y-4">
-        {cleaningServices.length === 0 ? (
-          <Card>
-            <CardContent className="p-8 text-center">
-              <h3 className="text-lg font-medium mb-2">No cleaning services yet</h3>
-              <p className="text-muted-foreground mb-4">
-                Add your first cleaning service to start accepting bookings
-              </p>
-              <Button onClick={() => setIsAdding(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Your First Service
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          <Card>
-            <CardHeader>
-              <CardTitle>Your Cleaning Services</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-3">
-                {cleaningServices.map((service) => (
-                  <div
-                    key={service.id}
-                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 border rounded-lg bg-muted/20"
-                  >
-                    <div className="flex-1 space-y-2">
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                        <h4 className="font-semibold text-sm sm:text-base">{service.name}</h4>
-                         <div className="flex gap-2">
-                           <Badge variant="secondary" className="text-xs">
-                             GHS {(service.total_price / 100).toFixed(2)} per room
-                           </Badge>
-                           <Badge variant="outline" className="text-xs">
-                             {service.duration_hours}h
-                           </Badge>
-                           <Badge variant="outline" className="text-xs capitalize">
-                             {service.service_category.replace('_', ' ')}
-                           </Badge>
-                         </div>
-                      </div>
-                      {service.description && (
-                        <p className="text-xs text-muted-foreground">{service.description}</p>
-                      )}
-                    </div>
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline" onClick={() => setViewingService(service)}>
-                        <Eye className="h-3 w-3" />
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={() => handleEdit(service)}>
-                        <Edit className="h-3 w-3" />
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={() => handleDelete(service.id)}>
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
+      <Card>
+        <CardHeader>
+          <CardTitle>Your Service Types</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {cleaningServices.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <p>No service types added yet.</p>
+              <p className="text-sm">Add your first service type to get started!</p>
+            </div>
+          ) : (
+            <div className="grid gap-4">
+              {cleaningServices.map((service) => (
+                <div key={service.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex-1">
+                    <h3 className="font-semibold">{service.name}</h3>
+                    <p className="text-sm text-muted-foreground">{service.description || 'No description'}</p>
+                    <div className="flex gap-2 mt-2">
+                      <Badge variant="outline">{service.service_category}</Badge>
+                      <Badge variant="secondary">{service.duration_hours}h duration</Badge>
                     </div>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setViewingService(service)}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEdit(service)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDelete(service.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Service Details Dialog */}
-      <CleaningServiceDetailsDialog
-        service={viewingService}
-        open={!!viewingService}
-        onOpenChange={(open) => !open && setViewingService(null)}
-      />
+      {viewingService && (
+        <CleaningServiceDetailsDialog
+          service={viewingService}
+          open={!!viewingService}
+          onOpenChange={(open) => !open && setViewingService(null)}
+        />
+      )}
     </div>
   );
 };

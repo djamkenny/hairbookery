@@ -7,7 +7,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/hooks/useAuth";
 import { formatPrice } from "@/components/booking/utils/formatUtils";
 import { calculateBookingFee } from "@/components/booking/utils/feeUtils";
@@ -28,11 +27,8 @@ interface CleaningService {
   id: string;
   name: string;
   description: string;
-  total_price: number;
   duration_hours: number;
   service_category: string;
-  addons?: any;
-  property_details?: any;
 }
 
 interface CleaningBookingFormProps {
@@ -45,7 +41,6 @@ const propertyTypes = [
   { value: "office", label: "Office" },
   { value: "commercial", label: "Commercial Space" }
 ];
-
 
 export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specialistId }) => {
   const { user } = useAuth();
@@ -60,18 +55,16 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
   const [serviceTime, setServiceTime] = useState("");
   const [serviceAddress, setServiceAddress] = useState("");
   const [specialInstructions, setSpecialInstructions] = useState("");
-  const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
-  const [estimatedHours, setEstimatedHours] = useState(3);
   
-  // Get available addons from selected service
-  const availableAddons = useMemo(() => {
-    const selectedService = availableServices.find(s => s.id === serviceType);
-    const addons = selectedService?.addons;
-    return Array.isArray(addons) ? addons : [];
-  }, [serviceType, availableServices]);
+  // Property details
+  const [propertyType, setPropertyType] = useState("");
+  const [numRooms, setNumRooms] = useState("");
+  const [numBathrooms, setNumBathrooms] = useState("");
+  const [squareFootage, setSquareFootage] = useState("");
+  const [estimatedHours, setEstimatedHours] = useState(3);
 
   useEffect(() => {
     fetchCleaningServices();
@@ -129,44 +122,21 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
     }
   };
 
-  // Calculate service cost breakdown using specialist-defined property details
+  // Calculate service cost breakdown based on property details
   const calculatePriceBreakdown = () => {
-    const selectedService = availableServices.find(s => s.id === serviceType);
-    if (!selectedService) return { serviceCost: 0, bookingFee: 0, total: 0 };
+    const rooms = parseInt(numRooms) || 1;
+    const bathrooms = parseInt(numBathrooms) || 1;
     
-    // Use specialist-defined rooms for pricing calculation (look for "Number of Rooms" in property details)
-    const propertyDetails = Array.isArray(selectedService.property_details) ? selectedService.property_details : [];
-    const roomsDetail = propertyDetails.find((detail: any) => 
-      detail.name?.toLowerCase().includes('room') || detail.name?.toLowerCase().includes('Room')
-    );
-    const rooms = roomsDetail ? parseInt(roomsDetail.value) || 1 : 1;
+    // Base pricing: ₵30 per room + ₵15 per bathroom
+    const servicePrice = (rooms * 30) + (bathrooms * 15);
     
-    const pricePerRoom = selectedService.total_price / 100; // Convert from cents
-    const servicePrice = pricePerRoom * rooms;
-    
-    // Add selected addon prices from the service's addons
-    const serviceAddons = Array.isArray(selectedService.addons) ? selectedService.addons : [];
-    const addonPrice = selectedAddons.reduce((total, addonId) => {
-      const addon = serviceAddons.find((a: any) => a.id === addonId);
-      return total + (addon ? parseFloat(addon.price) : 0);
-    }, 0);
-    
-    const totalServiceCost = servicePrice + addonPrice;
-    const { fee: bookingFee, total } = calculateBookingFee(totalServiceCost);
+    const { fee: bookingFee, total } = calculateBookingFee(servicePrice);
     
     return {
-      serviceCost: totalServiceCost,
+      serviceCost: servicePrice,
       bookingFee,
       total
     };
-  };
-
-  const handleAddonToggle = (addonId: string) => {
-    setSelectedAddons(prev => 
-      prev.includes(addonId) 
-        ? prev.filter(id => id !== addonId)
-        : [...prev, addonId]
-    );
   };
 
   const handleSubmit = async () => {
@@ -175,22 +145,22 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
       return;
     }
 
-    if (!serviceType || !serviceDate || !serviceTime || !serviceAddress || !customerName || !customerPhone || !customerEmail) {
+    if (!serviceType || !serviceDate || !serviceTime || !serviceAddress || !customerName || !customerPhone || !customerEmail || !propertyType || !numRooms) {
       toast.error('Please fill in all required fields');
       return;
     }
 
-    const selectedService = availableServices.find(s => s.id === serviceType);
-    const propertyDetails = Array.isArray(selectedService?.property_details) ? selectedService.property_details : [];
-    
     const bookingData = {
       serviceType,
       serviceDate: format(serviceDate, 'yyyy-MM-dd'),
       serviceTime,
       serviceAddress,
-      propertyDetails: propertyDetails,
+      propertyType,
+      numRooms: parseInt(numRooms) || undefined,
+      numBathrooms: parseInt(numBathrooms) || undefined,
+      squareFootage: parseInt(squareFootage) || undefined,
       specialInstructions,
-      selectedAddons,
+      selectedAddons: [], // No addons in this simplified version
       customerName,
       customerPhone,
       customerEmail,
@@ -225,7 +195,10 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
       toast.error('Please fill in service details');
       return;
     }
-    // Skip to step 3 since property details are now managed by specialist
+    if (step === 3 && (!propertyType || !numRooms)) {
+      toast.error('Please fill in property details');
+      return;
+    }
     setStep(step + 1);
   };
 
@@ -255,7 +228,7 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       {/* Progress Steps */}
       <div className="flex items-center justify-center space-x-4 mb-8">
-        {[1, 2, 3].map((num) => (
+        {[1, 2, 3, 4].map((num) => (
           <div key={num} className="flex items-center">
             <div className={cn(
               "w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold",
@@ -263,7 +236,7 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
             )}>
               {num}
             </div>
-            {num < 3 && (
+            {num < 4 && (
               <div className={cn(
                 "w-12 h-0.5 mx-2",
                 step > num ? "bg-primary" : "bg-muted"
@@ -309,11 +282,10 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
                        <div className="space-y-2">
                           <div className="flex justify-between items-start">
                             <h3 className="font-semibold">{service.name}</h3>
-                            <span className="text-primary font-bold">Room-based pricing</span>
                           </div>
                          <p className="text-sm text-muted-foreground">{service.description || 'Professional cleaning service'}</p>
                          <div className="text-xs text-muted-foreground">
-                           Duration: {service.duration_hours} hours • Price calculated by number of rooms
+                           Duration: {service.duration_hours} hours • Category: {service.service_category}
                          </div>
                        </div>
                      </CardContent>
@@ -411,7 +383,7 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
                 Back
               </Button>
               <Button onClick={nextStep} className="flex-1">
-                Continue to Booking Details
+                Continue to Property Details
                 <ChevronRight className="ml-2 h-4 w-4" />
               </Button>
             </div>
@@ -419,16 +391,138 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
         </Card>
       )}
 
-      {/* Step 3: Customer Details & Add-ons */}
+      {/* Step 3: Property Details */}
       {step === 3 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
-              <Users className="w-5 h-5 mr-2" />
-              Customer Information & Add-ons
+              <Home className="w-5 h-5 mr-2" />
+              Property Details
             </CardTitle>
             <CardDescription>
-              Your information and any additional services
+              Tell us about your property for accurate pricing
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="propertyType">Property Type *</Label>
+                <Select value={propertyType} onValueChange={setPropertyType}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select property type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {propertyTypes.map((type) => (
+                      <SelectItem key={type.value} value={type.value}>
+                        {type.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="numRooms">Number of Rooms *</Label>
+                <Select value={numRooms} onValueChange={setNumRooms}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select rooms" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+                      <SelectItem key={num} value={num.toString()}>
+                        <div className="flex items-center">
+                          <Users className="mr-2 h-3.5 w-3.5" />
+                          {num} Room{num > 1 ? 's' : ''}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="numBathrooms">Number of Bathrooms</Label>
+                <Select value={numBathrooms} onValueChange={setNumBathrooms}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select bathrooms" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[1, 2, 3, 4, 5, 6].map((num) => (
+                      <SelectItem key={num} value={num.toString()}>
+                        <div className="flex items-center">
+                          <Bath className="mr-2 h-3.5 w-3.5" />
+                          {num} Bathroom{num > 1 ? 's' : ''}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="squareFootage">Square Footage (optional)</Label>
+                <Input
+                  id="squareFootage"
+                  type="number"
+                  placeholder="e.g., 1200"
+                  value={squareFootage}
+                  onChange={(e) => setSquareFootage(e.target.value)}
+                />
+              </div>
+            </div>
+
+            {/* Pricing Preview */}
+            {numRooms && (
+              <div className="bg-muted/50 p-4 rounded-lg">
+                <h4 className="font-medium mb-2">Pricing Estimate</h4>
+                <div className="space-y-1 text-sm">
+                  <div className="flex justify-between">
+                    <span>{numRooms} room{parseInt(numRooms) > 1 ? 's' : ''} × ₵30</span>
+                    <span>₵{parseInt(numRooms) * 30}</span>
+                  </div>
+                  {numBathrooms && (
+                    <div className="flex justify-between">
+                      <span>{numBathrooms} bathroom{parseInt(numBathrooms) > 1 ? 's' : ''} × ₵15</span>
+                      <span>₵{parseInt(numBathrooms) * 15}</span>
+                    </div>
+                  )}
+                  <div className="border-t pt-1 flex justify-between font-medium">
+                    <span>Service Cost (Pay at appointment)</span>
+                    <span>₵{calculatePriceBreakdown().serviceCost}</span>
+                  </div>
+                  <div className="flex justify-between text-primary font-medium">
+                    <span>Booking Fee (Pay now)</span>
+                    <span>₵{calculatePriceBreakdown().bookingFee}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="flex gap-4">
+              <Button variant="outline" onClick={prevStep}>
+                Back
+              </Button>
+              <Button onClick={nextStep} className="flex-1">
+                Continue to Customer Details
+                <ChevronRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Step 4: Customer Details & Confirmation */}
+      {step === 4 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Users className="w-5 h-5 mr-2" />
+              Customer Information & Confirmation
+            </CardTitle>
+            <CardDescription>
+              Your information and final booking details
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -476,124 +570,64 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
               />
             </div>
 
-            {/* Add-ons Section */}
-            {availableAddons.length > 0 && (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label className="text-base font-medium">Additional Services</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Select any additional services you'd like to include
-                  </p>
+            {/* Booking Summary */}
+            <div className="bg-muted/50 p-6 rounded-lg space-y-4">
+              <h4 className="font-semibold text-lg">Booking Summary</h4>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="font-medium">Service</p>
+                  <p className="text-muted-foreground">{availableServices.find(s => s.id === serviceType)?.name}</p>
                 </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {availableAddons.map((addon) => (
-                    <div
-                      key={addon.id}
-                      className="flex items-start space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-muted/50"
-                      onClick={() => handleAddonToggle(addon.id)}
-                    >
-                      <Checkbox
-                        checked={selectedAddons.includes(addon.id)}
-                        onChange={() => {}}
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <p className="text-sm font-medium">{addon.name}</p>
-                          <span className="text-sm font-semibold text-primary">
-                            GHS {parseFloat(addon.price).toFixed(2)}
-                          </span>
-                        </div>
-                        {addon.description && (
-                          <p className="text-xs text-muted-foreground mt-1">{addon.description}</p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
+                <div>
+                  <p className="font-medium">Date & Time</p>
+                  <p className="text-muted-foreground">{serviceDate && format(serviceDate, "PPP")} at {serviceTime}</p>
+                </div>
+                <div>
+                  <p className="font-medium">Property</p>
+                  <p className="text-muted-foreground">{propertyType} • {numRooms} room{parseInt(numRooms) > 1 ? 's' : ''} • {numBathrooms || 1} bathroom{parseInt(numBathrooms || "1") > 1 ? 's' : ''}</p>
+                </div>
+                <div>
+                  <p className="font-medium">Customer</p>
+                  <p className="text-muted-foreground">{customerName}</p>
                 </div>
               </div>
-            )}
+
+              <div className="border-t pt-4">
+                <div className="flex justify-between items-center text-lg font-semibold">
+                  <span>Booking Fee (Pay Now)</span>
+                  <span className="text-primary">₵{calculatePriceBreakdown().bookingFee}</span>
+                </div>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Service cost of ₵{calculatePriceBreakdown().serviceCost} will be paid at appointment
+                </p>
+              </div>
+            </div>
 
             <div className="flex gap-4">
               <Button variant="outline" onClick={prevStep}>
                 Back
               </Button>
-              <Button onClick={nextStep} className="flex-1">
-                Continue to Summary
-                <ChevronRight className="ml-2 h-4 w-4" />
+              <Button 
+                onClick={handleSubmit} 
+                className="flex-1"
+                disabled={isProcessing}
+              >
+                {isProcessing ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <CreditCard className="mr-2 h-4 w-4" />
+                    Pay ₵{calculatePriceBreakdown().bookingFee} & Book Now
+                  </>
+                )}
               </Button>
             </div>
           </CardContent>
         </Card>
-      )}
-
-      {/* Step 4: Booking Summary */}
-      {step === 4 && (
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Booking Summary</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span>Service Type:</span>
-                  <span className="font-semibold">{availableServices.find(s => s.id === serviceType)?.name || 'Not selected'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Service Date:</span>
-                  <span>{serviceDate ? format(serviceDate, "PPP") : "Not selected"}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Service Time:</span>
-                  <span>{serviceTime || "Not selected"}</span>
-                </div>
-                {selectedAddons.length > 0 && (
-                  <div className="flex justify-between">
-                    <span>Add-on Services:</span>
-                    <span>{selectedAddons.length} selected</span>
-                  </div>
-                )}
-                 <div className="border-t pt-2 space-y-2">
-                   <div className="flex justify-between">
-                     <span>Service Cost:</span>
-                     <div className="text-right">
-                       <span>{formatPrice(calculatePriceBreakdown().serviceCost)}</span>
-                       <div className="text-xs text-muted-foreground">Pay at appointment</div>
-                     </div>
-                   </div>
-                   <div className="flex justify-between font-bold text-lg border-t pt-2">
-                     <span>Booking Fee (Pay Now):</span>
-                     <span className="text-primary">{formatPrice(calculatePriceBreakdown().bookingFee)}</span>
-                   </div>
-                 </div>
-              </div>
-
-              <div className="flex gap-4">
-                <Button variant="outline" onClick={prevStep}>
-                  Back
-                </Button>
-                 <Button 
-                   onClick={handleSubmit} 
-                   className="flex-1"
-                   disabled={!customerName || !customerPhone || !customerEmail || isProcessing}
-                 >
-                   {isProcessing ? (
-                     <>
-                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                       Processing Payment...
-                     </>
-                   ) : (
-                     <>
-                       <CreditCard className="mr-2 h-4 w-4" />
-                       Pay Booking Fee {formatPrice(calculatePriceBreakdown().bookingFee)}
-                     </>
-                   )}
-                 </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
       )}
     </div>
   );
