@@ -6,15 +6,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Edit, Trash2, Save, MapPin, X, Eye } from "lucide-react";
+import { Plus, Edit, Trash2, Save, MapPin, X, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { CleaningServiceDetailsDialog } from "@/components/cleaning/CleaningServiceDetailsDialog";
+
 
 interface CleaningServiceForm {
   name: string;
   description: string;
   category: string;
+  duration_hours: number;
 }
 
 interface CleaningServiceFormProps {
@@ -25,11 +26,12 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
   const [cleaningServices, setCleaningServices] = useState<any[]>([]);
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [viewingService, setViewingService] = useState<any | null>(null);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [formData, setFormData] = useState<CleaningServiceForm>({
     name: "",
     description: "",
     category: "",
+    duration_hours: 2,
   });
   const [serviceAreas, setServiceAreas] = useState<string[]>([]);
   const [newServiceArea, setNewServiceArea] = useState("");
@@ -96,7 +98,7 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
         description: formData.description.trim() || null,
         service_category: formData.category,
         specialist_id: user.id,
-        duration_hours: 2, // Default duration
+        duration_hours: formData.duration_hours,
       };
 
       if (editingId) {
@@ -120,6 +122,7 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
         name: "",
         description: "",
         category: "",
+        duration_hours: 2,
       });
       setIsAdding(false);
       setEditingId(null);
@@ -136,6 +139,7 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
       name: service.name,
       description: service.description || "",
       category: service.service_category,
+      duration_hours: service.duration_hours || 2,
     });
     setEditingId(service.id);
     setIsAdding(true);
@@ -165,6 +169,7 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
       name: "",
       description: "",
       category: "",
+      duration_hours: 2,
     });
     setIsAdding(false);
     setEditingId(null);
@@ -302,25 +307,39 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="category">Service Category *</Label>
-                  <Select 
-                    value={formData.category} 
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="residential">Residential</SelectItem>
-                      <SelectItem value="commercial">Commercial</SelectItem>
-                      <SelectItem value="deep_cleaning">Deep Cleaning</SelectItem>
-                      <SelectItem value="regular_cleaning">Regular Cleaning</SelectItem>
-                      <SelectItem value="move_in_out">Move In/Out</SelectItem>
-                      <SelectItem value="post_construction">Post Construction</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="category">Service Category *</Label>
+                <Select 
+                  value={formData.category} 
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="residential">Residential</SelectItem>
+                    <SelectItem value="commercial">Commercial</SelectItem>
+                    <SelectItem value="deep_cleaning">Deep Cleaning</SelectItem>
+                    <SelectItem value="regular_cleaning">Regular Cleaning</SelectItem>
+                    <SelectItem value="move_in_out">Move In/Out</SelectItem>
+                    <SelectItem value="post_construction">Post Construction</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="duration_hours">Duration (Hours) *</Label>
+                <Input
+                  id="duration_hours"
+                  type="number"
+                  placeholder="e.g., 2"
+                  value={formData.duration_hours}
+                  onChange={(e) => setFormData(prev => ({ ...prev, duration_hours: parseInt(e.target.value) || 0 }))}
+                  min="1"
+                  max="24"
+                  required
+                />
+              </div>
               </div>
 
               <div className="space-y-2">
@@ -332,6 +351,40 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
                   onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                   rows={3}
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="images">Service Images</Label>
+                <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4">
+                  <input
+                    type="file"
+                    id="images"
+                    multiple
+                    accept="image/*"
+                    onChange={(e) => {
+                      if (e.target.files) {
+                        setImageFiles(Array.from(e.target.files));
+                      }
+                    }}
+                    className="hidden"
+                  />
+                  <label
+                    htmlFor="images"
+                    className="flex flex-col items-center gap-2 cursor-pointer"
+                  >
+                    <Upload className="h-8 w-8 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">
+                      Click to upload service images
+                    </span>
+                  </label>
+                  {imageFiles.length > 0 && (
+                    <div className="mt-2">
+                      <p className="text-sm text-muted-foreground">
+                        {imageFiles.length} file(s) selected
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="flex gap-4">
@@ -375,13 +428,6 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => setViewingService(service)}
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
                       onClick={() => handleEdit(service)}
                     >
                       <Edit className="h-4 w-4" />
@@ -401,14 +447,6 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
         </CardContent>
       </Card>
 
-      {/* Service Details Dialog */}
-      {viewingService && (
-        <CleaningServiceDetailsDialog
-          service={viewingService}
-          open={!!viewingService}
-          onOpenChange={(open) => !open && setViewingService(null)}
-        />
-      )}
     </div>
   );
 };

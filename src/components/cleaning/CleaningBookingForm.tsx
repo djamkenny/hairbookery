@@ -284,8 +284,8 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
                             <h3 className="font-semibold">{service.name}</h3>
                           </div>
                          <p className="text-sm text-muted-foreground">{service.description || 'Professional cleaning service'}</p>
-                         <div className="text-xs text-muted-foreground">
-                           Duration: {service.duration_hours} hours • Category: {service.service_category}
+                         <div className="text-xs text-muted-foreground italic">
+                           Specialist will contact you for more details about the pricing
                          </div>
                        </div>
                      </CardContent>

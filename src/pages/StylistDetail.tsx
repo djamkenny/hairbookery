@@ -4,7 +4,7 @@ import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { CleaningServiceDetailsDialog } from "@/components/cleaning/CleaningServiceDetailsDialog";
+
 import { Badge } from "@/components/ui/badge";
 import { CalendarIcon, ClockIcon, MapPin, CheckCircle2, Eye } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
@@ -60,7 +60,6 @@ const SpecialistDetail = () => {
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [lightboxTitle, setLightboxTitle] = useState<string>("");
   const { shareLocation } = useLocationSharing();
-  const [viewingCleaningService, setViewingCleaningService] = useState<any | null>(null);
   const [rawCleaningServices, setRawCleaningServices] = useState<any[]>([]);
   
   useEffect(() => {
@@ -459,19 +458,6 @@ const SpecialistDetail = () => {
                                    )}
                                  </div>
                                 
-                                {(specialist?.service_type === 'cleaning' || specialist?.is_cleaning_specialist) && (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => {
-                                      const cleaningService = rawCleaningServices.find(s => s.id === serviceType.id);
-                                      setViewingCleaningService(cleaningService);
-                                    }}
-                                  >
-                                    <Eye className="h-4 w-4 mr-1" />
-                                    View Details
-                                  </Button>
-                                )}
                               </div>
                             ))}
                           </div>
@@ -511,12 +497,6 @@ const SpecialistDetail = () => {
         title={lightboxTitle}
       />
 
-      {/* Cleaning Service Details Dialog */}
-      <CleaningServiceDetailsDialog
-        service={viewingCleaningService}
-        open={!!viewingCleaningService}
-        onOpenChange={(open) => !open && setViewingCleaningService(null)}
-      />
       
       <Footer />
     </div>

@@ -140,7 +140,6 @@ const SpecialistAppointmentsTab = () => {
                 orders={cleaningOrders}
                 loading={cleaningLoading}
                 onUpdateStatus={handleUpdateCleaningStatus}
-                onViewDetails={handleViewCleaningDetails}
               />
             </TabsContent>
           )}
@@ -181,7 +180,6 @@ const SpecialistAppointmentsTab = () => {
           orders={cleaningOrders}
           loading={cleaningLoading}
           onUpdateStatus={handleUpdateCleaningStatus}
-          onViewDetails={handleViewCleaningDetails}
         />
 
         <CleaningAppointmentDetailsModal
