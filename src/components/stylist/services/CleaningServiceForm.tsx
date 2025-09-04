@@ -6,16 +6,23 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Edit, Trash2, Save, MapPin } from "lucide-react";
+import { Plus, Edit, Trash2, Save, MapPin, X, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { CleaningServiceDetailsDialog } from "@/components/cleaning/CleaningServiceDetailsDialog";
+
+interface PricingTier {
+  name: string;
+  description: string;
+  price: string;
+  duration: string;
+}
 
 interface CleaningServiceForm {
   name: string;
   description: string;
-  totalPrice: string;
-  duration: string;
   category: string;
+  pricingTiers: PricingTier[];
 }
 
 interface CleaningServiceFormProps {
@@ -27,12 +34,14 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
   const [cleaningServices, setCleaningServices] = useState<any[]>([]);
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [viewingService, setViewingService] = useState<any | null>(null);
   const [formData, setFormData] = useState<CleaningServiceForm>({
     name: "",
     description: "",
-    totalPrice: "",
-    duration: "",
     category: "",
+    pricingTiers: [
+      { name: "Standard", description: "", price: "", duration: "2" }
+    ],
   });
   const [serviceAreas, setServiceAreas] = useState<string[]>([]);
   const [newServiceArea, setNewServiceArea] = useState("");
@@ -81,33 +90,61 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name.trim() || !formData.totalPrice || !formData.duration || !formData.category) {
+    if (!formData.name.trim() || !formData.category || formData.pricingTiers.length === 0) {
       toast.error("Please fill in all required fields");
       return;
     }
 
-    const totalPriceValue = parseFloat(formData.totalPrice);
-    const durationValue = parseInt(formData.duration);
+    // Validate each pricing tier
+    for (const tier of formData.pricingTiers) {
+      if (!tier.name.trim() || !tier.price || !tier.duration) {
+        toast.error("Please complete all pricing tier information");
+        return;
+      }
+      
+      const priceValue = parseFloat(tier.price);
+      const durationValue = parseInt(tier.duration);
 
-    if (isNaN(totalPriceValue) || totalPriceValue <= 0) {
-      toast.error("Please enter a valid total price");
-      return;
-    }
+      if (isNaN(priceValue) || priceValue <= 0) {
+        toast.error("Please enter valid prices for all tiers");
+        return;
+      }
 
-    if (isNaN(durationValue) || durationValue <= 0) {
-      toast.error("Please enter a valid duration");
-      return;
+      if (isNaN(durationValue) || durationValue <= 0) {
+        toast.error("Please enter valid durations for all tiers");
+        return;
+      }
     }
 
     try {
+      // Get current user for specialist_id
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("User not authenticated");
+        return;
+      }
+
+      // For now, we'll create multiple services (one per pricing tier)
+      // In future, you might want to modify the schema to support multiple pricing tiers per service
+      const servicesToProcess = formData.pricingTiers.map(tier => ({
+        name: `${formData.name.trim()} - ${tier.name.trim()}`,
+        description: tier.description.trim() || formData.description.trim() || null,
+        total_price: Math.round(parseFloat(tier.price) * 100), // Convert to cents
+        duration_hours: parseInt(tier.duration),
+        service_category: formData.category,
+        specialist_id: user.id,
+      }));
+
       if (editingId) {
+        // For editing, just update the first service (simplified for now)
+        const firstTier = formData.pricingTiers[0];
         const { error } = await supabase
           .from('cleaning_services')
           .update({
             name: formData.name.trim(),
-            description: formData.description.trim() || null,
-            total_price: Math.round(totalPriceValue * 100), // Convert to cents
-            duration_hours: durationValue,
+            description: firstTier.description.trim() || formData.description.trim() || null,
+            total_price: Math.round(parseFloat(firstTier.price) * 100),
+            duration_hours: parseInt(firstTier.duration),
             service_category: formData.category,
           })
           .eq('id', editingId);
@@ -115,34 +152,22 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
         if (error) throw error;
         toast.success("Cleaning service updated successfully");
       } else {
-        // Get current user for specialist_id
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          toast.error("User not authenticated");
-          return;
-        }
-
+        // Insert all pricing tiers as separate services
         const { error } = await supabase
           .from('cleaning_services')
-          .insert({
-            name: formData.name.trim(),
-            description: formData.description.trim() || null,
-            total_price: Math.round(totalPriceValue * 100),
-            duration_hours: durationValue,
-            service_category: formData.category,
-            specialist_id: user.id,
-          });
+          .insert(servicesToProcess);
         
         if (error) throw error;
-        toast.success("Cleaning service added successfully");
+        toast.success("Cleaning services added successfully");
       }
 
       setFormData({
         name: "",
         description: "",
-        totalPrice: "",
-        duration: "",
         category: "",
+        pricingTiers: [
+          { name: "Standard", description: "", price: "", duration: "2" }
+        ],
       });
       setIsAdding(false);
       setEditingId(null);
@@ -158,9 +183,15 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
     setFormData({
       name: service.name,
       description: service.description || "",
-      totalPrice: (service.total_price / 100).toFixed(2),
-      duration: service.duration_hours.toString(),
       category: service.service_category,
+      pricingTiers: [
+        {
+          name: "Standard",
+          description: service.description || "",
+          price: (service.total_price / 100).toFixed(2),
+          duration: service.duration_hours.toString(),
+        }
+      ],
     });
     setEditingId(service.id);
     setIsAdding(true);
@@ -189,12 +220,40 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
     setFormData({
       name: "",
       description: "",
-      totalPrice: "",
-      duration: "",
       category: "",
+      pricingTiers: [
+        { name: "Standard", description: "", price: "", duration: "2" }
+      ],
     });
     setIsAdding(false);
     setEditingId(null);
+  };
+
+  const addPricingTier = () => {
+    setFormData(prev => ({
+      ...prev,
+      pricingTiers: [
+        ...prev.pricingTiers,
+        { name: "", description: "", price: "", duration: "2" }
+      ]
+    }));
+  };
+
+  const removePricingTier = (index: number) => {
+    if (formData.pricingTiers.length <= 1) return;
+    setFormData(prev => ({
+      ...prev,
+      pricingTiers: prev.pricingTiers.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updatePricingTier = (index: number, field: keyof PricingTier, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      pricingTiers: prev.pricingTiers.map((tier, i) => 
+        i === index ? { ...tier, [field]: value } : tier
+      )
+    }));
   };
 
   const addServiceArea = async () => {
@@ -344,43 +403,98 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
                 </div>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="totalPrice">Service Price (GHS) *</Label>
-                  <Input
-                    id="totalPrice"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={formData.totalPrice}
-                    onChange={(e) => setFormData({ ...formData, totalPrice: e.target.value })}
-                    placeholder="150.00"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="duration">Duration (Hours) *</Label>
-                  <Input
-                    id="duration"
-                    type="number"
-                    min="1"
-                    value={formData.duration}
-                    onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
-                    placeholder="3"
-                    required
-                  />
-                </div>
-              </div>
-              
               <div>
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description">General Description</Label>
                 <Textarea
                   id="description"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Describe what this service includes"
+                  placeholder="General description of the service offering"
                 />
               </div>
+
+              {/* Pricing Tiers */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label className="text-base font-medium">Pricing Tiers *</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={addPricingTier}
+                    disabled={formData.pricingTiers.length >= 5}
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add Tier
+                  </Button>
+                </div>
+                
+                {formData.pricingTiers.map((tier, index) => (
+                  <Card key={index} className="p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <Label className="text-sm font-medium">Tier {index + 1}</Label>
+                      {formData.pricingTiers.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removePricingTier(index)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div>
+                        <Label htmlFor={`tier-name-${index}`}>Tier Name *</Label>
+                        <Input
+                          id={`tier-name-${index}`}
+                          value={tier.name}
+                          onChange={(e) => updatePricingTier(index, 'name', e.target.value)}
+                          placeholder="e.g., Basic, Premium, Deluxe"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor={`tier-price-${index}`}>Price (GHS) *</Label>
+                        <Input
+                          id={`tier-price-${index}`}
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={tier.price}
+                          onChange={(e) => updatePricingTier(index, 'price', e.target.value)}
+                          placeholder="150.00"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor={`tier-duration-${index}`}>Duration (Hours) *</Label>
+                        <Input
+                          id={`tier-duration-${index}`}
+                          type="number"
+                          min="1"
+                          value={tier.duration}
+                          onChange={(e) => updatePricingTier(index, 'duration', e.target.value)}
+                          placeholder="2"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor={`tier-description-${index}`}>Tier Description</Label>
+                        <Input
+                          id={`tier-description-${index}`}
+                          value={tier.description}
+                          onChange={(e) => updatePricingTier(index, 'description', e.target.value)}
+                          placeholder="What's included in this tier"
+                        />
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+              
               
               <div className="flex gap-2">
                 <Button type="submit">
@@ -443,6 +557,9 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
                       )}
                     </div>
                     <div className="flex gap-2">
+                      <Button size="sm" variant="outline" onClick={() => setViewingService(service)}>
+                        <Eye className="h-3 w-3" />
+                      </Button>
                       <Button size="sm" variant="outline" onClick={() => handleEdit(service)}>
                         <Edit className="h-3 w-3" />
                       </Button>
@@ -457,6 +574,13 @@ export const CleaningServiceForm: React.FC<CleaningServiceFormProps> = ({ onServ
           </Card>
         )}
       </div>
+
+      {/* Service Details Dialog */}
+      <CleaningServiceDetailsDialog
+        service={viewingService}
+        open={!!viewingService}
+        onOpenChange={(open) => !open && setViewingService(null)}
+      />
     </div>
   );
 };

@@ -2,10 +2,11 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { CleaningServiceDetailsDialog } from "@/components/cleaning/CleaningServiceDetailsDialog";
 import { Badge } from "@/components/ui/badge";
-import { CalendarIcon, ClockIcon, MapPin, CheckCircle2 } from "lucide-react";
+import { CalendarIcon, ClockIcon, MapPin, CheckCircle2, Eye } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import ProfileBookingForm from "@/components/specialist/ProfileBookingForm";
@@ -59,6 +60,8 @@ const SpecialistDetail = () => {
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [lightboxTitle, setLightboxTitle] = useState<string>("");
   const { shareLocation } = useLocationSharing();
+  const [viewingCleaningService, setViewingCleaningService] = useState<any | null>(null);
+  const [rawCleaningServices, setRawCleaningServices] = useState<any[]>([]);
   
   useEffect(() => {
     const fetchSpecialistAndServices = async () => {
@@ -149,6 +152,9 @@ const SpecialistDetail = () => {
           }
 
           if (cleaningServicesData) {
+            // Store raw cleaning services for details view
+            setRawCleaningServices(cleaningServicesData);
+            
             // Convert cleaning services to service types format
             const cleaningServiceTypes: ServiceType[] = cleaningServicesData.map((service: any) => ({
               id: service.id,
@@ -415,6 +421,64 @@ const SpecialistDetail = () => {
                 </div>
               )}
 
+              {/* Services Section */}
+              {serviceCategories.length > 0 && (
+                <div className="animate-fade-in">
+                  <h2 className="text-lg lg:text-xl font-semibold mb-4">Available Services</h2>
+                  <div className="space-y-4">
+                    {serviceCategories.map((category, categoryIndex) => (
+                      <Card key={categoryIndex}>
+                        <CardHeader>
+                          <CardTitle className="text-lg">{category.name}</CardTitle>
+                          {category.description && (
+                            <p className="text-sm text-muted-foreground">{category.description}</p>
+                          )}
+                        </CardHeader>
+                        <CardContent>
+                          <div className="grid gap-4">
+                            {category.serviceTypes.map((serviceType) => (
+                              <div
+                                key={serviceType.id}
+                                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 border rounded-lg bg-muted/20"
+                              >
+                                <div className="flex-1">
+                                  <h4 className="font-medium">{serviceType.name}</h4>
+                                  <div className="flex gap-2 mt-1">
+                                    <Badge variant="secondary">
+                                      GHS {serviceType.price}
+                                    </Badge>
+                                    <Badge variant="outline">
+                                      {Math.round(serviceType.duration / 60)}h
+                                    </Badge>
+                                  </div>
+                                  {serviceType.description && (
+                                    <p className="text-sm text-muted-foreground mt-1">{serviceType.description}</p>
+                                  )}
+                                </div>
+                                
+                                {(specialist?.service_type === 'cleaning' || specialist?.is_cleaning_specialist) && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      const cleaningService = rawCleaningServices.find(s => s.id === serviceType.id);
+                                      setViewingCleaningService(cleaningService);
+                                    }}
+                                  >
+                                    <Eye className="h-4 w-4 mr-1" />
+                                    View Details
+                                  </Button>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Integrated Booking Form */}
               <div className="animate-fade-in">
                 {specialist.service_type === 'laundry' || specialist.is_laundry_specialist ? (
@@ -442,6 +506,13 @@ const SpecialistDetail = () => {
         startIndex={lightboxIndex}
         altPrefix={`${lightboxTitle} image`}
         title={lightboxTitle}
+      />
+
+      {/* Cleaning Service Details Dialog */}
+      <CleaningServiceDetailsDialog
+        service={viewingCleaningService}
+        open={!!viewingCleaningService}
+        onOpenChange={(open) => !open && setViewingCleaningService(null)}
       />
       
       <Footer />
