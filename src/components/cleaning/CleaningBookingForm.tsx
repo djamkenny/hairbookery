@@ -32,6 +32,10 @@ interface CleaningService {
   duration_hours: number;
   service_category: string;
   addons?: any;
+  property_type?: string;
+  square_footage?: number;
+  num_rooms?: number;
+  num_bathrooms?: number;
 }
 
 interface CleaningBookingFormProps {
@@ -58,10 +62,6 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
   const [serviceDate, setServiceDate] = useState<Date>();
   const [serviceTime, setServiceTime] = useState("");
   const [serviceAddress, setServiceAddress] = useState("");
-  const [propertyType, setPropertyType] = useState("");
-  const [numRooms, setNumRooms] = useState("");
-  const [numBathrooms, setNumBathrooms] = useState("");
-  const [squareFootage, setSquareFootage] = useState("");
   const [specialInstructions, setSpecialInstructions] = useState("");
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
   const [customerName, setCustomerName] = useState("");
@@ -132,14 +132,14 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
     }
   };
 
-  // Calculate service cost breakdown
+  // Calculate service cost breakdown using specialist-defined property details
   const calculatePriceBreakdown = () => {
     const selectedService = availableServices.find(s => s.id === serviceType);
     if (!selectedService) return { serviceCost: 0, bookingFee: 0, total: 0 };
     
-    // Calculate based on price per room and selected number of rooms
+    // Use specialist-defined number of rooms for pricing calculation
     const pricePerRoom = selectedService.total_price / 100; // Convert from cents
-    const rooms = parseInt(numRooms) || 1; // Default to 1 room if not specified
+    const rooms = selectedService.num_rooms || 1; // Use specialist-defined rooms
     const servicePrice = pricePerRoom * rooms;
     
     // Add selected addon prices from the service's addons
@@ -178,15 +178,16 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
       return;
     }
 
+    const selectedService = availableServices.find(s => s.id === serviceType);
     const bookingData = {
       serviceType,
       serviceDate: format(serviceDate, 'yyyy-MM-dd'),
       serviceTime,
       serviceAddress,
-      propertyType,
-      numRooms: parseInt(numRooms) || undefined,
-      numBathrooms: parseInt(numBathrooms) || undefined,
-      squareFootage: parseInt(squareFootage) || undefined,
+      propertyType: selectedService?.property_type || '',
+      numRooms: selectedService?.num_rooms || undefined,
+      numBathrooms: selectedService?.num_bathrooms || undefined,
+      squareFootage: selectedService?.square_footage || undefined,
       specialInstructions,
       selectedAddons,
       customerName,
@@ -223,8 +224,7 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
       toast.error('Please fill in service details');
       return;
     }
-    // Step 3 (Property Details) doesn't require any mandatory fields to proceed
-    // Customer information validation will happen on form submission
+    // Skip to step 3 since property details are now managed by specialist
     setStep(step + 1);
   };
 
@@ -254,7 +254,7 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       {/* Progress Steps */}
       <div className="flex items-center justify-center space-x-4 mb-8">
-        {[1, 2, 3, 4].map((num) => (
+        {[1, 2, 3].map((num) => (
           <div key={num} className="flex items-center">
             <div className={cn(
               "w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold",
@@ -262,7 +262,7 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
             )}>
               {num}
             </div>
-            {num < 4 && (
+            {num < 3 && (
               <div className={cn(
                 "w-12 h-0.5 mx-2",
                 step > num ? "bg-primary" : "bg-muted"
@@ -410,7 +410,7 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
                 Back
               </Button>
               <Button onClick={nextStep} className="flex-1">
-                Continue to Property Details
+                Continue to Booking Details
                 <ChevronRight className="ml-2 h-4 w-4" />
               </Button>
             </div>
@@ -418,82 +418,61 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
         </Card>
       )}
 
-      {/* Step 3: Property Details & Add-ons */}
+      {/* Step 3: Customer Details & Add-ons */}
       {step === 3 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
-              <Home className="w-5 h-5 mr-2" />
-              Property Details
+              <Users className="w-5 h-5 mr-2" />
+              Customer Information & Add-ons
             </CardTitle>
             <CardDescription>
-              Tell us about your property and any additional services
+              Your information and any additional services
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="propertyType">Property Type</Label>
-                <Select value={propertyType} onValueChange={setPropertyType}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select property type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {propertyTypes.map((type) => (
-                      <SelectItem key={type.value} value={type.value}>
-                        {type.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="customerName">Full Name *</Label>
+                <Input
+                  id="customerName"
+                  placeholder="Enter your full name"
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="squareFootage">Square Footage (approx.)</Label>
-                <div className="relative">
-                  <Square className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="squareFootage"
-                    type="number"
-                    placeholder="e.g., 1200"
-                    value={squareFootage}
-                    onChange={(e) => setSquareFootage(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
+                <Label htmlFor="customerPhone">Phone Number *</Label>
+                <Input
+                  id="customerPhone"
+                  placeholder="Enter your phone number"
+                  value={customerPhone}
+                  onChange={(e) => setCustomerPhone(e.target.value)}
+                />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="numRooms">Number of Rooms</Label>
-                <div className="relative">
-                  <Home className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="numRooms"
-                    type="number"
-                    placeholder="e.g., 3"
-                    value={numRooms}
-                    onChange={(e) => setNumRooms(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="customerEmail">Email Address *</Label>
+              <Input
+                id="customerEmail"
+                type="email"
+                placeholder="Enter your email address"
+                value={customerEmail}
+                onChange={(e) => setCustomerEmail(e.target.value)}
+              />
+            </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="numBathrooms">Number of Bathrooms</Label>
-                <div className="relative">
-                  <Bath className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="numBathrooms"
-                    type="number"
-                    placeholder="e.g., 2"
-                    value={numBathrooms}
-                    onChange={(e) => setNumBathrooms(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="specialInstructions">Special Instructions</Label>
+              <Textarea
+                id="specialInstructions"
+                placeholder="Any special care instructions or notes (e.g., 'pet in the house', 'use eco-friendly products')"
+                value={specialInstructions}
+                onChange={(e) => setSpecialInstructions(e.target.value)}
+                rows={3}
+              />
             </div>
 
             {/* Add-ons Section */}
@@ -539,7 +518,7 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
                 Back
               </Button>
               <Button onClick={nextStep} className="flex-1">
-                Continue to Customer Information
+                Continue to Summary
                 <ChevronRight className="ml-2 h-4 w-4" />
               </Button>
             </div>
@@ -547,63 +526,9 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
         </Card>
       )}
 
-      {/* Step 4: Customer Information & Summary */}
+      {/* Step 4: Booking Summary */}
       {step === 4 && (
         <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Users className="w-5 h-5 mr-2" />
-                Customer Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="customerName">Full Name *</Label>
-                  <Input
-                    id="customerName"
-                    placeholder="Enter your full name"
-                    value={customerName}
-                    onChange={(e) => setCustomerName(e.target.value)}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="customerPhone">Phone Number *</Label>
-                  <Input
-                    id="customerPhone"
-                    placeholder="Enter your phone number"
-                    value={customerPhone}
-                    onChange={(e) => setCustomerPhone(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="customerEmail">Email Address *</Label>
-                <Input
-                  id="customerEmail"
-                  type="email"
-                  placeholder="Enter your email address"
-                  value={customerEmail}
-                  onChange={(e) => setCustomerEmail(e.target.value)}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="specialInstructions">Special Instructions</Label>
-                <Textarea
-                  id="specialInstructions"
-                  placeholder="Any special care instructions or notes (e.g., 'pet in the house', 'use eco-friendly products')"
-                  value={specialInstructions}
-                  onChange={(e) => setSpecialInstructions(e.target.value)}
-                  rows={3}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
           <Card>
             <CardHeader>
               <CardTitle>Booking Summary</CardTitle>

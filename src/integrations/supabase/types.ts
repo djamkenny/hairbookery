@@ -268,8 +268,12 @@ export type Database = {
           hourly_rate: number | null
           id: string
           name: string
+          num_bathrooms: number | null
+          num_rooms: number | null
+          property_type: string | null
           service_category: string
           specialist_id: string | null
+          square_footage: number | null
           total_price: number
           updated_at: string
         }
@@ -281,8 +285,12 @@ export type Database = {
           hourly_rate?: number | null
           id?: string
           name: string
+          num_bathrooms?: number | null
+          num_rooms?: number | null
+          property_type?: string | null
           service_category: string
           specialist_id?: string | null
+          square_footage?: number | null
           total_price?: number
           updated_at?: string
         }
@@ -294,8 +302,12 @@ export type Database = {
           hourly_rate?: number | null
           id?: string
           name?: string
+          num_bathrooms?: number | null
+          num_rooms?: number | null
+          property_type?: string | null
           service_category?: string
           specialist_id?: string | null
+          square_footage?: number | null
           total_price?: number
           updated_at?: string
         }
