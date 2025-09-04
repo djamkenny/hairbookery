@@ -32,10 +32,7 @@ interface CleaningService {
   duration_hours: number;
   service_category: string;
   addons?: any;
-  property_type?: string;
-  square_footage?: number;
-  num_rooms?: number;
-  num_bathrooms?: number;
+  property_details?: any;
 }
 
 interface CleaningBookingFormProps {
@@ -137,9 +134,14 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
     const selectedService = availableServices.find(s => s.id === serviceType);
     if (!selectedService) return { serviceCost: 0, bookingFee: 0, total: 0 };
     
-    // Use specialist-defined number of rooms for pricing calculation
+    // Use specialist-defined rooms for pricing calculation (look for "Number of Rooms" in property details)
+    const propertyDetails = Array.isArray(selectedService.property_details) ? selectedService.property_details : [];
+    const roomsDetail = propertyDetails.find((detail: any) => 
+      detail.name?.toLowerCase().includes('room') || detail.name?.toLowerCase().includes('Room')
+    );
+    const rooms = roomsDetail ? parseInt(roomsDetail.value) || 1 : 1;
+    
     const pricePerRoom = selectedService.total_price / 100; // Convert from cents
-    const rooms = selectedService.num_rooms || 1; // Use specialist-defined rooms
     const servicePrice = pricePerRoom * rooms;
     
     // Add selected addon prices from the service's addons
@@ -179,15 +181,14 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
     }
 
     const selectedService = availableServices.find(s => s.id === serviceType);
+    const propertyDetails = Array.isArray(selectedService?.property_details) ? selectedService.property_details : [];
+    
     const bookingData = {
       serviceType,
       serviceDate: format(serviceDate, 'yyyy-MM-dd'),
       serviceTime,
       serviceAddress,
-      propertyType: selectedService?.property_type || '',
-      numRooms: selectedService?.num_rooms || undefined,
-      numBathrooms: selectedService?.num_bathrooms || undefined,
-      squareFootage: selectedService?.square_footage || undefined,
+      propertyDetails: propertyDetails,
       specialInstructions,
       selectedAddons,
       customerName,
