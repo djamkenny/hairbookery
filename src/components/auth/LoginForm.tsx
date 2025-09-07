@@ -57,6 +57,14 @@ const LoginForm = () => {
       if (data.user) {
         toast.success("Successfully logged in!");
         
+        // Check if there's a redirect URL from the auth prompt
+        const redirectTo = localStorage.getItem('auth_redirect_to');
+        if (redirectTo) {
+          localStorage.removeItem('auth_redirect_to');
+          navigate(redirectTo);
+          return;
+        }
+        
         // Redirect based on user role
         const metadata = data.user?.user_metadata || {};
         if (metadata.is_stylist) {

@@ -52,6 +52,9 @@ export const useBookingFormState = ({
       };
       
       fetchUserProfile();
+    } else {
+      // Allow guest users to fill out the form
+      // Form will remain empty for them to fill
     }
   }, [currentUser]);
 

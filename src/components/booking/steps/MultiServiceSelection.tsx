@@ -306,6 +306,7 @@ const MultiServiceSelection: React.FC<MultiServiceSelectionProps> = ({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={currentUser !== null} // Disable if user is logged in
+              className={!currentUser ? "bg-muted" : ""}
             />
           </div>
           
@@ -341,31 +342,54 @@ const MultiServiceSelection: React.FC<MultiServiceSelectionProps> = ({
         formatDuration={formatDuration}
       />
       
-      <Button 
-        type="submit" 
-        className="w-full"
-        disabled={isSubmitting || !currentUser || !date || !services.length || !stylist || !time || !name || !phone}
-      >
-        {isSubmitting ? (
-          <div className="loading-dots">
-            <span>•</span>
-            <span>•</span>
-            <span>•</span>
+      {!currentUser ? (
+        <div className="space-y-4">
+          <div className="bg-blue-50 border border-blue-200 p-4 rounded-md text-center">
+            <p className="text-blue-800 text-sm mb-3">
+              Ready to book? Please log in or create an account to continue
+            </p>
+            <div className="flex gap-3 justify-center">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  localStorage.setItem('auth_redirect_to', window.location.pathname);
+                  window.location.href = '/login';
+                }}
+              >
+                Log In
+              </Button>
+              <Button 
+                size="sm"
+                onClick={() => {
+                  localStorage.setItem('auth_redirect_to', window.location.pathname);
+                  window.location.href = '/register';
+                }}
+              >
+                Sign Up
+              </Button>
+            </div>
           </div>
-        ) : (
-          <span className="flex items-center">
-            Continue to Payment
-            <ChevronRight className="ml-2 h-4 w-4" />
-          </span>
-        )}
-      </Button>
-      
-      {!currentUser && (
-        <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-md text-center">
-          <p className="text-yellow-800 text-sm">
-            You need to <a href="/login" className="text-primary font-medium hover:underline">log in</a> to book an appointment
-          </p>
         </div>
+      ) : (
+        <Button 
+          type="submit" 
+          className="w-full"
+          disabled={isSubmitting || !date || !services.length || !stylist || !time || !name || !phone}
+        >
+          {isSubmitting ? (
+            <div className="loading-dots">
+              <span>•</span>
+              <span>•</span>
+              <span>•</span>
+            </div>
+          ) : (
+            <span className="flex items-center">
+              Continue to Payment
+              <ChevronRight className="ml-2 h-4 w-4" />
+            </span>
+          )}
+        </Button>
       )}
       
       <p className="text-center text-sm text-muted-foreground">

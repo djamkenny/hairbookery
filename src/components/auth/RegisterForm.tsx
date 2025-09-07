@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -128,7 +128,15 @@ const RegisterForm = ({ className }: RegisterFormProps) => {
       
       setCanResend(true);
       toast.success("Account created! Please verify via the email we sent.");
-      navigate("/login");
+      
+      // Check if there's a redirect URL from the auth prompt
+      const redirectTo = localStorage.getItem('auth_redirect_to');
+      if (redirectTo) {
+        // Keep the redirect for after email verification and login
+        navigate("/login");
+      } else {
+        navigate("/login");
+      }
     } catch (error: any) {
       console.error("Registration error:", error);
       const msg = String(error?.message || "Registration failed. Please try again.");
