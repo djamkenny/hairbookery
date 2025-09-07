@@ -40,16 +40,19 @@ import { ThemeProvider } from './components/theme/ThemeProvider';
 import { PaymentProvider } from './components/payment/PaymentProvider';
 import { Toaster } from 'sonner';
 import { RatingNotificationHandler } from './components/notifications/RatingNotificationHandler';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
 
 const App: React.FC = () => {
   return (
-    <ThemeProvider>
-      <PaymentProvider>
-        <Router>
-          <AppContent />
-        </Router>
-      </PaymentProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <PaymentProvider>
+          <Router>
+            <AppContent />
+          </Router>
+        </PaymentProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 };
 
@@ -59,10 +62,17 @@ const AppContent: React.FC = () => {
 
   useEffect(() => {
     if (user) {
-      // Redirect authenticated users to home page, but not on initial load or password reset
+      // Redirect authenticated users based on their role
       const currentPath = window.location.pathname;
-      if (currentPath === '/login' || currentPath === '/register' || currentPath === '/forgot-password' || currentPath === '/stylist-register' || currentPath === '/auth' || currentPath === '/client-login' || currentPath === '/specialist-login') {
-        navigate('/');
+      const authPaths = ['/auth', '/client-login', '/specialist-login'];
+      
+      if (authPaths.includes(currentPath)) {
+        const metadata = user.user_metadata || {};
+        if (metadata.is_stylist) {
+          navigate('/stylist-dashboard');
+        } else {
+          navigate('/profile');
+        }
       }
     }
   }, [user, navigate]);
@@ -71,26 +81,6 @@ const AppContent: React.FC = () => {
     <>
       <Routes>
         <Route path="/auth" element={
-          <PublicRoute>
-            <Auth />
-          </PublicRoute>
-        } />
-        <Route path="/login" element={
-          <PublicRoute>
-            <Auth />
-          </PublicRoute>
-        } />
-        <Route path="/register" element={
-          <PublicRoute>
-            <Auth />
-          </PublicRoute>
-        } />
-        <Route path="/stylist-register" element={
-          <PublicRoute>
-            <Auth />
-          </PublicRoute>
-        } />
-        <Route path="/forgot-password" element={
           <PublicRoute>
             <Auth />
           </PublicRoute>

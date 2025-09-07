@@ -23,7 +23,7 @@ const ReviewsList = ({ reviews, loading, user, onEdit, onDelete }: ReviewsListPr
 
 	const maxCommentLength = 500;
 
-	console.log("ReviewsList rendering with:", { reviewsCount: reviews.length, loading });
+	// Remove debug logging in production
 
 	const handleEditChange = (
 		e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>

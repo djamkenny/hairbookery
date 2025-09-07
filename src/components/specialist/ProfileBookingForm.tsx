@@ -39,7 +39,7 @@ const ProfileBookingForm: React.FC<ProfileBookingFormProps> = ({
   const { initiatePayment } = useBookingPayment();
   
   const [step, setStep] = useState(1); // 1: Services, 2: Date/Time, 3: Confirm, 4: Payment
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [notes, setNotes] = useState("");
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);

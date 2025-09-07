@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from './useAuth';
+import { logger } from '@/utils/logger';
 
 export interface ChatMessage {
   id: string;
@@ -38,25 +39,38 @@ export const useRealtimeChat = (userId?: string, isAdmin = false) => {
   const messageQueue = useRef<any[]>([]);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
 
-  // Connection status monitoring
+  // Enhanced connection monitoring with circuit breaker pattern
   const setupConnectionMonitoring = useCallback(() => {
+    const maxRetries = 5;
+    const baseDelay = 1000;
+    
     const checkConnection = () => {
-      if (channelRef.current?.state === 'joined') {
+      const currentState = channelRef.current?.state;
+      
+      if (currentState === 'joined') {
         setChatState(prev => ({ ...prev, isConnected: true }));
         reconnectAttempts.current = 0;
-      } else {
+        logger.debug('Realtime connection established');
+      } else if (currentState === 'closed' || currentState === 'errored') {
         setChatState(prev => ({ ...prev, isConnected: false }));
-        if (reconnectAttempts.current < 5) {
-          const delay = Math.pow(2, reconnectAttempts.current) * 1000; // Exponential backoff
+        
+        if (reconnectAttempts.current < maxRetries) {
+          // Exponential backoff with jitter
+          const delay = baseDelay * Math.pow(2, reconnectAttempts.current) + Math.random() * 1000;
+          logger.warn(`Connection lost, retrying in ${delay}ms (attempt ${reconnectAttempts.current + 1}/${maxRetries})`);
+          
           reconnectTimeoutRef.current = setTimeout(() => {
             reconnectAttempts.current++;
             setupRealtimeSubscription();
           }, delay);
+        } else {
+          logger.error('Max reconnection attempts reached, stopping retries');
+          toast.error('Connection lost. Please refresh the page.');
         }
       }
     };
 
-    const interval = setInterval(checkConnection, 5000);
+    const interval = setInterval(checkConnection, 3000);
     return () => clearInterval(interval);
   }, []);
 
@@ -175,20 +189,27 @@ export const useRealtimeChat = (userId?: string, isAdmin = false) => {
         }));
       })
       .subscribe((status) => {
-        console.log('Subscription status:', status);
+        logger.debug('Realtime subscription status:', status);
+        
         if (status === 'SUBSCRIBED') {
           setChatState(prev => ({ ...prev, isConnected: true }));
           processMessageQueue();
           reconnectAttempts.current = 0;
-        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          logger.info('Realtime chat connected successfully');
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
           setChatState(prev => ({ ...prev, isConnected: false }));
-          console.log('Channel subscription issue - will retry:', status);
-          // Don't spam reconnections, wait a moment
+          logger.warn('Realtime subscription failed:', status);
+          
+          // Circuit breaker pattern - exponential backoff
           if (reconnectAttempts.current < 3) {
+            const delay = 2000 * Math.pow(2, reconnectAttempts.current);
             setTimeout(() => {
               reconnectAttempts.current++;
+              logger.info(`Retrying realtime connection (attempt ${reconnectAttempts.current})`);
               setupRealtimeSubscription();
-            }, 2000);
+            }, delay);
+          } else {
+            logger.error('Realtime connection failed after max retries');
           }
         }
       });
@@ -246,7 +267,7 @@ export const useRealtimeChat = (userId?: string, isAdmin = false) => {
         ).length
       }));
     } catch (error) {
-      console.error('Error loading messages:', error);
+      logger.error('Error loading messages:', error);
       toast.error('Failed to load chat history');
     } finally {
       setIsLoading(false);
@@ -290,7 +311,7 @@ export const useRealtimeChat = (userId?: string, isAdmin = false) => {
 
       return true;
     } catch (error) {
-      console.error('Error sending message:', error);
+      logger.error('Error sending message:', error);
       
       // Update failed message status
       if (tempId) {
@@ -346,7 +367,7 @@ export const useRealtimeChat = (userId?: string, isAdmin = false) => {
           });
         }
       } catch (e) {
-        console.log('Broadcast failed:', e);
+        logger.warn('Broadcast failed, continuing with database save:', e);
       }
 
       await sendMessageDirect(messageText, tempId);

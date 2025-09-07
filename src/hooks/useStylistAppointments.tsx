@@ -10,7 +10,7 @@ export const useStylistAppointments = () => {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [sortKey, setSortKey] = useState<keyof Appointment | undefined>(undefined);
+  const [sortKey, setSortKey] = useState<keyof Appointment | undefined>('date');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
@@ -46,8 +46,9 @@ export const useStylistAppointments = () => {
       const query = searchQuery.toLowerCase();
       result = result.filter(
         appointment => 
-          appointment.client.toLowerCase().includes(query) || 
-          appointment.service.toLowerCase().includes(query)
+          appointment.client?.toLowerCase().includes(query) || 
+          appointment.service?.toLowerCase().includes(query) ||
+          appointment.order_id?.toLowerCase().includes(query)
       );
     }
     
@@ -97,7 +98,7 @@ export const useStylistAppointments = () => {
 
       const appointmentInfo = appointments.find(a => a.id === appointmentId);
       if (appointmentInfo) {
-        const message = `Your appointment for ${appointmentInfo.service} on ${appointmentInfo.date} at ${appointmentInfo.time} has been canceled.`;
+        const message = `Your appointment for ${appointmentInfo.service || 'your service'} on ${appointmentInfo.date} at ${appointmentInfo.time} has been canceled.`;
         
         await supabase
           .from('notifications')
