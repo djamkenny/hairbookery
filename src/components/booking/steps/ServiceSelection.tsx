@@ -239,7 +239,7 @@ const ServiceSelection: React.FC<ServiceSelectionProps> = ({
           </div>
         ) : (
           <span className="flex items-center">
-            Continue to Payment
+            Continue
             <ChevronRight className="ml-2 h-4 w-4" />
           </span>
         )}

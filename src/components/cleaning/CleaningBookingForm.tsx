@@ -287,7 +287,7 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
               className="w-full"
               disabled={!serviceType}
             >
-              Continue to Service Details
+              Continue
               <ChevronRight className="ml-2 h-4 w-4" />
             </Button>
           </CardContent>
@@ -477,7 +477,7 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
                 Back
               </Button>
               <Button onClick={nextStep} className="flex-1">
-                Continue to Customer Details
+                Continue
                 <ChevronRight className="ml-2 h-4 w-4" />
               </Button>
             </div>

@@ -203,7 +203,7 @@ export const LaundryBookingForm: React.FC<LaundryBookingFormProps> = ({ speciali
               className="w-full"
               disabled={!selectedService}
             >
-              Continue to Pickup Details
+              Continue
               <ChevronRight className="ml-2 h-4 w-4" />
             </Button>
           </CardContent>
