@@ -371,7 +371,7 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
                 Back
               </Button>
               <Button onClick={nextStep} className="flex-1">
-                Continue to Property Details
+                Continue
                 <ChevronRight className="ml-2 h-4 w-4" />
               </Button>
             </div>
