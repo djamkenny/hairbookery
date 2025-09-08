@@ -126,7 +126,29 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
 
   const handleSubmit = async () => {
     if (!user) {
-      toast.error('Please log in to book a cleaning service');
+      // Store booking data and redirect to login
+      const bookingData = {
+        serviceType,
+        serviceDate: serviceDate ? format(serviceDate, 'yyyy-MM-dd') : '',
+        serviceTime,
+        serviceAddress,
+        propertyType,
+        numRooms,
+        numBathrooms,
+        squareFootage,
+        specialInstructions,
+        customerName,
+        customerPhone,
+        customerEmail,
+        specialistId
+      };
+      
+      // Store in sessionStorage for later use
+      sessionStorage.setItem('pendingCleaningBooking', JSON.stringify(bookingData));
+      
+      // Redirect to login with return URL
+      const currentUrl = window.location.pathname + window.location.search;
+      window.location.href = `/login?redirect=${encodeURIComponent(currentUrl)}`;
       return;
     }
 
@@ -189,25 +211,6 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
 
   const prevStep = () => setStep(step - 1);
 
-  if (!user) {
-    return (
-      <div className="max-w-2xl mx-auto p-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Login Required</CardTitle>
-            <CardDescription>
-              Please log in to book a cleaning service.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button asChild>
-              <a href="/login">Go to Login</a>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">

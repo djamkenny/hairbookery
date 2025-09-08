@@ -67,7 +67,28 @@ export const LaundryBookingForm: React.FC<LaundryBookingFormProps> = ({ speciali
 
   const handleSubmit = async () => {
     if (!user) {
-      toast.error('Please log in to place an order');
+      // Store booking data and redirect to login
+      const bookingData = {
+        serviceType: selectedService,
+        pickupAddress,
+        pickupInstructions,
+        deliveryAddress: sameAsPickup ? pickupAddress : deliveryAddress,
+        deliveryInstructions: sameAsPickup ? pickupInstructions : deliveryInstructions,
+        pickupDate: pickupDate ? format(pickupDate, 'yyyy-MM-dd') : '',
+        pickupTime,
+        deliveryDate: deliveryDate ? format(deliveryDate, 'yyyy-MM-dd') : '',
+        deliveryTime,
+        itemsDescription,
+        specialInstructions,
+        estimatedWeight: estimatedWeight[0]
+      };
+      
+      // Store in sessionStorage for later use
+      sessionStorage.setItem('pendingLaundryBooking', JSON.stringify(bookingData));
+      
+      // Redirect to login with return URL
+      const currentUrl = window.location.pathname + window.location.search;
+      window.location.href = `/login?redirect=${encodeURIComponent(currentUrl)}`;
       return;
     }
 
@@ -115,25 +136,6 @@ export const LaundryBookingForm: React.FC<LaundryBookingFormProps> = ({ speciali
 
   const prevStep = () => setStep(step - 1);
 
-  if (!user) {
-    return (
-      <div className="max-w-2xl mx-auto p-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Login Required</CardTitle>
-            <CardDescription>
-              Please log in to place a laundry order.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button asChild>
-              <a href="/login">Go to Login</a>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">

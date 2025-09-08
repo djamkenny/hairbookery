@@ -94,7 +94,21 @@ const ProfileBookingForm: React.FC<ProfileBookingFormProps> = ({
 
   const handleBookingSubmit = async () => {
     if (!user) {
-      toast.error('Please sign in to book an appointment');
+      // Store booking data and redirect to login
+      const bookingData = {
+        serviceTypeIds: selectedServiceTypes,
+        stylistId,
+        appointmentDate: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '',
+        appointmentTime: selectedTime,
+        notes
+      };
+      
+      // Store in sessionStorage for later use
+      sessionStorage.setItem('pendingBeautyBooking', JSON.stringify(bookingData));
+      
+      // Redirect to login with return URL
+      const currentUrl = window.location.pathname + window.location.search;
+      window.location.href = `/login?redirect=${encodeURIComponent(currentUrl)}`;
       return;
     }
 
