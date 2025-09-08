@@ -87,7 +87,7 @@ const ProfileBookingForm: React.FC<ProfileBookingFormProps> = ({
   const totalDuration = selectedServices.reduce((sum, service) => sum + service.duration, 0);
 
   // Calculate booking payment based on totalPrice
-  const bookingPayment = totalPrice < 100 ? Math.round(totalPrice * 0.1) : 10;
+  const bookingPayment = totalPrice < 100 ? Math.round(totalPrice * 0.1) : 5;
 
   const canProceedToDateStep = selectedServiceTypes.length > 0;
   const canProceedToConfirm = canProceedToDateStep && selectedDate && selectedTime;

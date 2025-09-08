@@ -64,7 +64,7 @@ const Terms = () => {
 
               <h3 className="text-xl font-medium text-foreground mb-3">4.2 Booking Fees</h3>
               <ul className="list-disc pl-6 text-muted-foreground mb-4">
-                <li>Services ₵100+: ₵10 flat booking fee</li>
+                <li>Services ₵100+: ₵5 flat booking fee</li>
                 <li>Services under ₵100: 10% booking fee</li>
                 <li>Booking fees are non-refundable and payable at time of booking</li>
                 <li>Service costs are paid directly to the Specialist at appointment</li>

@@ -6,8 +6,8 @@
  * @param price Base service price in GHS
  */
 export function calculateBookingFee(price: number) {
-  // Fixed booking fee of ₵10
-  const fee = 10;
+  // Fixed booking fee of ₵5
+  const fee = 5;
   
   return {
     fee,

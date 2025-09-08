@@ -38,7 +38,7 @@ const CustomerServiceAgreement = () => {
               <ul className="list-disc pl-6 text-muted-foreground mb-4">
                 <li><strong>Service Cost:</strong> Set by individual Specialists, paid directly to them</li>
                 <li><strong>Booking Fee:</strong> Paid to KnLbookery at time of booking</li>
-                <li>Services ₵100 or more: ₵10 flat booking fee</li>
+                <li>Services ₵100 or more: ₵5 flat booking fee</li>
                 <li>Services under ₵100: 10% of service cost as booking fee</li>
               </ul>
             </section>

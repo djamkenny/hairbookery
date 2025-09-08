@@ -84,8 +84,8 @@ serve(async (req) => {
       )
     }
 
-    // Fixed booking fee of 10 GHS (1000 pesewas)
-    const fixedBookingFee = 10
+    // Fixed booking fee of 5 GHS (500 pesewas)
+    const fixedBookingFee = 5
     const amountInPesewas = fixedBookingFee * 100
 
     // Initialize Paystack payment

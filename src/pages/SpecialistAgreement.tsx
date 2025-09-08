@@ -85,7 +85,7 @@ const SpecialistAgreement = () => {
               <ul className="list-disc pl-6 text-muted-foreground mb-4">
                 <li><strong>Client pays you directly:</strong> Full service cost at time of appointment</li>
                 <li><strong>KnLbookery retains:</strong> Booking fee paid by client at reservation</li>
-                <li>Booking fees: ₵10 flat fee for services ₵100+, 10% for services under ₵100</li>
+                <li>Booking fees: ₵5 flat fee for services ₵100+, 10% for services under ₵100</li>
                 <li>No additional platform commission on your service fees</li>
               </ul>
 

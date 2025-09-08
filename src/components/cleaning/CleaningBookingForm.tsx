@@ -122,7 +122,7 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
     }
   };
 
-  // Fixed booking fee of 10 GHS
+  // Fixed booking fee of 5 GHS
 
   const handleSubmit = async () => {
     if (!user) {
@@ -171,7 +171,7 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
       customerName,
       customerPhone,
       customerEmail,
-      totalAmount: 10, // Fixed booking fee
+      totalAmount: 5, // Fixed booking fee
       specialistId
     };
 
@@ -465,7 +465,7 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
             <div className="bg-muted/50 p-4 rounded-lg">
               <div className="flex justify-between items-center">
                 <span className="font-medium">Booking Fee (Pay now)</span>
-                <span className="text-lg font-semibold text-primary">₵10</span>
+                <span className="text-lg font-semibold text-primary">₵5</span>
               </div>
               <p className="text-xs text-muted-foreground mt-2">
                 Specialist will contact you for service pricing details
@@ -568,7 +568,7 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
               <div className="border-t pt-4">
                 <div className="flex justify-between items-center text-lg font-semibold">
                   <span>Booking Fee (Pay Now)</span>
-                  <span className="text-primary">₵10</span>
+                  <span className="text-primary">₵5</span>
                 </div>
                 <p className="text-sm text-muted-foreground mt-1">
                   Specialist will contact you for service pricing details
@@ -593,7 +593,7 @@ export const CleaningBookingForm: React.FC<CleaningBookingFormProps> = ({ specia
                 ) : (
                   <>
                     <CreditCard className="mr-2 h-4 w-4" />
-                    Pay ₵10 & Book Now
+                    Pay ₵5 & Book Now
                   </>
                 )}
               </Button>
