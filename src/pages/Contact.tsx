@@ -25,7 +25,7 @@ const Contact = () => {
               <CardContent className="p-6 text-center">
                 <Phone className="h-8 w-8 text-primary mx-auto mb-4" />
                 <h3 className="font-semibold mb-2">Phone</h3>
-                <p className="text-muted-foreground">+233 24 123 4567</p>
+                <p className="text-muted-foreground">+233507134930</p>
               </CardContent>
             </Card>
 
@@ -33,7 +33,7 @@ const Contact = () => {
               <CardContent className="p-6 text-center">
                 <Mail className="h-8 w-8 text-primary mx-auto mb-4" />
                 <h3 className="font-semibold mb-2">Email</h3>
-                <p className="text-muted-foreground">info@knlbookery.com</p>
+                <p className="text-muted-foreground">knlbookery@gmail.com</p>
               </CardContent>
             </Card>
 
