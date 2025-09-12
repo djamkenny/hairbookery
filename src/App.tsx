@@ -8,9 +8,12 @@ import {
 } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
 import Auth from './pages/Auth';
+import Login from './pages/Login';
+import Register from './pages/Register';
 import ResetPassword from './pages/ResetPassword';
 import ClientLogin from './pages/ClientLogin';
 import SpecialistLogin from './pages/SpecialistLogin';
+import StylistRegister from './pages/StylistRegister';
 import Index from './pages/Index';
 import Profile from './pages/Profile';
 
@@ -64,7 +67,7 @@ const AppContent: React.FC = () => {
     if (user) {
       // Redirect authenticated users based on their role
       const currentPath = window.location.pathname;
-      const authPaths = ['/auth', '/client-login', '/specialist-login'];
+      const authPaths = ['/auth', '/login', '/register', '/stylist-register', '/client-login', '/specialist-login'];
       
       if (authPaths.includes(currentPath)) {
         const metadata = user.user_metadata || {};
@@ -83,6 +86,21 @@ const AppContent: React.FC = () => {
         <Route path="/auth" element={
           <PublicRoute>
             <Auth />
+          </PublicRoute>
+        } />
+        <Route path="/login" element={
+          <PublicRoute>
+            <Login />
+          </PublicRoute>
+        } />
+        <Route path="/register" element={
+          <PublicRoute>
+            <Register />
+          </PublicRoute>
+        } />
+        <Route path="/stylist-register" element={
+          <PublicRoute>
+            <StylistRegister />
           </PublicRoute>
         } />
         <Route path="/client-login" element={
