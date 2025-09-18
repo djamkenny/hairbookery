@@ -44,6 +44,7 @@ import { ThemeProvider } from './components/theme/ThemeProvider';
 import { PaymentProvider } from './components/payment/PaymentProvider';
 import { Toaster } from 'sonner';
 import { RatingNotificationHandler } from './components/notifications/RatingNotificationHandler';
+import { NotificationCenter } from './components/notifications/NotificationCenter';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 
 const App: React.FC = () => {
@@ -151,7 +152,7 @@ const AppContent: React.FC = () => {
         <Route path="*" element={<NotFound />} />
       </Routes>
       {user && <EnhancedCustomerServiceWidget />}
-      {user && <RatingNotificationHandler />}
+      {user && <NotificationCenter />}
       <Toaster />
     </>
   );

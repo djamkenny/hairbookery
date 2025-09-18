@@ -197,7 +197,35 @@ const toLink = Array.from(uniqueByPair.values());
       console.log("Payment update error:", payUpdateErr);
     }
 
-    // 8) Trigger earnings processing (best-effort)
+    // 8) Send notification to stylist about new booking
+    try {
+      const { data: stylistProfile } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", metadata.stylistId)
+        .single();
+
+      const { data: clientProfile } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", user?.id ?? payment.user_id)
+        .single();
+
+      await supabase.rpc("create_notification", {
+        p_user_id: metadata.stylistId,
+        p_title: "New Beauty Appointment Booked",
+        p_message: `New appointment booked by ${clientProfile?.full_name || "Client"} for ${metadata.appointmentDate} at ${metadata.appointmentTime}. Order ID: ${orderId}`,
+        p_type: "beauty_booking",
+        p_related_id: appointment.id,
+        p_action_url: "/stylist-dashboard"
+      });
+
+      console.log("Notification sent to stylist:", metadata.stylistId);
+    } catch (notifErr) {
+      console.log("Notification error:", notifErr);
+    }
+
+    // 9) Trigger earnings processing (best-effort)
     try {
       const { error: earnErr } = await supabase.functions.invoke("process-earnings", {
         body: { appointment_id: appointment.id },
