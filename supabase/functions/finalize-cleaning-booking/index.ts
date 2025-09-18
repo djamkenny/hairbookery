@@ -158,6 +158,39 @@ serve(async (req) => {
       p_action_url: '/stylist-dashboard'
     })
 
+    // Send email notification to specialist
+    try {
+      const { data: clientProfile } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", paymentRecord.user_id)
+        .single();
+
+      const { error: emailErr } = await supabase.functions.invoke("send-booking-notification", {
+        body: {
+          specialistId: metadata.specialist_id,
+          bookingType: "cleaning",
+          appointmentDetails: {
+            clientName: clientProfile?.full_name || "Client",
+            appointmentDate: metadata.service_date,
+            appointmentTime: metadata.service_time,
+            orderId: cleaningOrder.order_number,
+            serviceAddress: metadata.service_address,
+            specialInstructions: metadata.special_instructions,
+            amount: paymentRecord.amount
+          }
+        }
+      });
+      
+      if (emailErr) {
+        console.log("Email notification error:", emailErr);
+      } else {
+        console.log("Cleaning email notification sent successfully");
+      }
+    } catch (emailException) {
+      console.log("Cleaning email notification exception:", emailException);
+    }
+
     console.log('Cleaning booking finalized successfully:', cleaningOrder.id)
 
     return new Response(

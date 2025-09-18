@@ -174,6 +174,40 @@ serve(async (req) => {
           type: 'laundry_order_assigned',
           related_id: laundryOrder.id
         });
+
+      // Send email notification to specialist
+      try {
+        const { data: clientProfile } = await supabaseServiceRole
+          .from("profiles")
+          .select("full_name")
+          .eq("id", user.id)
+          .single();
+
+        const { error: emailErr } = await supabaseServiceRole.functions.invoke("send-booking-notification", {
+          body: {
+            specialistId: assignedSpecialist.id,
+            bookingType: "laundry",
+            appointmentDetails: {
+              clientName: clientProfile?.full_name || "Client",
+              appointmentDate: metadata.pickupDate,
+              appointmentTime: metadata.pickupTime,
+              orderId: laundryOrder.order_number,
+              pickupAddress: metadata.pickupAddress,
+              deliveryAddress: metadata.deliveryAddress,
+              specialInstructions: metadata.specialInstructions,
+              amount: payment.amount
+            }
+          }
+        });
+        
+        if (emailErr) {
+          console.log("Email notification error:", emailErr);
+        } else {
+          console.log("Laundry email notification sent successfully");
+        }
+      } catch (emailException) {
+        console.log("Laundry email notification exception:", emailException);
+      }
     }
 
 

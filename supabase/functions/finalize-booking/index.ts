@@ -211,6 +211,7 @@ const toLink = Array.from(uniqueByPair.values());
         .eq("id", user?.id ?? payment.user_id)
         .single();
 
+      // Create in-app notification
       await supabase.rpc("create_notification", {
         p_user_id: metadata.stylistId,
         p_title: "New Beauty Appointment Booked",
@@ -221,6 +222,34 @@ const toLink = Array.from(uniqueByPair.values());
       });
 
       console.log("Notification sent to stylist:", metadata.stylistId);
+
+      // Send email notification
+      try {
+        const { error: emailErr } = await supabase.functions.invoke("send-booking-notification", {
+          body: {
+            specialistId: metadata.stylistId,
+            bookingType: "beauty",
+            appointmentDetails: {
+              clientName: clientProfile?.full_name || "Client",
+              serviceName: metadata.serviceName || "Beauty Service",
+              appointmentDate: metadata.appointmentDate,
+              appointmentTime: metadata.appointmentTime,
+              orderId: orderId,
+              specialInstructions: metadata.notes,
+              amount: payment.amount
+            }
+          }
+        });
+        
+        if (emailErr) {
+          console.log("Email notification error:", emailErr);
+        } else {
+          console.log("Email notification sent successfully");
+        }
+      } catch (emailException) {
+        console.log("Email notification exception:", emailException);
+      }
+
     } catch (notifErr) {
       console.log("Notification error:", notifErr);
     }
