@@ -11,6 +11,7 @@ import Auth from './pages/Auth';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ResetPassword from './pages/ResetPassword';
+import ForgotPassword from './pages/ForgotPassword';
 import ClientLogin from './pages/ClientLogin';
 import SpecialistLogin from './pages/SpecialistLogin';
 import StylistRegister from './pages/StylistRegister';
@@ -114,6 +115,11 @@ const AppContent: React.FC = () => {
           </PublicRoute>
         } />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/forgot-password" element={
+          <PublicRoute>
+            <ForgotPassword />
+          </PublicRoute>
+        } />
         <Route path="/" element={<Index />} />
         <Route path="/services" element={<Services />} />
         <Route path="/specialists" element={<Specialists />} />
