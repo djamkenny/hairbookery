@@ -225,6 +225,7 @@ const toLink = Array.from(uniqueByPair.values());
 
       // Send email notification
       try {
+        console.log("Attempting to call send-booking-notification function");
         const { error: emailErr } = await supabase.functions.invoke("send-booking-notification", {
           body: {
             specialistId: metadata.stylistId,
@@ -242,7 +243,7 @@ const toLink = Array.from(uniqueByPair.values());
         });
         
         if (emailErr) {
-          console.log("Email notification error:", emailErr);
+          console.error("Email notification error:", emailErr);
         } else {
           console.log("Email notification sent successfully");
         }

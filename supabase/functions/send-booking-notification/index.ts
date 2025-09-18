@@ -27,6 +27,8 @@ interface BookingNotificationRequest {
 }
 
 const handler = async (req: Request): Promise<Response> => {
+  console.log("send-booking-notification function called");
+  
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -38,6 +40,7 @@ const handler = async (req: Request): Promise<Response> => {
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
     const { specialistId, bookingType, appointmentDetails }: BookingNotificationRequest = await req.json();
+    console.log("Processing booking notification:", { specialistId, bookingType, appointmentDetails });
 
     // Get specialist profile and email
     const { data: specialist } = await supabase
@@ -47,8 +50,11 @@ const handler = async (req: Request): Promise<Response> => {
       .single();
 
     if (!specialist?.email) {
+      console.error("Specialist email not found for ID:", specialistId);
       throw new Error("Specialist email not found");
     }
+    
+    console.log("Found specialist email:", specialist.email);
 
     // Generate email content based on booking type
     let subject: string;
