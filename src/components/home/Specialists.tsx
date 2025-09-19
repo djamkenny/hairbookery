@@ -61,9 +61,8 @@ const Specialists = () => {
     let roleMatch = false;
     
     if (activeRole === "all") {
-      roleMatch = true;
-    } else if (activeRole === "laundry") {
-      roleMatch = specialist.serviceType === 'laundry' || specialist.role.toLowerCase().includes('cleaning');
+      // Only show beauty specialists, exclude laundry and cleaning
+      roleMatch = specialist.serviceType === 'beauty' || !specialist.serviceType;
     } else {
       // For beauty services (hair, nail, etc.)
       roleMatch = (specialist.serviceType === 'beauty' || !specialist.serviceType) && 
@@ -116,7 +115,7 @@ const Specialists = () => {
             onClick={() => setActiveRole("all")}
             className="animate-fade-in mb-2"
           >
-            All Specialists
+            All Services
           </Button>
           <Button 
             variant={activeRole === "hair" ? "default" : "outline"} 
@@ -124,7 +123,7 @@ const Specialists = () => {
             className="animate-fade-in flex items-center gap-2 mb-2"
           >
             <Scissors className="h-4 w-4" />
-            Hair Specialists
+            Hair Services
           </Button>
           <Button 
             variant={activeRole === "nail" ? "default" : "outline"} 
@@ -132,15 +131,7 @@ const Specialists = () => {
             className="animate-fade-in flex items-center gap-2 mb-2"
           >
             <Droplets className="h-4 w-4" />
-            Nail Technicians
-          </Button>
-          <Button 
-            variant={activeRole === "laundry" ? "default" : "outline"} 
-            onClick={() => setActiveRole("laundry")}
-            className="animate-fade-in flex items-center gap-2 mb-2"
-          >
-            <WashingMachine className="h-4 w-4" />
-            Laundry Services
+            Nail Care
           </Button>
         </div>
         
