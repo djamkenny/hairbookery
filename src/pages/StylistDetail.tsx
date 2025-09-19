@@ -326,14 +326,21 @@ const SpecialistDetail = () => {
                     
                     {specialist.location && (
                       <div 
-                        className="flex items-start gap-2 mb-4 cursor-pointer hover:text-primary transition-colors"
+                        className="flex items-start gap-2 mb-4 cursor-pointer hover:bg-accent/50 rounded-lg p-2 -ml-2 transition-all duration-200 group/location border border-transparent hover:border-primary/20"
                         onClick={() => shareLocation(specialist.location!, specialist.full_name)}
                         role="button"
                         tabIndex={0}
                         aria-label={`Open ${specialist.location} in Google Maps`}
                       >
-                        <MapPin className="h-4 w-4 lg:h-5 lg:w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
-                        <span className="text-sm text-muted-foreground">{specialist.location}</span>
+                        <MapPin className="h-4 w-4 lg:h-5 lg:w-5 text-muted-foreground mt-0.5 flex-shrink-0 group-hover/location:text-primary transition-colors" />
+                        <div className="flex flex-col gap-1">
+                          <span className="text-sm text-muted-foreground group-hover/location:text-primary group-hover/location:underline transition-all">
+                            {specialist.location}
+                          </span>
+                          <span className="text-xs text-primary opacity-0 group-hover/location:opacity-100 transition-opacity">
+                            📍 Click to view on map
+                          </span>
+                        </div>
                       </div>
                     )}
                     

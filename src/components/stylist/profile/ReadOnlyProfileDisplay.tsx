@@ -13,6 +13,7 @@ import {
   Star,
   Edit
 } from "lucide-react";
+import { useLocationSharing } from "@/hooks/useLocationSharing";
 
 interface ReadOnlyProfileDisplayProps {
   user: any;
@@ -39,6 +40,8 @@ const ReadOnlyProfileDisplay: React.FC<ReadOnlyProfileDisplayProps> = ({
   location,
   onEditProfile
 }) => {
+  const { shareLocation } = useLocationSharing();
+  
   const getInitials = (name: string) => {
     return name
       .split(' ')
@@ -99,9 +102,20 @@ const ReadOnlyProfileDisplay: React.FC<ReadOnlyProfileDisplayProps> = ({
                   </div>
                 )}
                 {location && (
-                  <div className="flex items-center gap-2 text-muted-foreground mt-1">
-                    <MapPin className="h-4 w-4" />
-                    <span>{location}</span>
+                  <div 
+                    className="flex items-center gap-2 mt-1 cursor-pointer group/location hover:bg-accent/50 rounded-md p-2 -ml-2 transition-all duration-200"
+                    onClick={() => shareLocation(location, fullName)}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Open ${location} in Google Maps`}
+                  >
+                    <MapPin className="h-4 w-4 text-muted-foreground group-hover/location:text-primary transition-colors" />
+                    <span className="text-muted-foreground group-hover/location:text-primary group-hover/location:underline transition-all">
+                      {location}
+                    </span>
+                    <span className="text-xs text-primary opacity-0 group-hover/location:opacity-100 transition-opacity ml-1">
+                      View on Map
+                    </span>
                   </div>
                 )}
               </div>
