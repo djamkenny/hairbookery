@@ -81,11 +81,7 @@ const ProfileSettings = ({ onRefresh }: { onRefresh?: () => Promise<void> }) => 
       ...prev,
       avatar_url: newAvatarUrl
     }));
-    
-    // Refresh parent component if callback provided
-    if (onRefresh) {
-      await onRefresh();
-    }
+    // Note: Removed onRefresh call to prevent form data reset
   };
 
   const handlePortfolioImagesUpdate = (images: string[]) => {
