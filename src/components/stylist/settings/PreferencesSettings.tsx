@@ -8,9 +8,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Settings } from "lucide-react";
 
 const PreferencesSettings = ({ onRefresh }: { onRefresh?: () => Promise<void> }) => {
-  const [currency, setCurrency] = useState("USD");
-  const [timezone, setTimezone] = useState("UTC");
-  const [language, setLanguage] = useState("en");
+  const [currency, setCurrency] = useState("");
+  const [timezone, setTimezone] = useState("");
+  const [language, setLanguage] = useState("");
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
 
@@ -26,9 +26,9 @@ const PreferencesSettings = ({ onRefresh }: { onRefresh?: () => Promise<void> })
         if (user) {
           setUser(user);
           const metadata = user.user_metadata || {};
-          setCurrency(metadata.currency || "USD");
-          setTimezone(metadata.timezone || "UTC");
-          setLanguage(metadata.language || "en");
+          setCurrency(metadata.currency || "");
+          setTimezone(metadata.timezone || "");
+          setLanguage(metadata.language || "");
         }
       } catch (error) {
         console.error("Error loading preferences:", error);
@@ -89,7 +89,7 @@ const PreferencesSettings = ({ onRefresh }: { onRefresh?: () => Promise<void> })
             </Label>
             <Select value={currency} onValueChange={setCurrency}>
               <SelectTrigger className="w-full max-w-xs">
-                <SelectValue />
+                <SelectValue placeholder="Select currency" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="USD">USD - US Dollar</SelectItem>
@@ -110,7 +110,7 @@ const PreferencesSettings = ({ onRefresh }: { onRefresh?: () => Promise<void> })
             </Label>
             <Select value={timezone} onValueChange={setTimezone}>
               <SelectTrigger className="w-full max-w-xs">
-                <SelectValue />
+                <SelectValue placeholder="Select timezone" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="UTC">UTC - Coordinated Universal Time</SelectItem>
@@ -131,7 +131,7 @@ const PreferencesSettings = ({ onRefresh }: { onRefresh?: () => Promise<void> })
             </Label>
             <Select value={language} onValueChange={setLanguage}>
               <SelectTrigger className="w-full max-w-xs">
-                <SelectValue />
+                <SelectValue placeholder="Select language" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="en">English</SelectItem>
