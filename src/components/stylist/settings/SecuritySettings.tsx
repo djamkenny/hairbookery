@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Shield, Lock, Eye, EyeOff } from "lucide-react";
 
-const SecuritySettings = () => {
+const SecuritySettings = ({ onRefresh }: { onRefresh?: () => Promise<void> }) => {
   const [profileVisible, setProfileVisible] = useState(true);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -56,6 +56,11 @@ const SecuritySettings = () => {
       if (error) throw error;
       
       toast.success("Privacy settings updated successfully");
+      
+      // Refresh parent component
+      if (onRefresh) {
+        await onRefresh();
+      }
     } catch (error: any) {
       console.error("Error updating privacy settings:", error);
       toast.error("Failed to update privacy settings: " + error.message);

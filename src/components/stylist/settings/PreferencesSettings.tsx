@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Settings } from "lucide-react";
 
-const PreferencesSettings = () => {
+const PreferencesSettings = ({ onRefresh }: { onRefresh?: () => Promise<void> }) => {
   const [currency, setCurrency] = useState("USD");
   const [timezone, setTimezone] = useState("UTC");
   const [language, setLanguage] = useState("en");
@@ -57,6 +57,11 @@ const PreferencesSettings = () => {
       if (error) throw error;
       
       toast.success("Preferences updated successfully");
+      
+      // Refresh parent component
+      if (onRefresh) {
+        await onRefresh();
+      }
     } catch (error: any) {
       console.error("Error updating preferences:", error);
       toast.error("Failed to update preferences: " + error.message);

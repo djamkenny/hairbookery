@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -20,13 +20,14 @@ import SecuritySettings from "./SecuritySettings";
 import PreferencesSettings from "./PreferencesSettings";
 import ServiceTypeSettings from "./ServiceTypeSettings";
 import ProfileSettings from "./ProfileSettings";
+import { supabase } from "@/integrations/supabase/client";
 
 interface SettingSection {
   id: string;
   title: string;
   description: string;
   icon: React.ComponentType<{ className?: string }>;
-  component: React.ComponentType;
+  component: React.ComponentType<{ onRefresh?: () => Promise<void> }>;
 }
 
 const settingSections: SettingSection[] = [
@@ -84,7 +85,15 @@ const settingSections: SettingSection[] = [
 const SettingsLayout = () => {
   const [activeSection, setActiveSection] = useState("profile");
   const [showSidebar, setShowSidebar] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
   const isMobile = useIsMobile();
+
+  // Refresh callback to trigger re-render when settings change
+  const handleRefresh = useCallback(async () => {
+    setRefreshKey(prev => prev + 1);
+    // Also trigger a browser storage event to notify other components
+    window.dispatchEvent(new Event('stylist-profile-updated'));
+  }, []);
 
   const ActiveComponent = settingSections.find(s => s.id === activeSection)?.component || ProfileSettings;
   const activeTitle = settingSections.find(s => s.id === activeSection)?.title || "Settings";
@@ -143,7 +152,7 @@ const SettingsLayout = () => {
               </Button>
               <h2 className="text-lg font-medium">{activeTitle}</h2>
             </div>
-            <ActiveComponent />
+            <ActiveComponent key={refreshKey} onRefresh={handleRefresh} />
           </div>
         )}
       </div>
@@ -204,7 +213,7 @@ const SettingsLayout = () => {
         
         {/* Settings Content */}
         <div className="col-span-8 lg:col-span-9">
-          <ActiveComponent />
+          <ActiveComponent key={refreshKey} onRefresh={handleRefresh} />
         </div>
       </div>
     </div>

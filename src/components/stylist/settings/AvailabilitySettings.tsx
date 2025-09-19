@@ -16,7 +16,7 @@ interface WorkingHours {
   endTime: string;
 }
 
-const AvailabilitySettings = () => {
+const AvailabilitySettings = ({ onRefresh }: { onRefresh?: () => Promise<void> }) => {
   const [dailyAppointmentLimit, setDailyAppointmentLimit] = useState(10);
   const [availabilityEnabled, setAvailabilityEnabled] = useState(true);
   const [workingHours, setWorkingHours] = useState<WorkingHours[]>([
@@ -85,6 +85,11 @@ const AvailabilitySettings = () => {
       if (profileError) throw profileError;
       
       toast.success("Availability settings updated successfully");
+      
+      // Refresh parent component
+      if (onRefresh) {
+        await onRefresh();
+      }
     } catch (error: any) {
       console.error("Error updating availability:", error);
       toast.error("Failed to update availability: " + error.message);

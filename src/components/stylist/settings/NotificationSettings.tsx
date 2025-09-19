@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Bell } from "lucide-react";
 
-const NotificationSettings = () => {
+const NotificationSettings = ({ onRefresh }: { onRefresh?: () => Promise<void> }) => {
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [smsNotifications, setSmsNotifications] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -54,6 +54,11 @@ const NotificationSettings = () => {
       if (error) throw error;
       
       toast.success("Notification preferences updated successfully");
+      
+      // Refresh parent component
+      if (onRefresh) {
+        await onRefresh();
+      }
     } catch (error: any) {
       console.error("Error updating notifications:", error);
       toast.error("Failed to update notification preferences: " + error.message);

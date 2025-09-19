@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import ProfileForm from "./profile/ProfileForm";
+import ReadOnlyProfileDisplay from "./profile/ReadOnlyProfileDisplay";
 
 interface SpecialistInfoTabProps {
   user: any;
@@ -75,24 +75,28 @@ const SpecialistInfoTab = ({
     }
   }, [user]);
 
+  // Handle navigation to settings
+  const handleEditProfile = () => {
+    // Get the current tabs component and switch to settings
+    const tabsList = document.querySelector('[role="tablist"]');
+    const settingsTab = tabsList?.querySelector('[data-value="settings"]') as HTMLElement;
+    if (settingsTab) {
+      settingsTab.click();
+    }
+  };
+
   return (
-    <ProfileForm
+    <ReadOnlyProfileDisplay
       user={user}
       fullName={fullName}
-      setFullName={setFullName}
       email={email}
       phone={phone}
-      setPhone={setPhone}
       specialty={specialty}
-      setSpecialty={setSpecialty}
       experience={experience}
-      setExperience={setExperience}
       bio={bio}
-      setBio={setBio}
       avatarUrl={avatarUrl}
-      refreshUserProfile={refreshUserProfile}
       location={location}
-      setLocation={setLocation}
+      onEditProfile={handleEditProfile}
     />
   );
 };

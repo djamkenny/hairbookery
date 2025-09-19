@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { User, MapPin, Briefcase } from "lucide-react";
 
-const ProfileSettings = () => {
+const ProfileSettings = ({ onRefresh }: { onRefresh?: () => Promise<void> }) => {
   const [formData, setFormData] = useState({
     full_name: "",
     specialty: "",
@@ -97,6 +97,11 @@ const ProfileSettings = () => {
         if (updateError) throw updateError;
 
         toast.success("Profile updated successfully");
+        
+        // Refresh parent component
+        if (onRefresh) {
+          await onRefresh();
+        }
       }
     } catch (error: any) {
       console.error("Error updating profile:", error);

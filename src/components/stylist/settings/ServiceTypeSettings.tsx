@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Briefcase, Scissors, Shirt, Sparkles, CheckCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const ServiceTypeSettings = () => {
+const ServiceTypeSettings = ({ onRefresh }: { onRefresh?: () => Promise<void> }) => {
   const [currentSelection, setCurrentSelection] = useState<'beauty' | 'laundry' | 'cleaning' | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -76,6 +76,11 @@ const ServiceTypeSettings = () => {
           serviceType === 'laundry' ? 'Laundry Services' : 
           'Cleaning Services'
         }`);
+        
+        // Refresh parent component
+        if (onRefresh) {
+          await onRefresh();
+        }
       }
     } catch (error: any) {
       console.error("Error updating service type:", error);

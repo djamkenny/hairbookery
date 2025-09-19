@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Calendar } from "lucide-react";
 
-const BookingSettings = () => {
+const BookingSettings = ({ onRefresh }: { onRefresh?: () => Promise<void> }) => {
   const [autoConfirm, setAutoConfirm] = useState(true);
   const [cancellationWindow, setCancellationWindow] = useState(24);
   const [loading, setLoading] = useState(false);
@@ -55,6 +55,11 @@ const BookingSettings = () => {
       if (error) throw error;
       
       toast.success("Booking preferences updated successfully");
+      
+      // Refresh parent component
+      if (onRefresh) {
+        await onRefresh();
+      }
     } catch (error: any) {
       console.error("Error updating booking settings:", error);
       toast.error("Failed to update booking preferences: " + error.message);
