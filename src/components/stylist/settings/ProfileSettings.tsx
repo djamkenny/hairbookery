@@ -201,10 +201,18 @@ const ProfileSettings = ({ onRefresh }: { onRefresh?: () => Promise<void> }) => 
               <Input
                 id="specialty"
                 value={formData.specialty}
-                onChange={(e) => handleChange('specialty', e.target.value)}
+                onChange={(e) => {
+                  if (e.target.value.length <= 50) {
+                    handleChange('specialty', e.target.value);
+                  }
+                }}
                 placeholder="e.g., Hair Styling, Color Specialist"
                 disabled={saving}
+                maxLength={50}
               />
+              <p className="text-sm text-muted-foreground">
+                {formData.specialty.length}/50 characters
+              </p>
             </div>
 
             <div className="space-y-2">
