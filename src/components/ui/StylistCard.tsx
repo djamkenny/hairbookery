@@ -34,6 +34,11 @@ const StylistCard = ({ id, name, role, bio, image, location, className }: Stylis
     ? bio.substring(0, 50) + "..." 
     : bio;
 
+  // Limit role to 25 characters
+  const truncatedRole = role.length > 25 
+    ? role.substring(0, 25) + "..." 
+    : role;
+
   const getAvailabilityText = () => {
     if (loading) return "";
     if (!availabilityStatus) return "";
@@ -102,7 +107,7 @@ const StylistCard = ({ id, name, role, bio, image, location, className }: Stylis
         <div className="flex items-start justify-between mb-2">
           <div>
             <h3 className="text-lg font-semibold mb-1">{name}</h3>
-            <p className="text-primary text-sm mb-2">{role}</p>
+            <p className="text-primary text-sm mb-2">{truncatedRole}</p>
           </div>
           {!loading && availabilityStatus && (
             <span className={`text-xs font-medium ${getAvailabilityColor()}`}>
