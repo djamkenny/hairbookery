@@ -257,13 +257,13 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
           </form>
         </Form>
 
-        {isEditing && serviceId && (
+        {serviceId && (
           <div className="border-t pt-6">
             <ServiceImageUpload
               serviceId={serviceId}
               currentImages={localImages}
               onImagesUpdate={handleImagesUpdate}
-              maxImages={2}
+              maxImages={5}
             />
           </div>
         )}

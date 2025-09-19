@@ -7,7 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { User, MapPin, Briefcase } from "lucide-react";
+import { User, MapPin, Briefcase, Camera } from "lucide-react";
+import ProfileAvatar from "@/components/profile/ProfileAvatar";
 
 const ProfileSettings = ({ onRefresh }: { onRefresh?: () => Promise<void> }) => {
   const [formData, setFormData] = useState({
@@ -17,9 +18,11 @@ const ProfileSettings = ({ onRefresh }: { onRefresh?: () => Promise<void> }) => 
     bio: "",
     location: "",
     phone: "",
+    avatar_url: "",
   });
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -29,6 +32,7 @@ const ProfileSettings = ({ onRefresh }: { onRefresh?: () => Promise<void> }) => 
         if (userError) throw userError;
 
         if (user) {
+          setUser(user);
           const { data: profile, error: profileError } = await supabase
             .from('profiles')
             .select('*')
@@ -47,6 +51,7 @@ const ProfileSettings = ({ onRefresh }: { onRefresh?: () => Promise<void> }) => 
               bio: profile.bio || "",
               location: profile.location || "",
               phone: profile.phone || "",
+              avatar_url: profile.avatar_url || "",
             });
           }
         }
@@ -66,6 +71,18 @@ const ProfileSettings = ({ onRefresh }: { onRefresh?: () => Promise<void> }) => 
       ...prev,
       [field]: value
     }));
+  };
+
+  const handleAvatarUpdate = async (newAvatarUrl: string) => {
+    setFormData(prev => ({
+      ...prev,
+      avatar_url: newAvatarUrl
+    }));
+    
+    // Refresh parent component if callback provided
+    if (onRefresh) {
+      await onRefresh();
+    }
   };
 
   const handleSave = async () => {
@@ -90,6 +107,7 @@ const ProfileSettings = ({ onRefresh }: { onRefresh?: () => Promise<void> }) => 
             bio: formData.bio.trim(),
             location: formData.location.trim(),
             phone: formData.phone.trim(),
+            avatar_url: formData.avatar_url,
             updated_at: new Date().toISOString()
           })
           .eq('id', user.id);
@@ -127,6 +145,28 @@ const ProfileSettings = ({ onRefresh }: { onRefresh?: () => Promise<void> }) => 
 
   return (
     <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Camera className="h-5 w-5" />
+            Profile Photo
+          </CardTitle>
+          <CardDescription>
+            Upload and manage your profile picture
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {user && (
+            <ProfileAvatar
+              user={user}
+              fullName={formData.full_name}
+              avatarUrl={formData.avatar_url}
+              onAvatarUpdate={handleAvatarUpdate}
+            />
+          )}
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
