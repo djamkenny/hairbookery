@@ -109,8 +109,8 @@ const ReadOnlyProfileDisplay: React.FC<ReadOnlyProfileDisplayProps> = ({
                     tabIndex={0}
                     aria-label={`Open ${location} in Google Maps`}
                   >
-                    <MapPin className="h-4 w-4 text-muted-foreground group-hover/location:text-primary transition-colors" />
-                    <span className="text-muted-foreground group-hover/location:text-primary group-hover/location:underline transition-all">
+                    <MapPin className="h-4 w-4 text-primary group-hover/location:text-primary transition-colors" />
+                    <span className="text-primary group-hover/location:text-primary group-hover/location:underline transition-all">
                       {location}
                     </span>
                     <span className="text-xs text-primary opacity-0 group-hover/location:opacity-100 transition-opacity ml-1">

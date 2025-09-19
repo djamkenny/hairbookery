@@ -332,9 +332,9 @@ const SpecialistDetail = () => {
                         tabIndex={0}
                         aria-label={`Open ${specialist.location} in Google Maps`}
                       >
-                        <MapPin className="h-4 w-4 lg:h-5 lg:w-5 text-muted-foreground mt-0.5 flex-shrink-0 group-hover/location:text-primary transition-colors" />
+                        <MapPin className="h-4 w-4 lg:h-5 lg:w-5 text-primary mt-0.5 flex-shrink-0 group-hover/location:text-primary transition-colors" />
                         <div className="flex flex-col gap-1">
-                          <span className="text-sm text-muted-foreground group-hover/location:text-primary group-hover/location:underline transition-all">
+                          <span className="text-sm text-primary group-hover/location:text-primary group-hover/location:underline transition-all">
                             {specialist.location}
                           </span>
                           <span className="text-xs text-primary opacity-0 group-hover/location:opacity-100 transition-opacity">
