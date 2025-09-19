@@ -29,9 +29,9 @@ const StylistCard = ({ id, name, role, bio, image, location, className }: Stylis
     return () => clearInterval(interval);
   }, [refetch]);
   
-  // Limit bio to 50 characters
-  const truncatedBio = bio.length > 50 
-    ? bio.substring(0, 50) + "..." 
+  // Limit bio to 100 characters
+  const truncatedBio = bio.length > 100 
+    ? bio.substring(0, 100) + "..." 
     : bio;
 
   // Limit role to 25 characters
