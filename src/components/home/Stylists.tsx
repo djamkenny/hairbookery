@@ -36,70 +36,39 @@ interface StylistCardProps {
 const StylistCard = ({ id, name, specialty, experience, imageUrl, bio, location }: StylistCardProps) => {
   const { availabilityStatus, loading } = useAvailabilityStatus(id);
   
-  const getAvailabilityText = () => {
-    if (loading) return "";
-    if (!availabilityStatus) return "";
-    
-    switch (availabilityStatus.status) {
-      case 'available':
-        return "Available";
-      case 'full':
-        return "Not Available";
-      case 'unavailable':
-      default:
-        return "Not Available";
-    }
-  };
-
-  const getAvailabilityColor = () => {
-    if (loading || !availabilityStatus) return "text-muted-foreground";
-    
-    switch (availabilityStatus.status) {
-      case 'available':
-        return "text-primary";
-      case 'full':
-      case 'unavailable':
-      default:
-        return "text-red-600";
-    }
-  };
-  
   return (
-    <Card className="w-full max-w-sm mx-auto shadow-md hover:shadow-lg transition-shadow duration-300">
-      <CardHeader className="text-center pb-4">
+    <div className="flex flex-col items-center space-y-3 group">
+      <Link to={`/stylist/${id}`} className="block">
         <div className="relative">
-          <Avatar className="w-20 h-20 mx-auto mb-3 border-2 border-muted-foreground">
+          <Avatar className="w-24 h-24 border-4 border-primary/20 hover:border-primary/40 transition-all duration-300 group-hover:scale-105">
             {imageUrl ? (
               <AvatarImage src={imageUrl} alt={name} className="object-cover" />
             ) : (
-              <AvatarFallback className="text-lg font-semibold">
+              <AvatarFallback className="text-xl font-semibold bg-gradient-to-br from-primary/10 to-secondary/20">
                 {name.substring(0, 2).toUpperCase()}
               </AvatarFallback>
             )}
           </Avatar>
           {!loading && availabilityStatus && (
-            <div className="flex justify-center mt-2">
-              <span className={`text-xs font-medium ${getAvailabilityColor()}`}>
-                {getAvailabilityText()}
-              </span>
+            <div className="absolute -bottom-1 -right-1">
+              <div className={`w-6 h-6 rounded-full border-2 border-background ${
+                availabilityStatus.status === 'available' 
+                  ? 'bg-green-500' 
+                  : 'bg-red-500'
+              }`} />
             </div>
           )}
         </div>
-        <CardTitle className="text-lg font-semibold text-center">{name}</CardTitle>
-        <CardDescription className="text-center">{specialty}</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed">{bio}</p>
-        <Link to={`/stylist/${id}`} className="block">
-          <Button 
-            className="w-full mt-4"
-            disabled={availabilityStatus?.status === 'unavailable'}
-          >
-            {availabilityStatus?.status === 'full' ? 'View Profile (Fully Booked)' : 'View Profile'}
-          </Button>
-        </Link>
-      </CardContent>
-    </Card>
+      </Link>
+      <div className="text-center">
+        <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
+          {name}
+        </p>
+        <p className="text-xs text-muted-foreground">
+          {specialty}
+        </p>
+      </div>
+    </div>
   );
 };
 
@@ -306,7 +275,7 @@ const Stylists = () => {
               <CarouselContent className="-ml-2 md:-ml-4">
                 {filteredStylists.length > 0 ? (
                   filteredStylists.map((stylist) => (
-                    <CarouselItem key={stylist.id} className="pl-2 md:pl-4 basis-72 flex-shrink-0">
+                    <CarouselItem key={stylist.id} className="pl-2 md:pl-4 basis-32 flex-shrink-0">
                       <StylistCard 
                         id={stylist.id}
                         name={stylist.full_name}
