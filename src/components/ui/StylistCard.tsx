@@ -122,12 +122,12 @@ const StylistCard = ({ id, name, role, bio, image, location, className }: Stylis
           className="flex items-start gap-1 mb-3 cursor-pointer group/location hover:bg-muted/50 rounded p-1 -m-1 transition-colors"
           onClick={handleLocationClick}
         >
-          <MapPin className="h-3 w-3 text-muted-foreground mt-0.5 flex-shrink-0 group-hover/location:text-primary transition-colors" />
-          <span className="text-xs text-muted-foreground line-clamp-1 group-hover/location:text-primary transition-colors">
+          <MapPin className="h-3 w-3 text-primary mt-0.5 flex-shrink-0 group-hover/location:text-primary transition-colors" />
+          <span className="text-xs text-primary line-clamp-1 group-hover/location:text-primary group-hover/location:underline transition-colors">
             {location || "Location not specified"}
           </span>
           {location && (
-            <Navigation className="h-3 w-3 text-muted-foreground group-hover/location:text-primary transition-colors opacity-0 group-hover/location:opacity-100" />
+            <Navigation className="h-3 w-3 text-primary group-hover/location:text-primary transition-colors opacity-0 group-hover/location:opacity-100" />
           )}
         </div>
         
