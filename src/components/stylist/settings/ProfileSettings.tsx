@@ -7,8 +7,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { User, MapPin, Briefcase, Camera } from "lucide-react";
+import { User, MapPin, Briefcase, Camera, Image } from "lucide-react";
 import ProfileAvatar from "@/components/profile/ProfileAvatar";
+import { PortfolioImageUpload } from "./PortfolioImageUpload";
 
 const ProfileSettings = ({ onRefresh }: { onRefresh?: () => Promise<void> }) => {
   const [formData, setFormData] = useState({
@@ -19,6 +20,7 @@ const ProfileSettings = ({ onRefresh }: { onRefresh?: () => Promise<void> }) => 
     location: "",
     phone: "",
     avatar_url: "",
+    portfolio_images: [] as string[],
   });
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -52,6 +54,7 @@ const ProfileSettings = ({ onRefresh }: { onRefresh?: () => Promise<void> }) => 
               location: profile.location || "",
               phone: profile.phone || "",
               avatar_url: profile.avatar_url || "",
+              portfolio_images: profile.portfolio_images || [],
             });
           }
         }
@@ -85,6 +88,13 @@ const ProfileSettings = ({ onRefresh }: { onRefresh?: () => Promise<void> }) => 
     }
   };
 
+  const handlePortfolioImagesUpdate = (images: string[]) => {
+    setFormData(prev => ({
+      ...prev,
+      portfolio_images: images
+    }));
+  };
+
   const handleSave = async () => {
     try {
       setSaving(true);
@@ -108,6 +118,7 @@ const ProfileSettings = ({ onRefresh }: { onRefresh?: () => Promise<void> }) => 
             location: formData.location.trim(),
             phone: formData.phone.trim(),
             avatar_url: formData.avatar_url,
+            portfolio_images: formData.portfolio_images,
             updated_at: new Date().toISOString()
           })
           .eq('id', user.id);
@@ -293,6 +304,25 @@ const ProfileSettings = ({ onRefresh }: { onRefresh?: () => Promise<void> }) => 
               {formData.bio.length}/500 characters
             </p>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Image className="h-5 w-5" />
+            Portfolio Images
+          </CardTitle>
+          <CardDescription>
+            Upload images to showcase your best work and attract clients
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <PortfolioImageUpload
+            currentImages={formData.portfolio_images}
+            onImagesUpdate={handlePortfolioImagesUpdate}
+            maxImages={10}
+          />
         </CardContent>
       </Card>
 

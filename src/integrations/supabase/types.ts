@@ -701,6 +701,7 @@ export type Database = {
           is_stylist: boolean | null
           location: string | null
           phone: string | null
+          portfolio_images: string[] | null
           service_areas: string[] | null
           specialty: string | null
           updated_at: string
@@ -722,6 +723,7 @@ export type Database = {
           is_stylist?: boolean | null
           location?: string | null
           phone?: string | null
+          portfolio_images?: string[] | null
           service_areas?: string[] | null
           specialty?: string | null
           updated_at?: string
@@ -743,6 +745,7 @@ export type Database = {
           is_stylist?: boolean | null
           location?: string | null
           phone?: string | null
+          portfolio_images?: string[] | null
           service_areas?: string[] | null
           specialty?: string | null
           updated_at?: string
