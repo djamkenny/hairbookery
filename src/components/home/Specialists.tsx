@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Scissors, Droplets, WashingMachine, Search, MapPin } from "lucide-react";
+import { Scissors, Droplets, WashingMachine, Search, MapPin, Sparkles } from "lucide-react";
 import StylistCard from "@/components/ui/StylistCard";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -35,7 +35,9 @@ const Specialists = () => {
           const transformedStylists = data?.map(stylist => ({
             id: stylist.id,
             name: stylist.full_name || "Unnamed Specialist",
-            role: stylist.service_type === 'laundry' ? 'Laundry Services Specialist' : (stylist.specialty || "Beauty Specialist"),
+            role: stylist.service_type === 'laundry' ? 'Laundry Services Specialist' : 
+                  stylist.service_type === 'cleaning' ? 'Cleaning Services Specialist' : 
+                  (stylist.specialty || "Beauty Specialist"),
             bio: stylist.bio || "Professional specialist with expertise in modern techniques.",
             image: stylist.avatar_url || "https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=761&q=80",
             location: stylist.location,
@@ -61,8 +63,12 @@ const Specialists = () => {
     let roleMatch = false;
     
     if (activeRole === "all") {
-      // Only show beauty specialists, exclude laundry and cleaning
-      roleMatch = specialist.serviceType === 'beauty' || !specialist.serviceType;
+      // Show all specialists
+      roleMatch = true;
+    } else if (activeRole === "cleaning") {
+      roleMatch = specialist.serviceType === 'cleaning';
+    } else if (activeRole === "laundry") {
+      roleMatch = specialist.serviceType === 'laundry';
     } else {
       // For beauty services (hair, nail, etc.)
       roleMatch = (specialist.serviceType === 'beauty' || !specialist.serviceType) && 
@@ -132,6 +138,14 @@ const Specialists = () => {
           >
             <Droplets className="h-4 w-4" />
             Nail Care
+          </Button>
+          <Button 
+            variant={activeRole === "cleaning" ? "default" : "outline"} 
+            onClick={() => setActiveRole("cleaning")}
+            className="animate-fade-in flex items-center gap-2 mb-2"
+          >
+            <Sparkles className="h-4 w-4" />
+            Cleaning Services
           </Button>
         </div>
         
