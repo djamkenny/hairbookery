@@ -18,35 +18,43 @@ export const Navbar = () => {
   return (
     <header 
       className={cn(
-        "fixed top-0 left-0 w-full z-50 transition-all duration-300",
+        "fixed top-0 left-0 w-full z-50 transition-all duration-500",
         scrolled || isOpen 
-          ? "backdrop py-2 sm:py-3 border-b border-border/50" 
-          : "py-3 sm:py-5"
+          ? "glass-card py-2 sm:py-3 border-b border-border/30 shadow-lg" 
+          : "py-3 sm:py-5 bg-transparent"
       )}
     >
       <div className="container mx-auto">
         <div className="flex items-center justify-between">
           <Link 
             to="/" 
-            className="text-foreground text-base sm:text-lg md:text-xl font-semibold flex items-center group"
+            className="text-base sm:text-lg md:text-xl font-bold flex items-center group relative"
           >
-            <span className="hairline mr-1">K n L</span>
-            <span className="text-primary group-hover:text-foreground transition-colors">bookery</span>
+            <span className="relative">
+              <span className="absolute inset-0 bg-gradient-to-r from-primary via-accent-purple to-accent-gold bg-clip-text text-transparent blur-sm opacity-50 group-hover:opacity-70 transition-opacity"></span>
+              <span className="relative bg-gradient-to-r from-primary via-accent-purple to-accent-gold bg-clip-text text-transparent">
+                K n L
+              </span>
+            </span>
+            <span className="ml-1 text-foreground group-hover:text-primary transition-colors duration-300">bookery</span>
           </Link>
 
           <NavLinks links={navLinks} className="hidden md:flex items-center space-x-1" />
 
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden md:flex items-center space-x-3 lg:space-x-4">
             <ThemeToggle />
             {user ? (
               <UserMenu user={user} isStylist={isStylist} />
             ) : (
               <LoginMenu />
             )}
-            <Link to="/specialists">
-              <Button size="sm" className="flex items-center space-x-1">
-                <Calendar className="h-4 w-4 mr-1" />
-                <span>Book Now</span>
+            <Link to="/specialists" className="group">
+              <Button size="sm" className="relative overflow-hidden bg-gradient-to-r from-primary to-accent-purple hover:shadow-glow transition-all duration-300 group-hover:scale-105">
+                <span className="relative z-10 flex items-center">
+                  <Calendar className="h-4 w-4 mr-1" />
+                  <span>Book Now</span>
+                </span>
+                <div className="absolute inset-0 bg-gradient-to-r from-accent-purple to-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </Button>
             </Link>
             <NotificationBell />
@@ -54,7 +62,7 @@ export const Navbar = () => {
 
           <button
             onClick={toggleMenu}
-            className="md:hidden p-2 hover:bg-secondary/80 rounded-md focus:outline-none"
+            className="md:hidden p-2 hover:bg-primary/10 rounded-lg transition-all duration-300 hover:scale-110 active:scale-95"
             aria-label="Toggle menu"
           >
             {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
