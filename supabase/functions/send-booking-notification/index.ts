@@ -170,7 +170,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send email using Resend
     const emailResponse = await resend.emails.send({
-      from: "KnL Bookery <onboarding@resend.dev>",
+      from: "KnL Bookery <team@notification.knlbookery.com>",
       to: [specialist.email],
       subject: subject,
       html: html,
