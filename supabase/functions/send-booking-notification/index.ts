@@ -74,7 +74,7 @@ const handler = async (req: Request): Promise<Response> => {
               <p><strong>Date:</strong> ${appointmentDetails.appointmentDate}</p>
               <p><strong>Time:</strong> ${appointmentDetails.appointmentTime}</p>
               <p><strong>Order ID:</strong> ${appointmentDetails.orderId}</p>
-              ${appointmentDetails.amount ? `<p><strong>Amount:</strong> $${(appointmentDetails.amount / 100).toFixed(2)}</p>` : ''}
+              ${appointmentDetails.amount ? `<p><strong>Total Amount:</strong> ₵${(appointmentDetails.amount / 100).toFixed(2)}</p>` : ''}
               ${appointmentDetails.specialInstructions ? `<p><strong>Special Instructions:</strong> ${appointmentDetails.specialInstructions}</p>` : ''}
             </div>
             
@@ -109,7 +109,7 @@ const handler = async (req: Request): Promise<Response> => {
               <p><strong>Order ID:</strong> ${appointmentDetails.orderId}</p>
               ${appointmentDetails.pickupAddress ? `<p><strong>Pickup Address:</strong> ${appointmentDetails.pickupAddress}</p>` : ''}
               ${appointmentDetails.deliveryAddress ? `<p><strong>Delivery Address:</strong> ${appointmentDetails.deliveryAddress}</p>` : ''}
-              ${appointmentDetails.amount ? `<p><strong>Amount:</strong> $${(appointmentDetails.amount / 100).toFixed(2)}</p>` : ''}
+              ${appointmentDetails.amount ? `<p><strong>Total Amount:</strong> ₵${(appointmentDetails.amount / 100).toFixed(2)}</p>` : ''}
               ${appointmentDetails.specialInstructions ? `<p><strong>Special Instructions:</strong> ${appointmentDetails.specialInstructions}</p>` : ''}
             </div>
             
@@ -143,7 +143,7 @@ const handler = async (req: Request): Promise<Response> => {
               <p><strong>Service Time:</strong> ${appointmentDetails.appointmentTime}</p>
               <p><strong>Order ID:</strong> ${appointmentDetails.orderId}</p>
               ${appointmentDetails.serviceAddress ? `<p><strong>Service Address:</strong> ${appointmentDetails.serviceAddress}</p>` : ''}
-              ${appointmentDetails.amount ? `<p><strong>Amount:</strong> $${(appointmentDetails.amount / 100).toFixed(2)}</p>` : ''}
+              ${appointmentDetails.amount ? `<p><strong>Total Amount:</strong> ₵${(appointmentDetails.amount / 100).toFixed(2)}</p>` : ''}
               ${appointmentDetails.specialInstructions ? `<p><strong>Special Instructions:</strong> ${appointmentDetails.specialInstructions}</p>` : ''}
             </div>
             
