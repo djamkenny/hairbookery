@@ -222,7 +222,7 @@ const toLink = Array.from(uniqueByPair.values());
         : 0;
       
       const bookingFeePesewas = 500; // ₵5 booking fee
-      const totalAmountPesewas = serviceTotalPesewas + bookingFeePesewas;
+      const totalAmountPesewas = serviceTotalPesewas;
 
       // Create in-app notification
       await supabase.rpc("create_notification", {
