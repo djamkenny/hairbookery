@@ -211,6 +211,19 @@ const toLink = Array.from(uniqueByPair.values());
         .eq("id", user?.id ?? payment.user_id)
         .single();
 
+      // Calculate total amount: fetch service types prices and sum them + booking fee
+      const { data: serviceTypes } = await supabase
+        .from("service_types")
+        .select("price")
+        .in("id", typeIds);
+
+      const serviceTotalPesewas = serviceTypes 
+        ? serviceTypes.reduce((sum, st) => sum + Math.round(Number(st.price) * 100), 0)
+        : 0;
+      
+      const bookingFeePesewas = 500; // ₵5 booking fee
+      const totalAmountPesewas = serviceTotalPesewas + bookingFeePesewas;
+
       // Create in-app notification
       await supabase.rpc("create_notification", {
         p_user_id: metadata.stylistId,
@@ -237,7 +250,7 @@ const toLink = Array.from(uniqueByPair.values());
               appointmentTime: metadata.appointmentTime,
               orderId: orderId,
               specialInstructions: metadata.notes,
-              amount: payment.amount
+              amount: totalAmountPesewas
             }
           }
         });

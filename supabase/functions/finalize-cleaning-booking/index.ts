@@ -166,6 +166,12 @@ serve(async (req) => {
         .eq("id", paymentRecord.user_id)
         .single();
 
+      // Calculate total: service price + booking fee (₵5 = 500 pesewas)
+      // For cleaning, price might be in metadata or we use a default
+      const servicePricePesewas = metadata.servicePrice ? Math.round(metadata.servicePrice * 100) : 0;
+      const bookingFeePesewas = 500;
+      const totalAmountPesewas = servicePricePesewas + bookingFeePesewas;
+
       const { error: emailErr } = await supabase.functions.invoke("send-booking-notification", {
         body: {
           specialistId: metadata.specialist_id,
@@ -177,7 +183,7 @@ serve(async (req) => {
             orderId: cleaningOrder.order_number,
             serviceAddress: metadata.service_address,
             specialInstructions: metadata.special_instructions,
-            amount: paymentRecord.amount
+            amount: totalAmountPesewas
           }
         }
       });

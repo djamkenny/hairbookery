@@ -183,6 +183,11 @@ serve(async (req) => {
           .eq("id", user.id)
           .single();
 
+        // Calculate total: service price + booking fee (₵5 = 500 pesewas)
+        const servicePricePesewas = metadata.servicePrice ? Math.round(metadata.servicePrice * 100) : 0;
+        const bookingFeePesewas = 500;
+        const totalAmountPesewas = servicePricePesewas + bookingFeePesewas;
+
         const { error: emailErr } = await supabaseServiceRole.functions.invoke("send-booking-notification", {
           body: {
             specialistId: assignedSpecialist.id,
@@ -195,7 +200,7 @@ serve(async (req) => {
               pickupAddress: metadata.pickupAddress,
               deliveryAddress: metadata.deliveryAddress,
               specialInstructions: metadata.specialInstructions,
-              amount: payment.amount
+              amount: totalAmountPesewas
             }
           }
         });
