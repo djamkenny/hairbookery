@@ -110,29 +110,6 @@ export const Hero = () => {
         </div>
       </div>
 
-      {/* Animated Scroll Indicator */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-        <a 
-          href="#services" 
-          className="flex flex-col items-center gap-2 text-muted-foreground hover:text-primary transition-colors group"
-        >
-          <span className="text-xs font-medium">Scroll to explore</span>
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            width="24" 
-            height="24" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="currentColor" 
-            strokeWidth="2" 
-            strokeLinecap="round" 
-            strokeLinejoin="round"
-            className="group-hover:translate-y-1 transition-transform"
-          >
-            <path d="m6 9 6 6 6-6"/>
-          </svg>
-        </a>
-      </div>
     </section>
   );
 };
