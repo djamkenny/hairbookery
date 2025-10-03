@@ -50,6 +50,14 @@ const AppointmentsContent: React.FC<AppointmentsContentProps> = ({
     }
   };
 
+  const isNewAppointment = (createdAt?: string) => {
+    if (!createdAt) return false;
+    const created = new Date(createdAt);
+    const now = new Date();
+    const hoursDiff = (now.getTime() - created.getTime()) / (1000 * 60 * 60);
+    return hoursDiff <= 24;
+  };
+
   return (
     <div className="relative overflow-x-auto">
       <Table>
@@ -100,9 +108,20 @@ const AppointmentsContent: React.FC<AppointmentsContentProps> = ({
               </TableCell>
             </TableRow>
           ) : (
-            filteredAppointments.map((appointment) => (
-              <TableRow key={appointment.id}>
-                <TableCell className="font-medium">{appointment.client}</TableCell>
+            filteredAppointments.map((appointment) => {
+              const isNew = isNewAppointment((appointment as any).created_at);
+              return (
+              <TableRow key={appointment.id} className={isNew ? "bg-accent/5" : ""}>
+                <TableCell className="font-medium">
+                  <div className="flex items-center gap-2">
+                    {appointment.client}
+                    {isNew && (
+                      <Badge variant="default" className="bg-green-500 hover:bg-green-600 text-white text-[10px] px-1.5 py-0">
+                        NEW
+                      </Badge>
+                    )}
+                  </div>
+                </TableCell>
                 <TableCell>{(() => {
                   const svcs = (appointment as any).services || [];
                   if (Array.isArray(svcs) && svcs.length > 0) {
@@ -132,7 +151,7 @@ const AppointmentsContent: React.FC<AppointmentsContentProps> = ({
                   </Button>
                 </TableCell>
               </TableRow>
-            ))
+            )})
           )}
         </TableBody>
       </Table>
