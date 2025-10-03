@@ -11,22 +11,28 @@ import { supabase } from "@/integrations/supabase/client";
 const PaymentReturn = () => {
   const [searchParams] = useSearchParams();
   const reference = searchParams.get('reference') || searchParams.get('trxref');
-  const typeParam = searchParams.get('type'); // Get type from URL parameter
+  const typeParam = searchParams.get('type');
   const navigate = useNavigate();
   const [paymentType, setPaymentType] = useState<'beauty' | 'laundry' | 'cleaning' | null>(null);
+  const [isCheckingType, setIsCheckingType] = useState(true);
 
   // Determine payment type based on URL parameter or metadata
   useEffect(() => {
     const checkPaymentType = async () => {
-      if (!reference) return;
+      if (!reference) {
+        setIsCheckingType(false);
+        return;
+      }
       
       // First check URL parameter
       if (typeParam === 'cleaning') {
         setPaymentType('cleaning');
+        setIsCheckingType(false);
         return;
       }
       if (typeParam === 'laundry') {
         setPaymentType('laundry');
+        setIsCheckingType(false);
         return;
       }
       
@@ -51,16 +57,25 @@ const PaymentReturn = () => {
         }
       } catch (error) {
         console.error('Error checking payment type:', error);
-        setPaymentType('beauty'); // Default to beauty
+        setPaymentType('beauty');
+      } finally {
+        setIsCheckingType(false);
       }
     };
 
     checkPaymentType();
   }, [reference, typeParam]);
 
-  const beautyPaymentStatus = usePaymentStatus(paymentType === 'beauty' ? reference : null);
-  const laundryPaymentStatus = useLaundryPaymentStatus(paymentType === 'laundry' ? reference : null);
-  const cleaningPaymentStatus = useCleaningPaymentStatus(paymentType === 'cleaning' ? reference : null);
+  // Only call the appropriate hook once payment type is determined
+  const beautyPaymentStatus = usePaymentStatus(
+    !isCheckingType && paymentType === 'beauty' ? reference : null
+  );
+  const laundryPaymentStatus = useLaundryPaymentStatus(
+    !isCheckingType && paymentType === 'laundry' ? reference : null
+  );
+  const cleaningPaymentStatus = useCleaningPaymentStatus(
+    !isCheckingType && paymentType === 'cleaning' ? reference : null
+  );
 
   const { loading, success, error } = (() => {
     if (paymentType === 'cleaning') return cleaningPaymentStatus;
@@ -90,7 +105,8 @@ const PaymentReturn = () => {
     }
   };
 
-  if (loading || !paymentType) return <PaymentReturnLoading />;
+  // Show loading while checking payment type or processing payment
+  if (isCheckingType || loading) return <PaymentReturnLoading />;
   return (
     <PaymentReturnResult
       success={success}
