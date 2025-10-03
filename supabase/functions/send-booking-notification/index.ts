@@ -89,7 +89,8 @@ const handler = async (req: Request): Promise<Response> => {
             
             <p style="color: #666; font-size: 14px;">
               Best regards,<br>
-              KnL Bookery Team
+              KnL Bookery Team<br>
+              <a href="https://www.knlbookery.com" style="color: #007bff; text-decoration: none;">www.knlbookery.com</a>
             </p>
           </div>
         `;
@@ -124,7 +125,8 @@ const handler = async (req: Request): Promise<Response> => {
             
             <p style="color: #666; font-size: 14px;">
               Best regards,<br>
-              KnL Bookery Team
+              KnL Bookery Team<br>
+              <a href="https://www.knlbookery.com" style="color: #007bff; text-decoration: none;">www.knlbookery.com</a>
             </p>
           </div>
         `;
@@ -158,7 +160,8 @@ const handler = async (req: Request): Promise<Response> => {
             
             <p style="color: #666; font-size: 14px;">
               Best regards,<br>
-              KnL Bookery Team
+              KnL Bookery Team<br>
+              <a href="https://www.knlbookery.com" style="color: #007bff; text-decoration: none;">www.knlbookery.com</a>
             </p>
           </div>
         `;
