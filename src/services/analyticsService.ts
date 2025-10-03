@@ -63,8 +63,9 @@ export const fetchStylistBookingAnalytics = async (stylistId: string) => {
           const serviceName = service.name;
           const servicePrice = Number(service.price || 0);
 
-          // Calculate revenue for completed appointments (only service price, no booking fee)
-          const appointmentRevenue = servicePrice;
+          // Calculate revenue for completed appointments (service price + 15% booking fee)
+          const bookingFee = servicePrice * 0.15;
+          const appointmentRevenue = servicePrice + bookingFee;
           totalRevenue += appointmentRevenue;
 
           // Update service booking counts and revenue
@@ -84,9 +85,10 @@ export const fetchStylistBookingAnalytics = async (stylistId: string) => {
 
       // Count this appointment for monthly stats (one entry per appointment, not per service)
       completedBookings++;
-      const appointmentTotalRevenue = appointment.appointment_services?.reduce((sum, as) => {
+      const appointmentServiceTotal = appointment.appointment_services?.reduce((sum, as) => {
         return sum + Number(as.services?.price || 0);
       }, 0) || 0;
+      const appointmentTotalRevenue = appointmentServiceTotal + (appointmentServiceTotal * 0.15);
 
       // Update monthly booking counts and revenue
       if (monthlyStatsMap.has(monthKey)) {
@@ -113,7 +115,7 @@ export const fetchStylistBookingAnalytics = async (stylistId: string) => {
       serviceStats,
       monthlyStats,
       totalBookings: appointments.length,
-      totalRevenue // This is now only service revenue (no booking fees)
+      totalRevenue // This includes service revenue + 15% booking fee
     };
   } catch (error) {
     console.error('Error fetching booking analytics:', error);
