@@ -7,101 +7,101 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
+    --background: 35 20% 98%;
+    --foreground: 215 15% 20%;
 
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --card-foreground: 215 15% 20%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
+    --popover-foreground: 215 15% 20%;
 
-    --primary: 263 70% 50%;
+    --primary: 215 20% 45%;
     --primary-foreground: 0 0% 100%;
     
-    --primary-glow: 263 80% 60%;
-    --accent-gold: 45 100% 51%;
-    --accent-purple: 280 70% 55%;
+    --primary-glow: 215 25% 55%;
+    --accent-gold: 35 45% 55%;
+    --accent-purple: 215 20% 45%;
 
-    --secondary: 240 5% 96%;
-    --secondary-foreground: 240 10% 3.9%;
+    --secondary: 30 15% 94%;
+    --secondary-foreground: 215 15% 20%;
 
-    --muted: 240 5% 96%;
-    --muted-foreground: 240 5% 45%;
+    --muted: 30 15% 94%;
+    --muted-foreground: 215 10% 45%;
 
-    --accent: 240 5% 96%;
-    --accent-foreground: 240 10% 3.9%;
+    --accent: 30 15% 94%;
+    --accent-foreground: 215 15% 20%;
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 70% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 240 6% 90%;
-    --input: 240 6% 90%;
-    --ring: 263 70% 50%;
+    --border: 30 10% 88%;
+    --input: 30 10% 88%;
+    --ring: 215 20% 45%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
     
-    --gradient-primary: linear-gradient(135deg, hsl(263, 70%, 50%), hsl(280, 70%, 55%));
-    --gradient-gold: linear-gradient(135deg, hsl(45, 100%, 51%), hsl(35, 100%, 50%));
-    --shadow-premium: 0 20px 60px -15px hsl(263 70% 50% / 0.3);
-    --shadow-glow: 0 0 40px hsl(263 80% 60% / 0.4);
+    --gradient-primary: linear-gradient(135deg, hsl(215, 20%, 45%), hsl(215, 25%, 55%));
+    --gradient-gold: linear-gradient(135deg, hsl(35, 45%, 55%), hsl(30, 40%, 50%));
+    --shadow-premium: 0 4px 20px -4px hsl(215 20% 45% / 0.12);
+    --shadow-glow: 0 2px 12px hsl(215 25% 55% / 0.15);
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 215 15% 25%;
+    --sidebar-primary: 215 20% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 30 15% 94%;
+    --sidebar-accent-foreground: 215 15% 20%;
+    --sidebar-border: 30 10% 88%;
+    --sidebar-ring: 215 20% 45%;
   }
 
   .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
+    --background: 215 20% 8%;
+    --foreground: 35 20% 95%;
 
-    --card: 240 10% 5.9%;
-    --card-foreground: 0 0% 98%;
+    --card: 215 18% 10%;
+    --card-foreground: 35 20% 95%;
 
-    --popover: 240 10% 5.9%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 215 18% 10%;
+    --popover-foreground: 35 20% 95%;
 
-    --primary: 263 70% 60%;
-    --primary-foreground: 0 0% 98%;
+    --primary: 215 25% 60%;
+    --primary-foreground: 215 20% 8%;
     
-    --primary-glow: 263 80% 70%;
-    --accent-gold: 45 100% 60%;
-    --accent-purple: 280 70% 65%;
+    --primary-glow: 215 30% 70%;
+    --accent-gold: 35 50% 65%;
+    --accent-purple: 215 25% 60%;
 
-    --secondary: 240 4% 15.9%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 215 15% 15%;
+    --secondary-foreground: 35 20% 95%;
 
-    --muted: 240 4% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
+    --muted: 215 15% 15%;
+    --muted-foreground: 215 10% 60%;
 
-    --accent: 240 4% 15.9%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 215 15% 15%;
+    --accent-foreground: 35 20% 95%;
 
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 65% 55%;
+    --destructive-foreground: 35 20% 95%;
 
-    --border: 240 4% 15.9%;
-    --input: 240 4% 15.9%;
-    --ring: 263 70% 70%;
+    --border: 215 12% 18%;
+    --input: 215 12% 18%;
+    --ring: 215 25% 60%;
     
-    --gradient-primary: linear-gradient(135deg, hsl(263, 70%, 60%), hsl(280, 70%, 65%));
-    --gradient-gold: linear-gradient(135deg, hsl(45, 100%, 60%), hsl(35, 100%, 55%));
-    --shadow-premium: 0 20px 60px -15px hsl(263 70% 60% / 0.5);
-    --shadow-glow: 0 0 60px hsl(263 80% 70% / 0.3);
+    --gradient-primary: linear-gradient(135deg, hsl(215, 25%, 60%), hsl(215, 30%, 70%));
+    --gradient-gold: linear-gradient(135deg, hsl(35, 50%, 65%), hsl(30, 45%, 60%));
+    --shadow-premium: 0 4px 20px -4px hsl(215 25% 60% / 0.2);
+    --shadow-glow: 0 2px 12px hsl(215 30% 70% / 0.25);
 
-    --sidebar-background: 240 10% 3.9%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 263 70% 65%;
-    --sidebar-primary-foreground: 240 10% 3.9%;
-    --sidebar-accent: 240 4% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 4% 15.9%;
-    --sidebar-ring: 263 70% 65%;
+    --sidebar-background: 215 20% 8%;
+    --sidebar-foreground: 35 20% 90%;
+    --sidebar-primary: 215 25% 60%;
+    --sidebar-primary-foreground: 215 20% 8%;
+    --sidebar-accent: 215 15% 15%;
+    --sidebar-accent-foreground: 35 20% 90%;
+    --sidebar-border: 215 12% 18%;
+    --sidebar-ring: 215 25% 60%;
   }
 }
 
@@ -134,22 +134,16 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: radial-gradient(ellipse at top, hsl(263, 70%, 96%) 0%, hsl(0, 0%, 100%) 50%);
+    background: linear-gradient(180deg, hsl(35, 20%, 98%) 0%, hsl(30, 15%, 96%) 100%);
     z-index: -1;
     pointer-events: none;
   }
 
   .dark body::before {
-    background: 
-      radial-gradient(ellipse 80% 50% at 50% -20%, hsl(263, 70%, 15%) 0%, transparent 50%),
-      radial-gradient(ellipse 60% 40% at 80% 60%, hsl(280, 60%, 10%) 0%, transparent 50%),
-      linear-gradient(135deg, 
-        hsl(240, 10%, 3.9%) 0%, 
-        hsl(260, 15%, 4%) 25%,
-        hsl(240, 10%, 3.9%) 50%,
-        hsl(250, 12%, 4.5%) 75%,
-        hsl(240, 10%, 3.9%) 100%
-      );
+    background: linear-gradient(180deg, 
+      hsl(215, 20%, 8%) 0%, 
+      hsl(215, 18%, 10%) 100%
+    );
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -184,17 +178,13 @@
   }
 
   .backdrop {
-    @apply bg-background/80 backdrop-blur-md;
+    @apply bg-background/90 backdrop-blur-md;
   }
 
   .dark .backdrop {
-    background: linear-gradient(135deg, 
-      hsla(240, 10%, 3.9%, 0.8) 0%, 
-      hsla(260, 15%, 4%, 0.85) 50%, 
-      hsla(235, 8%, 4.5%, 0.8) 100%
-    );
+    background: hsla(215, 20%, 8%, 0.85);
     backdrop-filter: blur(20px);
-    border: 1px solid hsla(263, 70%, 65%, 0.1);
+    border: 1px solid hsla(215, 25%, 60%, 0.1);
   }
   
   .container {
@@ -210,10 +200,7 @@
   }
 
   .dark .mobile-menu-link:hover {
-    background: linear-gradient(135deg, 
-      hsla(263, 70%, 65%, 0.1) 0%, 
-      hsla(270, 50%, 50%, 0.1) 100%
-    );
+    background: hsla(215, 25%, 60%, 0.1);
   }
   
   .responsive-grid {
@@ -239,23 +226,14 @@
   }
 
   .dark .mobile-card {
-    background: linear-gradient(135deg, 
-      hsla(240, 10%, 5.9%, 0.95) 0%, 
-      hsla(260, 15%, 6%, 0.98) 50%, 
-      hsla(240, 10%, 5.9%, 0.95) 100%
-    );
-    border: 1px solid hsla(263, 70%, 65%, 0.3);
-    box-shadow: 
-      0 4px 30px hsla(263, 70%, 65%, 0.15),
-      inset 0 1px 0 hsla(263, 70%, 80%, 0.1);
+    background: hsla(215, 18%, 10%, 0.95);
+    border: 1px solid hsla(215, 25%, 60%, 0.2);
+    box-shadow: 0 2px 12px hsla(215, 25%, 60%, 0.1);
   }
   
   .dark .mobile-card:hover {
-    border-color: hsla(263, 70%, 65%, 0.5);
-    box-shadow: 
-      0 8px 40px hsla(263, 70%, 65%, 0.25),
-      0 0 60px hsla(263, 80%, 70%, 0.15),
-      inset 0 1px 0 hsla(263, 70%, 80%, 0.15);
+    border-color: hsla(215, 25%, 60%, 0.3);
+    box-shadow: 0 4px 20px hsla(215, 25%, 60%, 0.15);
   }
   
   .touch-button {
@@ -285,12 +263,10 @@
   }
 
   .dark .glass-card {
-    background: hsla(240, 10%, 5.9%, 0.7);
+    background: hsla(215, 20%, 8%, 0.7);
     backdrop-filter: blur(20px);
-    border: 1px solid hsla(263, 70%, 65%, 0.2);
-    box-shadow: 
-      0 8px 32px hsla(263, 70%, 65%, 0.2),
-      inset 0 1px 0 hsla(263, 70%, 80%, 0.1);
+    border: 1px solid hsla(215, 25%, 60%, 0.15);
+    box-shadow: 0 4px 20px hsla(215, 25%, 60%, 0.1);
   }
 
   .gradient-card {
@@ -305,26 +281,14 @@
   }
 
   .dark .gradient-card {
-    background: linear-gradient(135deg, 
-      hsla(240, 10%, 5.9%, 0.95) 0%, 
-      hsla(263, 70%, 8%, 0.9) 25%, 
-      hsla(270, 50%, 6%, 0.95) 50%, 
-      hsla(260, 60%, 7%, 0.92) 75%, 
-      hsla(240, 10%, 5.9%, 0.95) 100%
-    );
-    border: 1px solid hsla(263, 70%, 65%, 0.3);
-    box-shadow: 
-      0 8px 40px hsla(263, 70%, 65%, 0.2),
-      0 0 60px hsla(270, 50%, 50%, 0.15),
-      inset 0 1px 0 hsla(263, 70%, 80%, 0.1);
+    background: hsla(215, 18%, 10%, 0.95);
+    border: 1px solid hsla(215, 25%, 60%, 0.2);
+    box-shadow: 0 4px 20px hsla(215, 25%, 60%, 0.12);
   }
 
   .dark .gradient-card:hover {
-    border-color: hsla(263, 70%, 65%, 0.5);
-    box-shadow: 
-      0 12px 50px hsla(263, 70%, 65%, 0.3),
-      0 0 80px hsla(270, 50%, 50%, 0.2),
-      inset 0 1px 0 hsla(263, 70%, 80%, 0.15);
+    border-color: hsla(215, 25%, 60%, 0.3);
+    box-shadow: 0 6px 28px hsla(215, 25%, 60%, 0.18);
   }
 
   .premium-gradient {
@@ -336,11 +300,8 @@
 
   .dark .premium-gradient {
     background: linear-gradient(135deg,
-      hsla(263, 70%, 65%, 0.15) 0%,
-      hsla(270, 50%, 50%, 0.2) 25%,
-      hsla(280, 60%, 45%, 0.15) 50%,
-      hsla(290, 55%, 55%, 0.18) 75%,
-      hsla(263, 70%, 65%, 0.12) 100%
+      hsla(215, 25%, 60%, 0.08) 0%,
+      hsla(215, 20%, 45%, 0.1) 100%
     );
   }
 
@@ -351,10 +312,7 @@
   }
 
   .dark .glow-effect {
-    box-shadow: 
-      0 0 40px hsla(263, 70%, 65%, 0.3),
-      0 0 80px hsla(270, 50%, 50%, 0.2),
-      0 0 120px hsla(280, 60%, 45%, 0.1);
+    box-shadow: 0 2px 16px hsla(215, 25%, 60%, 0.2);
   }
 
   .shimmer {
@@ -372,7 +330,7 @@
     background: linear-gradient(
       90deg,
       transparent 0%,
-      hsla(263, 70%, 80%, 0.2) 50%,
+      hsla(215, 30%, 70%, 0.15) 50%,
       transparent 100%
     );
     animation: shimmer 3s infinite;
