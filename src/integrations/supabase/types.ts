@@ -1170,10 +1170,7 @@ export type Database = {
         Args: { p_email: string; p_password: string }
         Returns: Json
       }
-      check_service_permissions: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
+      check_service_permissions: { Args: never; Returns: Json }
       check_stylist_availability: {
         Args: { check_date?: string; stylist_uuid: string }
         Returns: Json
@@ -1209,18 +1206,9 @@ export type Database = {
         }
         Returns: string
       }
-      generate_appointment_reference: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      get_admin_active_stylists_count: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
-      get_admin_total_users_count: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
+      generate_appointment_reference: { Args: never; Returns: string }
+      get_admin_active_stylists_count: { Args: never; Returns: number }
+      get_admin_total_users_count: { Args: never; Returns: number }
       get_laundry_specialist_orders: {
         Args: { specialist_uuid: string }
         Returns: {
@@ -1309,10 +1297,7 @@ export type Database = {
           updated_at: string
         }[]
       }
-      get_user_loyalty_points: {
-        Args: { user_uuid: string }
-        Returns: number
-      }
+      get_user_loyalty_points: { Args: { user_uuid: string }; Returns: number }
     }
     Enums: {
       notification_priority: "low" | "normal" | "high" | "urgent"
