@@ -19,10 +19,10 @@ export default {
 			}
 		},
 		extend: {
-			fontFamily: {
-				'playfair': ['Playfair Display', 'serif'],
-				'poppins': ['Poppins', 'sans-serif'],
-			},
+		fontFamily: {
+			'sans': ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+			'display': ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+		},
 			fontSize: {
 				'xs': ['0.75rem', { lineHeight: '1rem' }],
 				'sm': ['0.875rem', { lineHeight: '1.25rem' }],
@@ -117,11 +117,13 @@ export default {
 				'gradient-neutral': 'linear-gradient(180deg, hsl(35, 20%, 98%) 0%, hsl(30, 15%, 96%) 100%)',
 				'gradient-card': 'linear-gradient(135deg, hsl(0, 0%, 100%) 0%, hsl(30, 15%, 98%) 100%)',
 			},
-			borderRadius: {
-				lg: '0.75rem',
-				md: '0.5rem',
-				sm: '0.375rem'
-			},
+		borderRadius: {
+			lg: '1rem',
+			md: '0.75rem',
+			sm: '0.5rem',
+			xl: '1.25rem',
+			'2xl': '1.5rem'
+		},
 			boxShadow: {
 				'professional': '0 4px 20px -4px rgba(85, 110, 145, 0.12)',
 				'professional-lg': '0 8px 32px -8px rgba(85, 110, 145, 0.16)',
