@@ -37,14 +37,6 @@ const LoginMenu = ({ isMobile = false }: LoginMenuProps) => {
           <Scissors className="h-4 w-4 mr-2" />
           Specialist Login
         </Button>
-        <Button 
-          variant="outline" 
-          className="w-full flex items-center justify-center touch-button"
-          onClick={() => navigate("/admin-login")}
-        >
-          <Shield className="h-4 w-4 mr-2" />
-          Admin Login
-        </Button>
       </div>
     );
   }
@@ -66,11 +58,6 @@ const LoginMenu = ({ isMobile = false }: LoginMenuProps) => {
         <DropdownMenuItem onClick={() => navigate("/specialist-login")}>
           <Scissors className="h-4 w-4 mr-2" />
           Specialist Login
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => navigate("/admin-login")}>
-          <Shield className="h-4 w-4 mr-2" />
-          Admin Login
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
