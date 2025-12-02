@@ -30,11 +30,8 @@ export const Navbar = () => {
             to="/" 
             className="text-base sm:text-lg md:text-xl font-bold flex items-center group relative"
           >
-            <span className="relative">
-              <span className="absolute inset-0 bg-gradient-to-r from-primary via-accent-purple to-accent-gold bg-clip-text text-transparent blur-sm opacity-50 group-hover:opacity-70 transition-opacity"></span>
-              <span className="relative bg-gradient-to-r from-primary via-accent-purple to-accent-gold bg-clip-text text-transparent">
-                K n L
-              </span>
+            <span className="text-primary">
+              K n L
             </span>
             <span className="ml-1 text-foreground group-hover:text-primary transition-colors duration-300">bookery</span>
           </Link>
