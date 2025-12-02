@@ -34,12 +34,6 @@ const Login = () => {
             Sign up
           </Link>
         </div>
-        <div className="flex flex-col sm:flex-row sm:justify-center sm:space-x-1 space-y-1 sm:space-y-0">
-          <span>Are you an administrator?</span>
-          <Link to="/admin-login" className="text-primary hover:underline font-medium">
-            Admin Login
-          </Link>
-        </div>
       </div>
     </AuthLayout>
   );
