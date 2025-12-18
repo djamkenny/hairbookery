@@ -16,9 +16,7 @@ export const Hero = () => {
       <div className="container mx-auto px-4 py-16 md:py-24 relative z-10">
         <div className="max-w-4xl mx-auto text-center">
           {/* Main Heading */}
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6 leading-tight">
-            Book local beauty and wellness services
-          </h1>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6 leading-tight">Simple Appointment Booking for Service Providers</h1>
 
           {/* Description */}
           <p className="text-lg md:text-xl text-muted-foreground mb-10 leading-relaxed max-w-3xl mx-auto">KnlBookery helps businesses manage bookings, reduce no-shows, and serve customers better — starting with beauty and wellness services</p>
