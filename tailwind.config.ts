@@ -118,11 +118,11 @@ export default {
 				'gradient-card': 'linear-gradient(135deg, hsl(0, 0%, 100%) 0%, hsl(205, 85%, 98%) 100%)',
 			},
 		borderRadius: {
-			lg: '1rem',
-			md: '0.75rem',
-			sm: '0.5rem',
-			xl: '1.25rem',
-			'2xl': '1.5rem'
+			lg: '0.1875rem',
+			md: '0.1875rem',
+			sm: '0.1875rem',
+			xl: '0.1875rem',
+			'2xl': '0.1875rem'
 		},
 			boxShadow: {
 				'professional': '0 4px 20px -4px rgba(100, 181, 246, 0.15)',

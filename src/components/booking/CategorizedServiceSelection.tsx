@@ -188,7 +188,7 @@ export const CategorizedServiceSelection: React.FC<CategorizedServiceSelectionPr
           Choose from the available service categories below
           {userPreferences.length > 0 && (
             <span className="block mt-1 text-sm text-primary">
-              ✨ Your previous selections have been pre-loaded
+              Your previous selections have been pre-loaded
             </span>
           )}
         </CardDescription>

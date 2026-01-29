@@ -205,7 +205,7 @@ const EnhancedCustomerServiceWidget = () => {
                     />
                   </div>
                   <div>
-                    <div className="text-lg font-medium">👋 Welcome to Live Chat!</div>
+                    <div className="text-lg font-medium">Welcome to Live Chat!</div>
                     <div className="text-sm mt-2">
                       How can we help you today? Send us a message and we'll get back to you right away.
                     </div>
@@ -216,8 +216,8 @@ const EnhancedCustomerServiceWidget = () => {
                   </div>
                   <div className="text-xs pt-2 border-t border-gray-200 mt-4 space-y-1">
                     <div><strong>Other ways to reach us:</strong></div>
-                    <div>📧 knlbookerysupport@gmail.com</div>
-                    <div>📞 (+233) 050-713-4930</div>
+                    <div>Email: knlbookerysupport@gmail.com</div>
+                    <div>Phone: (+233) 050-713-4930</div>
                   </div>
                 </div>
               ) : (

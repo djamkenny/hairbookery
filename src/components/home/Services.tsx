@@ -136,13 +136,13 @@ export const Services = () => {
         
         <div className="flex justify-center mb-12 gap-2 md:gap-3 flex-wrap">
           <Button variant={activeCategory === "all" ? "default" : "outline"} onClick={() => setActiveCategory("all")} className="animate-fade-in mb-2 text-xs md:text-sm transition-all duration-300 hover:scale-105" size="sm">
-            ✨ All Services
+            All Services
           </Button>
           <Button variant={activeCategory === "hair" ? "default" : "outline"} onClick={() => setActiveCategory("hair")} className="animate-fade-in mb-2 text-xs md:text-sm transition-all duration-300 hover:scale-105" size="sm">
-            💇 Hair Services
+            Hair Services
           </Button>
           <Button variant={activeCategory === "nail" ? "default" : "outline"} onClick={() => setActiveCategory("nail")} className="animate-fade-in mb-2 text-xs md:text-sm transition-all duration-300 hover:scale-105" size="sm">
-            💅 Nail Care
+            Nail Care
           </Button>
           <Button variant={activeCategory === "laundry" ? "default" : "outline"} onClick={() => setActiveCategory("laundry")} className="animate-fade-in mb-2 text-xs md:text-sm transition-all duration-300 hover:scale-105" size="sm">
             🧺 Laundry Services

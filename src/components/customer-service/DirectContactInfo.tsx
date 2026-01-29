@@ -63,9 +63,9 @@ const DirectContactInfo = () => {
               Get instant help with our live chat widget. Look for the chat bubble in the bottom-right corner of any page.
             </p>
             <div className="space-y-2 text-sm">
-              <div>✅ Instant responses during business hours</div>
-              <div>✅ Available on all pages</div>
-              <div>✅ No account required for basic questions</div>
+              <div>• Instant responses during business hours</div>
+              <div>• Available on all pages</div>
+              <div>• No account required for basic questions</div>
             </div>
           </CardContent>
         </Card>

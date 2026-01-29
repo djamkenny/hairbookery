@@ -338,7 +338,7 @@ const SpecialistDetail = () => {
                             {specialist.location}
                           </span>
                           <span className="text-xs text-primary opacity-0 group-hover/location:opacity-100 transition-opacity">
-                            📍 Click to view on map
+                            Click to view on map
                           </span>
                         </div>
                       </div>
