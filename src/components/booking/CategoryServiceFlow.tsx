@@ -39,14 +39,14 @@ interface CategoryServiceFlowProps {
 }
 
 const iconMap = {
-  scissors: "✂️",
-  palette: "🎨", 
-  droplet: "💧",
-  grid: "⚡",
-  plus: "➕",
-  star: "⭐",
-  user: "👤",
-  hand: "✋",
+  scissors: "",
+  palette: "", 
+  droplet: "",
+  grid: "",
+  plus: "",
+  star: "",
+  user: "",
+  hand: "",
 };
 
 export const CategoryServiceFlow: React.FC<CategoryServiceFlowProps> = ({
@@ -220,7 +220,7 @@ export const CategoryServiceFlow: React.FC<CategoryServiceFlowProps> = ({
             Choose a category to view available services
             {userPreferences.length > 0 && (
               <span className="block mt-1 text-sm text-primary">
-                ✨ You have saved preferences
+                You have saved preferences
               </span>
             )}
           </CardDescription>
@@ -244,9 +244,6 @@ export const CategoryServiceFlow: React.FC<CategoryServiceFlowProps> = ({
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                          <span className="text-2xl">
-                            {iconMap[category.icon as keyof typeof iconMap] || "⭐"}
-                          </span>
                           <h3 className="font-semibold text-lg">{category.name}</h3>
                         </div>
                         <p className="text-muted-foreground text-sm mb-3">
@@ -314,9 +311,6 @@ export const CategoryServiceFlow: React.FC<CategoryServiceFlowProps> = ({
           </Button>
           <div>
             <CardTitle className="flex items-center gap-2">
-              <span className="text-xl">
-                {iconMap[selectedCategory.icon as keyof typeof iconMap] || "⭐"}
-              </span>
               {selectedCategory.name}
             </CardTitle>
             <CardDescription>{selectedCategory.description}</CardDescription>
