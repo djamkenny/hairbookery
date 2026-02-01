@@ -118,17 +118,17 @@ export default {
 				'gradient-card': 'linear-gradient(135deg, hsl(0, 0%, 100%) 0%, hsl(205, 85%, 98%) 100%)',
 			},
 		borderRadius: {
-			lg: '0.1875rem',
-			md: '0.1875rem',
-			sm: '0.1875rem',
-			xl: '0.1875rem',
-			'2xl': '0.1875rem'
+			lg: '0',
+			md: '0',
+			sm: '0',
+			xl: '0',
+			'2xl': '0'
 		},
 			boxShadow: {
-				'professional': '0 4px 20px -4px rgba(100, 181, 246, 0.15)',
-				'professional-lg': '0 8px 32px -8px rgba(100, 181, 246, 0.20)',
-				'elevated': '0 2px 12px rgba(100, 181, 246, 0.10)',
-				'elevated-lg': '0 4px 24px rgba(100, 181, 246, 0.15)',
+				'professional': 'none',
+				'professional-lg': 'none',
+				'elevated': 'none',
+				'elevated-lg': 'none',
 			},
 			keyframes: {
 				'accordion-down': {
